@@ -1,0 +1,35 @@
+name: Scrape gold rates
+
+on:
+  schedule:
+    - cron: '17 */2 * * *' # every 2 hours
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Scrape rates
+        run: node scraper/scrape.mjs
+      - name: Commit if changed
+        run: |
+          git config user.name "ccbuddy-rates-bot"
+          git config user.email "actions@users.noreply.github.com"
+          if ! git diff --quiet docs/rates.json; then
+            git add docs/rates.json
+            git commit -m "Update rates $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push
+          else
+            echo "No change"
+          fi

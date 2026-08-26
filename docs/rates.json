@@ -1,0 +1,70 @@
+{
+ "updated": "2026-08-26T09:05:54.739Z",
+ "merchants": [
+  {
+   "id": "malabar",
+   "name": "Malabar Gold & Diamonds",
+   "short": "Malabar",
+   "site": "https://www.malabargoldanddiamonds.com/in/pan-india/en/live-gold-rate.html",
+   "note": "One India One Gold Rate, from the getMetalRate GraphQL call their live-rate page makes.",
+   "rate": {
+    "fetched": "2026-08-26T09:05:54.019Z",
+    "buy24": 16375,
+    "buy22": 15010,
+    "ok": true
+   },
+   "spark": [
+    16375
+   ]
+  },
+  {
+   "id": "kalyan",
+   "name": "Kalyan Jewellers (Candere)",
+   "short": "Kalyan",
+   "site": "https://www.candere.com/gold-rate-today/hyderabad",
+   "note": "Candere Hyderabad board — swap the city in the URL for another market. Page prints per-10g.",
+   "rate": {
+    "fetched": "2026-08-26T09:05:54.172Z",
+    "buy24": 16386,
+    "buy22": 15010,
+    "ok": true
+   },
+   "spark": [
+    16386
+   ]
+  },
+  {
+   "id": "brpl",
+   "name": "Bangalore Refinery",
+   "short": "BRPL",
+   "site": "https://bangalorerefinery.com/pages/todays-rates",
+   "note": "Wholesale, 18% GST extra. The only board here that prints a buyback.",
+   "rate": {
+    "fetched": "2026-08-26T09:05:54.491Z",
+    "buy24": 16590,
+    "buy22": 15360,
+    "sell22": 15020,
+    "ok": true
+   },
+   "spark": [
+    16590
+   ]
+  },
+  {
+   "id": "png",
+   "name": "PNG Jewellers",
+   "short": "PNG",
+   "site": "https://www.pngjewellers.com/",
+   "note": "Online purchase rate as published on the storefront.",
+   "rate": {
+    "fetched": "2026-08-26T09:05:54.739Z",
+    "buy24": 16204,
+    "buy22": 14998,
+    "ok": true
+   },
+   "spark": [
+    16204
+   ]
+  }
+ ]
+}
