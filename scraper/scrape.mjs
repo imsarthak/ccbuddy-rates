@@ -33,7 +33,8 @@ async function post(url, body, headers = {}) {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'User-Agent': UA, 'Content-Type': 'application/json', ...headers },
-      body: JSON.stringify(body),
+      // string bodies pass through raw (socket.io frames); objects go as JSON
+      body: typeof body === 'string' ? body : JSON.stringify(body),
       signal: ctrl.signal,
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -293,6 +294,37 @@ const MERCHANTS = [
       if (!Number.isFinite(buy24)) throw new Error('preTaxAmount missing')
       // They only mint 999 fine — 22K shown as the standard 916 fraction.
       return { buy24, buy22: Math.round(buy24 * 0.916), derived22: true }
+    },
+  },
+  {
+    id: 'aspect',
+    name: 'Aspect Bullion',
+    short: 'Aspect',
+    market: 'Bengaluru',
+    site: 'https://aspectbullion.com/',
+    note: 'Live bullion dealer board (999 fine, quoted per 10 g). 22K is derived; buyback included.',
+    // Adapter: their socket.io LiveData feed, read over the polling transport
+    // (handshake -> namespace connect -> one poll) so no client dependency.
+    async fetchRate() {
+      const base = 'https://aspectbullion.com:8022/socket.io/?EIO=4&transport=polling'
+      const hs = await get(base)
+      const sid = JSON.parse(hs.slice(hs.indexOf('{'))).sid
+      await post(`${base}&sid=${sid}`, '40')
+      let frame = ''
+      for (let i = 0; i < 5 && !frame.includes('"gold999"'); i++) {
+        frame = await get(`${base}&sid=${sid}`)
+      }
+      const m = frame.match(/42\["LiveData",(\[.*?\])\]/s)
+      if (!m) throw new Error('no LiveData frame')
+      const rows = JSON.parse(m[1])
+      const spot = rows.find((r) => r.symbol === 'gold')
+      const fine = rows.find((r) => r.symbol === 'gold999')
+      if (!spot || !fine) throw new Error('gold rows missing')
+      const buy24 = (num(fine.Ask) + num(fine.premiumAsk)) / 10 // board quotes per 10 g
+      const rate = { buy24: Math.round(buy24), buy22: Math.round(buy24 * 0.916), derived22: true }
+      const bid = num(spot.Bid) + num(fine.premiumBid)
+      if (Number.isFinite(bid) && bid > 0) rate.sell22 = Math.round(bid / 10)
+      return rate
     },
   },
 ]
