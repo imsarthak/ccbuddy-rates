@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-27T19:31:30.209Z",
+ "updated": "2026-08-27T19:37:43.804Z",
  "merchants": [
   {
    "id": "malabar",
@@ -7,6 +7,7 @@
    "short": "Malabar",
    "site": "https://www.malabargoldanddiamonds.com/in/pan-india/en/live-gold-rate.html",
    "note": "One India One Gold Rate, from the getMetalRate GraphQL call their live-rate page makes.",
+   "market": "Pan-India",
    "rate": {
     "fetched": "2026-08-27T09:55:51.328Z",
     "buy24": 16064,
@@ -33,8 +34,9 @@
    "short": "Kalyan",
    "site": "https://www.candere.com/gold-rate-today/hyderabad",
    "note": "Candere Hyderabad board — swap the city in the URL for another market. Page prints per-10g.",
+   "market": "Hyderabad",
    "rate": {
-    "fetched": "2026-08-27T19:31:24.523Z",
+    "fetched": "2026-08-27T19:37:37.294Z",
     "buy24": 16075,
     "buy22": 14725,
     "ok": true
@@ -49,6 +51,7 @@
     16386,
     16386,
     16386,
+    16075,
     16075
    ]
   },
@@ -58,14 +61,16 @@
    "short": "BRPL",
    "site": "https://bangalorerefinery.com/pages/todays-rates",
    "note": "Wholesale, 18% GST extra. The only board here that prints a buyback.",
+   "market": "Bengaluru",
    "rate": {
-    "fetched": "2026-08-27T19:31:24.735Z",
+    "fetched": "2026-08-27T19:37:37.598Z",
     "buy24": 16590,
     "buy22": 15360,
     "sell22": 15020,
     "ok": true
    },
    "spark": [
+    16590,
     16590,
     16590,
     16590,
@@ -84,8 +89,9 @@
    "short": "PNG",
    "site": "https://www.pngjewellers.com/",
    "note": "Online purchase rate as published on the storefront.",
+   "market": "Online (pan-India)",
    "rate": {
-    "fetched": "2026-08-27T19:31:24.989Z",
+    "fetched": "2026-08-27T19:37:37.851Z",
     "buy24": 15874,
     "buy22": 14692,
     "ok": true
@@ -100,6 +106,7 @@
     16204,
     16204,
     15874,
+    15874,
     15874
    ]
   },
@@ -109,13 +116,15 @@
    "short": "Joyalukkas",
    "site": "https://www.joyalukkas.in/gold-rate",
    "note": "Online-store board, from the getgoldrates GraphQL call their site makes.",
+   "market": "Online (Bengaluru)",
    "rate": {
-    "fetched": "2026-08-27T19:31:25.797Z",
+    "fetched": "2026-08-27T19:37:38.461Z",
     "buy24": 16064,
     "buy22": 14725,
     "ok": true
    },
    "spark": [
+    16064,
     16064
    ]
   },
@@ -125,13 +134,16 @@
    "short": "DP",
    "site": "https://www.dpjewellers.com/",
    "note": "Storefront board, from the metalPrices Magento GraphQL call.",
+   "market": "Online (pan-India)",
+   "hidden": true,
    "rate": {
-    "fetched": "2026-08-27T19:31:26.082Z",
+    "fetched": "2026-08-27T19:37:38.711Z",
     "buy24": 15870,
     "buy22": 14537,
     "ok": true
    },
    "spark": [
+    15870,
     15870
    ]
   },
@@ -141,13 +153,15 @@
    "short": "Lalithaa",
    "site": "https://www.lalithaajewellery.com/",
    "note": "Telangana board from their public pricing API — rates vary by state.",
+   "market": "Telangana",
    "rate": {
-    "fetched": "2026-08-27T19:31:26.535Z",
+    "fetched": "2026-08-27T19:37:39.312Z",
     "buy24": 16075,
     "buy22": 14725,
     "ok": true
    },
    "spark": [
+    16075,
     16075
    ]
   },
@@ -157,13 +171,15 @@
    "short": "GRT",
    "site": "https://www.grtjewels.com/",
    "note": "Storefront board, from the rate JSON embedded in the homepage.",
+   "market": "Online (Chennai)",
    "rate": {
-    "fetched": "2026-08-27T19:31:26.720Z",
+    "fetched": "2026-08-27T19:37:39.506Z",
     "buy24": 16075,
     "buy22": 14725,
     "ok": true
    },
    "spark": [
+    16075,
     16075
    ]
   },
@@ -173,13 +189,15 @@
    "short": "Indriya",
    "site": "https://www.indriya.com/gold-rate-today",
    "note": "Their 24K board is 995-fine, so it reads slightly under a 999 board.",
+   "market": "Online (pan-India)",
    "rate": {
-    "fetched": "2026-08-27T19:31:30.207Z",
+    "fetched": "2026-08-27T19:37:43.804Z",
     "buy24": 15989.95,
     "buy22": 14720.4,
     "ok": true
    },
    "spark": [
+    15989.95,
     15989.95
    ]
   }

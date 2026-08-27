@@ -41,6 +41,7 @@ const MERCHANTS = [
     id: 'malabar',
     name: 'Malabar Gold & Diamonds',
     short: 'Malabar',
+    market: 'Pan-India',
     site: 'https://www.malabargoldanddiamonds.com/in/pan-india/en/live-gold-rate.html',
     note: 'One India One Gold Rate, from the getMetalRate GraphQL call their live-rate page makes.',
     async fetchRate() {
@@ -65,6 +66,7 @@ const MERCHANTS = [
     id: 'kalyan',
     name: 'Kalyan Jewellers (Candere)',
     short: 'Kalyan',
+    market: 'Hyderabad',
     site: 'https://www.candere.com/gold-rate-today/hyderabad',
     note: 'Candere Hyderabad board — swap the city in the URL for another market. Page prints per-10g.',
     async fetchRate() {
@@ -84,6 +86,7 @@ const MERCHANTS = [
     id: 'brpl',
     name: 'Bangalore Refinery',
     short: 'BRPL',
+    market: 'Bengaluru',
     site: 'https://bangalorerefinery.com/pages/todays-rates',
     note: 'Wholesale, 18% GST extra. The only board here that prints a buyback.',
     async fetchRate() {
@@ -110,6 +113,7 @@ const MERCHANTS = [
     id: 'png',
     name: 'PNG Jewellers',
     short: 'PNG',
+    market: 'Online (pan-India)',
     site: 'https://www.pngjewellers.com/',
     note: 'Online purchase rate as published on the storefront.',
     async fetchRate() {
@@ -126,6 +130,7 @@ const MERCHANTS = [
     id: 'joyalukkas',
     name: 'Joyalukkas',
     short: 'Joyalukkas',
+    market: 'Online (Bengaluru)',
     site: 'https://www.joyalukkas.in/gold-rate',
     note: 'Online-store board, from the getgoldrates GraphQL call their site makes.',
     async fetchRate() {
@@ -141,6 +146,8 @@ const MERCHANTS = [
     id: 'dp',
     name: 'D.P. Jewellers',
     short: 'DP',
+    market: 'Online (pan-India)',
+    hidden: true, // still scraped for history; not shown in the app for now
     site: 'https://www.dpjewellers.com/',
     note: 'Storefront board, from the metalPrices Magento GraphQL call.',
     async fetchRate() {
@@ -158,6 +165,7 @@ const MERCHANTS = [
     id: 'lalithaa',
     name: 'Lalithaa Jewellery',
     short: 'Lalithaa',
+    market: 'Telangana',
     site: 'https://www.lalithaajewellery.com/',
     note: 'Telangana board from their public pricing API — rates vary by state.',
     async fetchRate() {
@@ -175,6 +183,7 @@ const MERCHANTS = [
     id: 'grt',
     name: 'GRT Jewellers',
     short: 'GRT',
+    market: 'Online (Chennai)',
     site: 'https://www.grtjewels.com/',
     note: 'Storefront board, from the rate JSON embedded in the homepage.',
     async fetchRate() {
@@ -193,6 +202,7 @@ const MERCHANTS = [
     id: 'indriya',
     name: 'Indriya (Aditya Birla)',
     short: 'Indriya',
+    market: 'Online (pan-India)',
     site: 'https://www.indriya.com/gold-rate-today',
     note: "Their 24K board is 995-fine, so it reads slightly under a 999 board.",
     async fetchRate() {
@@ -235,7 +245,8 @@ async function main() {
   const merchants = []
   for (const m of MERCHANTS) {
     const prev = prevById.get(m.id)
-    const entry = { id: m.id, name: m.name, short: m.short, site: m.site, note: m.note }
+    const entry = { id: m.id, name: m.name, short: m.short, site: m.site, note: m.note, market: m.market }
+    if (m.hidden) entry.hidden = true
     try {
       const r = await m.fetchRate()
       if (!sane(r)) throw new Error(`insane values ${JSON.stringify(r)}`)
