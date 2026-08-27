@@ -122,6 +122,105 @@ const MERCHANTS = [
       return { buy24: grab(24), buy22: grab(22) }
     },
   },
+  {
+    id: 'joyalukkas',
+    name: 'Joyalukkas',
+    short: 'Joyalukkas',
+    site: 'https://www.joyalukkas.in/gold-rate',
+    note: 'Online-store board, from the getgoldrates GraphQL call their site makes.',
+    async fetchRate() {
+      const q = '{ getgoldrates { metal_rate_time Data { BRANCH_CODE BRANCH_NAME GOLD_22KT_RATE GOLD_24KT_RATE } } }'
+      const j = JSON.parse(await get('https://www.joyalukkas.in/graphql?query=' + encodeURIComponent(q)))
+      const rows = j?.data?.getgoldrates?.Data ?? []
+      const row = rows.find((r) => r.BRANCH_CODE === 'ECM') ?? rows[0]
+      if (!row) throw new Error('no branch rows')
+      return { buy24: num(row.GOLD_24KT_RATE), buy22: num(row.GOLD_22KT_RATE) }
+    },
+  },
+  {
+    id: 'dp',
+    name: 'D.P. Jewellers',
+    short: 'DP',
+    site: 'https://www.dpjewellers.com/',
+    note: 'Storefront board, from the metalPrices Magento GraphQL call.',
+    async fetchRate() {
+      const q = '{ metalPrices { metal purity rate_id sale_rate } }'
+      const j = JSON.parse(await get('https://www.dpjewellers.com/graphql?query=' + encodeURIComponent(q)))
+      const rows = (j?.data?.metalPrices ?? []).filter((r) => String(r.metal).toLowerCase() === 'gold')
+      const pick = (p) => rows.find((r) => String(r.purity).toUpperCase().startsWith(p))
+      const g24 = pick('24')
+      const g22 = pick('22')
+      if (!g24 || !g22) throw new Error('22KT/24KT rows missing')
+      return { buy24: num(g24.sale_rate), buy22: num(g22.sale_rate) }
+    },
+  },
+  {
+    id: 'lalithaa',
+    name: 'Lalithaa Jewellery',
+    short: 'Lalithaa',
+    site: 'https://www.lalithaajewellery.com/',
+    note: 'Telangana board from their public pricing API — rates vary by state.',
+    async fetchRate() {
+      const states = JSON.parse(await get('https://api.lalithaajewellery.com/public/states?limit=50'))
+      const rows = states?.data?.items ?? []
+      const state = rows.find((s) => /telangana/i.test(s.name ?? ''))
+      if (!state?.id) throw new Error('Telangana state id not found')
+      const j = JSON.parse(await get(`https://api.lalithaajewellery.com/public/pricings/latest?state_id=${state.id}`))
+      const prices = j?.data?.prices
+      if (!prices?.gold_24kt || !prices?.gold_22kt) throw new Error('gold prices missing')
+      return { buy24: num(prices.gold_24kt.price), buy22: num(prices.gold_22kt.price) }
+    },
+  },
+  {
+    id: 'grt',
+    name: 'GRT Jewellers',
+    short: 'GRT',
+    site: 'https://www.grtjewels.com/',
+    note: 'Storefront board, from the rate JSON embedded in the homepage.',
+    async fetchRate() {
+      const html = await get(this.site)
+      const grab = (karat) => {
+        // The rate JSON sits backslash-escaped inside a larger JSON string,
+        // so quotes may appear as \" — tolerate the optional backslashes.
+        const m = html.match(new RegExp('purity\\\\?":\\\\?"' + karat + ' KT\\\\?",\\\\?"amount\\\\?":([\\d.]+)'))
+        if (!m) throw new Error(`${karat} KT pattern not found`)
+        return num(m[1])
+      }
+      return { buy24: grab(24), buy22: grab(22) }
+    },
+  },
+  {
+    id: 'indriya',
+    name: 'Indriya (Aditya Birla)',
+    short: 'Indriya',
+    site: 'https://www.indriya.com/gold-rate-today',
+    note: "Their 24K board is 995-fine, so it reads slightly under a 999 board.",
+    async fetchRate() {
+      const url =
+        'https://www.indriya.com/content/noveljewels/in/en/gold-rate-today/jcr:content/root/container/container/container_copy_copy__1497933197/chartcomponent.goldChart.json?storeId=NS0001'
+      const outer = JSON.parse(await get(url))
+      const inner = JSON.parse(outer.ratesJson) // stringified JSON inside JSON
+      const purities = inner?.purities ?? []
+      // Nesting under each purity varies — walk it for gold_rate.today.
+      const findRate = (node) => {
+        if (!node || typeof node !== 'object') return undefined
+        if (node.gold_rate?.today != null) return num(node.gold_rate.today)
+        for (const v of Object.values(node)) {
+          const hit = findRate(v)
+          if (hit != null) return hit
+        }
+        return undefined
+      }
+      const rateFor = (prefix) => {
+        const p = purities.find((x) => String(x.purity).toUpperCase().startsWith(prefix))
+        if (!p) throw new Error(`${prefix} purity missing`)
+        const r = findRate(p)
+        if (r == null) throw new Error(`${prefix} gold_rate.today missing`)
+        return r
+      }
+      return { buy24: rateFor('24'), buy22: rateFor('22') }
+    },
+  },
 ]
 
 async function main() {
