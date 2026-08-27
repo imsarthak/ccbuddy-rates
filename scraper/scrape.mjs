@@ -43,7 +43,8 @@ const MERCHANTS = [
     short: 'Malabar',
     market: 'Pan-India',
     site: 'https://www.malabargoldanddiamonds.com/in/pan-india/en/live-gold-rate.html',
-    note: 'One India One Gold Rate, from the getMetalRate GraphQL call their live-rate page makes.',
+    // Adapter: getMetalRate GraphQL call from their live-rate page.
+    note: 'Their One India One Gold Rate, as published on malabargoldanddiamonds.com.',
     async fetchRate() {
       const q =
         'query getMetalRate($filter: MetalRateFilterInput) { getMetalRate(filter: $filter) { items { entry_date entry_time purity unit rate country state } } }'
@@ -68,7 +69,8 @@ const MERCHANTS = [
     short: 'Kalyan',
     market: 'Hyderabad',
     site: 'https://www.candere.com/gold-rate-today/hyderabad',
-    note: 'Candere Hyderabad board — swap the city in the URL for another market. Page prints per-10g.',
+    // Adapter: rate card regex on the Candere city page (prints per-10g; swap city in URL).
+    note: "Kalyan's online arm Candere — Hyderabad board.",
     async fetchRate() {
       const html = await get(this.site)
       const grab = (karat) => {
@@ -88,7 +90,7 @@ const MERCHANTS = [
     short: 'BRPL',
     market: 'Bengaluru',
     site: 'https://bangalorerefinery.com/pages/todays-rates',
-    note: 'Wholesale, 18% GST extra. The only board here that prints a buyback.',
+    note: 'Wholesale refinery rate, 18% GST extra — the only board here with a published buyback.',
     async fetchRate() {
       const txt = await get('https://www.bangalorerefinery.com/cdn/shop/files/rates.txt')
       const pairs = JSON.parse(txt).map(([label, price]) => [String(label).replace(/\s+/g, ' ').trim(), price])
@@ -115,7 +117,7 @@ const MERCHANTS = [
     short: 'PNG',
     market: 'Online (pan-India)',
     site: 'https://www.pngjewellers.com/',
-    note: 'Online purchase rate as published on the storefront.',
+    note: 'As published on their online store.',
     async fetchRate() {
       const html = await get(this.site)
       const grab = (karat) => {
@@ -132,7 +134,8 @@ const MERCHANTS = [
     short: 'Joyalukkas',
     market: 'Online (Bengaluru)',
     site: 'https://www.joyalukkas.in/gold-rate',
-    note: 'Online-store board, from the getgoldrates GraphQL call their site makes.',
+    // Adapter: getgoldrates GraphQL; ECM = their online-shop Bangalore branch.
+    note: 'As published on their online store.',
     async fetchRate() {
       const q = '{ getgoldrates { metal_rate_time Data { BRANCH_CODE BRANCH_NAME GOLD_22KT_RATE GOLD_24KT_RATE } } }'
       const j = JSON.parse(await get('https://www.joyalukkas.in/graphql?query=' + encodeURIComponent(q)))
@@ -149,7 +152,8 @@ const MERCHANTS = [
     market: 'Online (pan-India)',
     hidden: true, // still scraped for history; not shown in the app for now
     site: 'https://www.dpjewellers.com/',
-    note: 'Storefront board, from the metalPrices Magento GraphQL call.',
+    // Adapter: metalPrices Magento GraphQL.
+    note: 'As published on their online store.',
     async fetchRate() {
       const q = '{ metalPrices { metal purity rate_id sale_rate } }'
       const j = JSON.parse(await get('https://www.dpjewellers.com/graphql?query=' + encodeURIComponent(q)))
@@ -167,7 +171,8 @@ const MERCHANTS = [
     short: 'Lalithaa',
     market: 'Telangana',
     site: 'https://www.lalithaajewellery.com/',
-    note: 'Telangana board from their public pricing API — rates vary by state.',
+    // Adapter: their public pricing API (states -> pricings/latest).
+    note: 'Their Telangana board — Lalithaa rates vary by state.',
     async fetchRate() {
       const states = JSON.parse(await get('https://api.lalithaajewellery.com/public/states?limit=50'))
       const rows = states?.data?.items ?? []
@@ -185,7 +190,8 @@ const MERCHANTS = [
     short: 'GRT',
     market: 'Online (Chennai)',
     site: 'https://www.grtjewels.com/',
-    note: 'Storefront board, from the rate JSON embedded in the homepage.',
+    // Adapter: rate JSON embedded (escaped) in the homepage.
+    note: 'As published on their online store.',
     async fetchRate() {
       const html = await get(this.site)
       const grab = (karat) => {
@@ -204,7 +210,8 @@ const MERCHANTS = [
     short: 'Indriya',
     market: 'Online (pan-India)',
     site: 'https://www.indriya.com/gold-rate-today',
-    note: "Their 24K board is 995-fine, so it reads slightly under a 999 board.",
+    // Adapter: AEM goldChart JSON (double-parsed ratesJson).
+    note: "As published on their online store. Their 24K is 995-fine, so it reads slightly under a 999 board.",
     async fetchRate() {
       const url =
         'https://www.indriya.com/content/noveljewels/in/en/gold-rate-today/jcr:content/root/container/container/container_copy_copy__1497933197/chartcomponent.goldChart.json?storeId=NS0001'
