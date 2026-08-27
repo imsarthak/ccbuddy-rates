@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-27T20:34:30.685Z",
+ "updated": "2026-08-27T21:02:02.767Z",
  "merchants": [
   {
    "id": "malabar",
@@ -36,7 +36,7 @@
    "note": "Kalyan's online arm Candere — Hyderabad board.",
    "market": "Hyderabad",
    "rate": {
-    "fetched": "2026-08-27T20:34:13.683Z",
+    "fetched": "2026-08-27T21:01:51.232Z",
     "buy24": 16075,
     "buy22": 14725,
     "ok": true
@@ -54,6 +54,7 @@
     16075,
     16075,
     16075,
+    16075,
     16075
    ]
   },
@@ -65,13 +66,14 @@
    "note": "Wholesale refinery rate, 18% GST extra — the only board here with a published buyback.",
    "market": "Bengaluru",
    "rate": {
-    "fetched": "2026-08-27T20:34:14.876Z",
+    "fetched": "2026-08-27T21:01:52.956Z",
     "buy24": 16590,
     "buy22": 15360,
     "sell22": 15020,
     "ok": true
    },
    "spark": [
+    16590,
     16590,
     16590,
     16590,
@@ -95,7 +97,7 @@
    "note": "As published on their online store.",
    "market": "Online (pan-India)",
    "rate": {
-    "fetched": "2026-08-27T20:34:16.005Z",
+    "fetched": "2026-08-27T21:01:53.246Z",
     "buy24": 15874,
     "buy22": 14692,
     "ok": true
@@ -113,6 +115,7 @@
     15874,
     15874,
     15874,
+    15874,
     15874
    ]
   },
@@ -124,12 +127,13 @@
    "note": "As published on their online store.",
    "market": "Online (Bengaluru)",
    "rate": {
-    "fetched": "2026-08-27T20:34:17.777Z",
+    "fetched": "2026-08-27T21:01:54.520Z",
     "buy24": 16064,
     "buy22": 14725,
     "ok": true
    },
    "spark": [
+    16064,
     16064,
     16064,
     16064,
@@ -145,12 +149,13 @@
    "market": "Online (pan-India)",
    "hidden": true,
    "rate": {
-    "fetched": "2026-08-27T20:34:18.995Z",
+    "fetched": "2026-08-27T21:01:55.765Z",
     "buy24": 15870,
     "buy22": 14537,
     "ok": true
    },
    "spark": [
+    15870,
     15870,
     15870,
     15870,
@@ -165,12 +170,13 @@
    "note": "Their Telangana board — Lalithaa rates vary by state.",
    "market": "Telangana",
    "rate": {
-    "fetched": "2026-08-27T20:34:20.894Z",
+    "fetched": "2026-08-27T21:01:57.670Z",
     "buy24": 16075,
     "buy22": 14725,
     "ok": true
    },
    "spark": [
+    16075,
     16075,
     16075,
     16075,
@@ -185,12 +191,13 @@
    "note": "As published on their online store.",
    "market": "Online (Chennai)",
    "rate": {
-    "fetched": "2026-08-27T20:34:22.329Z",
+    "fetched": "2026-08-27T21:01:58.187Z",
     "buy24": 16075,
     "buy22": 14725,
     "ok": true
    },
    "spark": [
+    16075,
     16075,
     16075,
     16075,
@@ -205,12 +212,13 @@
    "note": "As published on their online store. Their 24K is 995-fine, so it reads slightly under a 999 board.",
    "market": "Online (pan-India)",
    "rate": {
-    "fetched": "2026-08-27T20:34:30.685Z",
+    "fetched": "2026-08-27T21:02:02.767Z",
     "buy24": 15989.95,
     "buy22": 14720.4,
     "ok": true
    },
    "spark": [
+    15989.95,
     15989.95,
     15989.95,
     15989.95,
