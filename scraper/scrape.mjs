@@ -6,6 +6,10 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
+
+const execFileAsync = promisify(execFile)
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = join(ROOT, 'docs', 'rates.json')
@@ -23,6 +27,30 @@ async function get(url, headers = {}) {
     return await res.text()
   } finally {
     clearTimeout(t)
+  }
+}
+
+// Fetch via the system curl binary. Some Cloudflare rules block node's undici
+// TLS fingerprint but pass curl's, so this is the escape hatch for those hosts
+// (verified: Bhima 403s node fetch but 200s curl, from any IP). curl ships on
+// the GitHub Actions ubuntu runner and on dev machines.
+async function curlGet(url, headers = {}) {
+  const args = [
+    '-sS', '--compressed', '-L', '--max-time', String(TIMEOUT_MS / 1000),
+    '--fail', // non-2xx -> non-zero exit, so we throw like get()
+    '-A', headers['User-Agent'] ?? UA,
+  ]
+  for (const [k, v] of Object.entries(headers)) {
+    if (k === 'User-Agent') continue
+    args.push('-H', `${k}: ${v}`)
+  }
+  args.push(url)
+  try {
+    const { stdout } = await execFileAsync('curl', args, { maxBuffer: 8 * 1024 * 1024 })
+    return stdout
+  } catch (e) {
+    const code = /(\b\d{3}\b)/.exec(e.stderr ?? '')?.[1]
+    throw new Error(code ? `HTTP ${code}` : `curl failed: ${String(e.message ?? e).slice(0, 80)}`)
   }
 }
 
@@ -148,7 +176,7 @@ const MERCHANTS = [
     id: 'png',
     name: 'PNG Jewellers',
     short: 'PNG',
-    market: 'Online (pan-India)',
+    market: 'Pan-India',
     site: 'https://www.pngjewellers.com/',
     note: 'As published on their online store.',
     async fetchRate() {
@@ -165,7 +193,7 @@ const MERCHANTS = [
     id: 'joyalukkas',
     name: 'Joyalukkas',
     short: 'Joyalukkas',
-    market: 'Online (Bengaluru)',
+    market: 'Bengaluru',
     site: 'https://www.joyalukkas.in/gold-rate',
     // Adapter: getgoldrates GraphQL; ECM = their online-shop Bangalore branch.
     note: 'As published on their online store.',
@@ -182,7 +210,7 @@ const MERCHANTS = [
     id: 'dp',
     name: 'D.P. Jewellers',
     short: 'DP',
-    market: 'Online (pan-India)',
+    market: 'Pan-India',
     hidden: true, // still scraped for history; not shown in the app for now
     site: 'https://www.dpjewellers.com/',
     // Adapter: metalPrices Magento GraphQL.
@@ -221,7 +249,7 @@ const MERCHANTS = [
     id: 'grt',
     name: 'GRT Jewellers',
     short: 'GRT',
-    market: 'Online (Chennai)',
+    market: 'Chennai',
     site: 'https://www.grtjewels.com/',
     // Adapter: rate JSON embedded (escaped) in the homepage.
     note: 'As published on their online store.',
@@ -241,18 +269,15 @@ const MERCHANTS = [
     id: 'bhima',
     name: 'Bhima Jewellers',
     short: 'Bhima',
-    market: 'Online (pan-India)',
-    // Cloudflare 403s node's fetch (undici) on TLS/JA3 fingerprint — curl gets
-    // 200, node fetch does not, and it fails from residential AND datacenter
-    // (CI) IPs alike as of 2026-08-28. Still scraped for history; hidden in the
-    // app until we fetch through something with a browser-like TLS stack (proxy).
-    hidden: true,
+    market: 'Pan-India',
+    // Cloudflare 403s node's fetch (undici TLS fingerprint) but passes curl —
+    // so this one fetches via the curl binary. Verified 200 from curl on both
+    // residential and CI (datacenter) IPs, 2026-08-28.
     site: 'https://www.bhimagold.com/',
     // Adapter: metalrate2.rateArray JSON embedded in the homepage HTML.
-    // Behind Cloudflare — send full browser navigation headers.
     note: 'As published on their online store.',
     async fetchRate() {
-      const html = await get(this.site, {
+      const html = await curlGet(this.site, {
         ...BROWSER_HEADERS,
         // Look like an HTML page navigation, not a same-origin JSON XHR.
         Accept:
@@ -279,7 +304,7 @@ const MERCHANTS = [
     id: 'indriya',
     name: 'Indriya (Aditya Birla)',
     short: 'Indriya',
-    market: 'Online (pan-India)',
+    market: 'Pan-India',
     site: 'https://www.indriya.com/gold-rate-today',
     // Adapter: AEM goldChart JSON (double-parsed ratesJson).
     note: "As published on their online store. Their 24K is 995-fine, so it reads slightly under a 999 board.",
@@ -313,7 +338,7 @@ const MERCHANTS = [
     id: 'mmtc',
     name: 'MMTC-PAMP',
     short: 'MMTC',
-    market: 'Online (pan-India)',
+    market: 'Pan-India',
     site: 'https://www.mmtcpamp.com/gold-silver-rate-today',
     note: 'Minted-bar buy price before GST — sits above a plain spot rate. 22K is derived.',
     // Adapter: their getQuote API; Akamai wants full browser headers.
