@@ -59,7 +59,9 @@ async function curlGet(url, headers = {}) {
 // fingerprint + datacenter IP) and Tanishq (host-wide datacenter-IP block).
 // proxy:'auto' starts basic (1 credit) and escalates to stealth only if needed.
 async function firecrawlGet(url) {
-  const key = process.env.FIRECRAWL_API_KEY
+  // Strip BOM/whitespace — secrets set via piped stdin on Windows can carry
+  // a U+FEFF prefix that poisons the Authorization header.
+  const key = (process.env.FIRECRAWL_API_KEY ?? '').replace(/^\uFEFF/, '').trim()
   if (!key) throw new Error('FIRECRAWL_API_KEY not set')
   const res = await fetch('https://api.firecrawl.dev/v2/scrape', {
     method: 'POST',
