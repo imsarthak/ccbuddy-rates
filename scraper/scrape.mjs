@@ -270,9 +270,12 @@ const MERCHANTS = [
     name: 'Bhima Jewellers',
     short: 'Bhima',
     market: 'Pan-India',
-    // Cloudflare 403s node's fetch (undici TLS fingerprint) but passes curl —
-    // so this one fetches via the curl binary. Verified 200 from curl on both
-    // residential and CI (datacenter) IPs, 2026-08-28.
+    // Cloudflare blocks in layers here: node's undici TLS fingerprint is
+    // refused from ANY IP, and curl (whose TLS passes) is refused from
+    // datacenter IPs (CI 403, residential 200 — tested 2026-08-28). So the
+    // adapter uses curl and works locally, but CI needs a residential egress.
+    // Hidden until then; history accrues whenever a run succeeds.
+    hidden: true,
     site: 'https://www.bhimagold.com/',
     // Adapter: metalrate2.rateArray JSON embedded in the homepage HTML.
     note: 'As published on their online store.',
