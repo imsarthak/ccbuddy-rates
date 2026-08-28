@@ -54,6 +54,26 @@ async function curlGet(url, headers = {}) {
   }
 }
 
+// Fetch through Firecrawl (real headless browser + proxy pool) for the two
+// hosts whose Cloudflare rules block every direct path from CI: Bhima (TLS
+// fingerprint + datacenter IP) and Tanishq (host-wide datacenter-IP block).
+// proxy:'auto' starts basic (1 credit) and escalates to stealth only if needed.
+async function firecrawlGet(url) {
+  const key = process.env.FIRECRAWL_API_KEY
+  if (!key) throw new Error('FIRECRAWL_API_KEY not set')
+  const res = await fetch('https://api.firecrawl.dev/v2/scrape', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url, formats: ['rawHtml'], proxy: 'auto', timeout: 60000 }),
+    signal: AbortSignal.timeout(90000),
+  })
+  const j = await res.json().catch(() => ({}))
+  if (!res.ok || !j.success) throw new Error(`firecrawl ${res.status}: ${String(j.error ?? '').slice(0, 80)}`)
+  const html = j.data?.rawHtml ?? ''
+  if (!html) throw new Error('firecrawl returned empty rawHtml')
+  return html
+}
+
 async function post(url, body, headers = {}) {
   const ctrl = new AbortController()
   const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS)
@@ -270,26 +290,13 @@ const MERCHANTS = [
     name: 'Bhima Jewellers',
     short: 'Bhima',
     market: 'Pan-India',
-    // Cloudflare blocks in layers here: node's undici TLS fingerprint is
-    // refused from ANY IP, and curl (whose TLS passes) is refused from
-    // datacenter IPs (CI 403, residential 200 — tested 2026-08-28). So the
-    // adapter uses curl and works locally, but CI needs a residential egress.
-    // Hidden until then; history accrues whenever a run succeeds.
-    hidden: true,
+    // Direct fetches are dead ends here (Cloudflare blocks undici's TLS from
+    // any IP, and curl from datacenter IPs) — fetched via Firecrawl instead.
     site: 'https://www.bhimagold.com/',
     // Adapter: metalrate2.rateArray JSON embedded in the homepage HTML.
     note: 'As published on their online store.',
     async fetchRate() {
-      const html = await curlGet(this.site, {
-        ...BROWSER_HEADERS,
-        // Look like an HTML page navigation, not a same-origin JSON XHR.
-        Accept:
-          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Upgrade-Insecure-Requests': '1',
-      })
+      const html = await firecrawlGet(this.site)
       const grab = (karat, fine) => {
         // rateArray entries look like {"metal":"Online Gold Rate 24 KT (999)","rate":"₹16,079.00/g"}.
         // Tolerate optional backslash escaping (\") in case the block is nested in a JSON string, like GRT.
@@ -301,6 +308,27 @@ const MERCHANTS = [
         return num(m[1])
       }
       return { buy24: grab(24, 999), buy22: grab(22, 916) }
+    },
+  },
+  {
+    id: 'tanishq',
+    name: 'Tanishq',
+    short: 'Tanishq',
+    market: 'Bengaluru',
+    // Host-wide Cloudflare datacenter-IP block — fetched via Firecrawl.
+    site: 'https://www.tanishq.co.in/gold-rate.html',
+    // Adapter: data-goldrate attributes inline on their app-goldrate webview
+    // page (lighter than gold-rate.html, same data; defaults to the Bengaluru
+    // city board).
+    note: 'Their published city board — rates vary by city.',
+    async fetchRate() {
+      const html = await firecrawlGet('https://www.tanishq.co.in/app-goldrate')
+      const grab = (attr) => {
+        const m = html.match(new RegExp(`data-goldrate${attr}="([0-9.]+)"`))
+        if (!m) throw new Error(`goldrate ${attr} attribute not found`)
+        return num(m[1])
+      }
+      return { buy24: grab('24kt'), buy22: grab('22kt') }
     },
   },
   {

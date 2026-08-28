@@ -22,6 +22,8 @@ jobs:
           node-version: 20
       - name: Scrape rates
         run: node scraper/scrape.mjs
+        env:
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
       - name: Commit if changed
         run: |
           git config user.name "ccbuddy-rates-bot"
