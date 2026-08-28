@@ -238,6 +238,39 @@ const MERCHANTS = [
     },
   },
   {
+    id: 'bhima',
+    name: 'Bhima Jewellers',
+    short: 'Bhima',
+    market: 'Online (pan-India)',
+    site: 'https://www.bhimagold.com/',
+    // Adapter: metalrate2.rateArray JSON embedded in the homepage HTML.
+    // Behind Cloudflare — send full browser navigation headers.
+    note: 'As published on their online store.',
+    async fetchRate() {
+      const html = await get(this.site, {
+        ...BROWSER_HEADERS,
+        // Look like an HTML page navigation, not a same-origin JSON XHR.
+        Accept:
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Upgrade-Insecure-Requests': '1',
+      })
+      const grab = (karat, fine) => {
+        // rateArray entries look like {"metal":"Online Gold Rate 24 KT (999)","rate":"₹16,079.00/g"}.
+        // Tolerate optional backslash escaping (\") in case the block is nested in a JSON string, like GRT.
+        const re = new RegExp(
+          'Online Gold Rate ' + karat + ' KT \\(' + fine + '\\)\\\\?",\\\\?"rate\\\\?":\\\\?"[^0-9]*([0-9,.]+)',
+        )
+        const m = html.match(re)
+        if (!m) throw new Error(`${karat} KT (${fine}) pattern not found`)
+        return num(m[1])
+      }
+      return { buy24: grab(24, 999), buy22: grab(22, 916) }
+    },
+  },
+  {
     id: 'indriya',
     name: 'Indriya (Aditya Birla)',
     short: 'Indriya',
