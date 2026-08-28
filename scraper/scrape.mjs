@@ -242,6 +242,11 @@ const MERCHANTS = [
     name: 'Bhima Jewellers',
     short: 'Bhima',
     market: 'Online (pan-India)',
+    // Cloudflare 403s node's fetch (undici) on TLS/JA3 fingerprint — curl gets
+    // 200, node fetch does not, and it fails from residential AND datacenter
+    // (CI) IPs alike as of 2026-08-28. Still scraped for history; hidden in the
+    // app until we fetch through something with a browser-like TLS stack (proxy).
+    hidden: true,
     site: 'https://www.bhimagold.com/',
     // Adapter: metalrate2.rateArray JSON embedded in the homepage HTML.
     // Behind Cloudflare — send full browser navigation headers.
