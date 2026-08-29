@@ -1,0 +1,3 @@
+
+# Local-only Senco app-id for verification (never commit)
+.senco.env
