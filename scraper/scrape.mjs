@@ -423,6 +423,27 @@ const MERCHANTS = [
       return rate
     },
   },
+  {
+    id: 'thangamayil',
+    name: 'Thangamayil Jewellery',
+    short: 'Thangamayil',
+    market: 'Madurai',
+    site: 'https://www.thangamayil.com/scheme/index/rateshistory/',
+    // Adapter: server-rendered marquee ticker on the rates-history page.
+    // The homepage carries the same markup but Cloudflare-caches it stale —
+    // only this page is cf-cache-status DYNAMIC. Rates are per gram (1gm),
+    // despite the Tamil Nadu per-sovereign convention.
+    note: 'Madurai board — the ticker on their rates page, per gram.',
+    async fetchRate() {
+      const html = await get(this.site)
+      const grab = (k) => {
+        const m = html.match(new RegExp(`GOLD RATE ${k}k \\(1gm\\):\\s*<span class="rate">₹([\\d,]+)`))
+        if (!m) throw new Error(`${k}K pattern not found`)
+        return num(m[1])
+      }
+      return { buy24: grab(24), buy22: grab(22) }
+    },
+  },
 ]
 
 async function main() {
