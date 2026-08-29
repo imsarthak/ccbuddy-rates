@@ -469,9 +469,10 @@ const MERCHANTS = [
     site: 'https://sencogoldanddiamonds.com/gold-rate',
     // Adapter: the rate list behind their price calculator. A public app-id
     // (baked into their site JS, shipped to every anonymous visitor) gates the
-    // JSON; 24K is the 99.99 line, 22K is the 916 line — both INR per gram.
-    // The app-id is supplied via env/secret (SENCO_CLIENT_ID), never hardcoded.
-    // Fetched through Firecrawl for residential egress + header forwarding.
+    // JSON. Purity names are fineness decimals: 24K = "99.99", 22K = "91.66"
+    // (91.6%). Both INR per gram. The app-id is supplied via env/secret
+    // (SENCO_CLIENT_ID), never hardcoded. Fetched through Firecrawl for
+    // residential egress + header forwarding.
     note: 'The rate list behind their online price calculator.',
     async fetchRate() {
       const clientId = (process.env.SENCO_CLIENT_ID ?? '').replace(/^﻿/, '').trim()
@@ -482,9 +483,9 @@ const MERCHANTS = [
         Referer: 'https://sencogoldanddiamonds.com/',
       })
       const gold = j.GOLD ?? j.gold ?? []
-      const line = (name) => gold.find((x) => String(x.name).replace(/[^\d.]/g, '') === name)
-      const g24 = line('99.99') ?? line('999.9') ?? gold.find((x) => /24/.test(String(x.name)))
-      const g22 = line('916') ?? line('91.6') ?? gold.find((x) => /22/.test(String(x.name)))
+      const starts = (p) => gold.find((x) => String(x.name).trim().startsWith(p))
+      const g24 = starts('99.99') ?? starts('99.9') // 999.9 fine = 24K
+      const g22 = starts('91.66') ?? starts('91.6') ?? starts('91') // 916 = 22K
       if (!g24 || !g22) throw new Error(`purity lines missing (${gold.map((x) => x.name).join(',')})`)
       return { buy24: num(g24.price), buy22: num(g22.price) }
     },
