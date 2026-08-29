@@ -250,7 +250,6 @@ const MERCHANTS = [
     name: 'D.P. Jewellers',
     short: 'DP',
     market: 'Pan-India',
-    hidden: true, // still scraped for history; not shown in the app for now
     site: 'https://www.dpjewellers.com/',
     // Adapter: metalPrices Magento GraphQL.
     note: 'As published on their online store.',
