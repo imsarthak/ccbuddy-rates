@@ -24,6 +24,7 @@ jobs:
         run: node scraper/scrape.mjs
         env:
           FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          SENCO_CLIENT_ID: ${{ secrets.SENCO_CLIENT_ID }}
       - name: Commit if changed
         run: |
           git config user.name "ccbuddy-rates-bot"

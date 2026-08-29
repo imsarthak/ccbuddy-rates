@@ -58,7 +58,7 @@ async function curlGet(url, headers = {}) {
 // hosts whose Cloudflare rules block every direct path from CI: Bhima (TLS
 // fingerprint + datacenter IP) and Tanishq (host-wide datacenter-IP block).
 // proxy:'auto' starts basic (1 credit) and escalates to stealth only if needed.
-async function firecrawlGet(url) {
+async function firecrawlGet(url, extraHeaders = {}) {
   // Strip BOM/whitespace — secrets set via piped stdin on Windows can carry
   // a U+FEFF prefix that poisons the Authorization header.
   const key = (process.env.FIRECRAWL_API_KEY ?? '').replace(/^\uFEFF/, '').trim()
@@ -66,7 +66,15 @@ async function firecrawlGet(url) {
   const res = await fetch('https://api.firecrawl.dev/v2/scrape', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url, formats: ['rawHtml'], proxy: 'auto', timeout: 60000 }),
+    body: JSON.stringify({
+      url,
+      formats: ['rawHtml'],
+      proxy: 'auto',
+      timeout: 60000,
+      // Firecrawl forwards these to the target origin — used to carry a public
+      // app-id a JSON endpoint gates anonymous reads on.
+      ...(Object.keys(extraHeaders).length ? { headers: extraHeaders } : {}),
+    }),
     signal: AbortSignal.timeout(90000),
   })
   const j = await res.json().catch(() => ({}))
@@ -74,6 +82,15 @@ async function firecrawlGet(url) {
   const html = j.data?.rawHtml ?? ''
   if (!html) throw new Error('firecrawl returned empty rawHtml')
   return html
+}
+
+// A JSON REST endpoint rendered through Firecrawl comes back as rawHtml with
+// the body inside the document. Pull the outermost JSON object out.
+async function firecrawlJson(url, extraHeaders = {}) {
+  const html = await firecrawlGet(url, extraHeaders)
+  const m = html.match(/\{[\s\S]*\}/)
+  if (!m) throw new Error('no JSON object in firecrawl response')
+  return JSON.parse(m[0])
 }
 
 async function post(url, body, headers = {}) {
@@ -442,6 +459,34 @@ const MERCHANTS = [
         return num(m[1])
       }
       return { buy24: grab(24), buy22: grab(22) }
+    },
+  },
+  {
+    id: 'senco',
+    name: 'Senco Gold & Diamonds',
+    short: 'Senco',
+    market: 'Pan-India',
+    site: 'https://sencogoldanddiamonds.com/gold-rate',
+    // Adapter: the rate list behind their price calculator. A public app-id
+    // (baked into their site JS, shipped to every anonymous visitor) gates the
+    // JSON; 24K is the 99.99 line, 22K is the 916 line — both INR per gram.
+    // The app-id is supplied via env/secret (SENCO_CLIENT_ID), never hardcoded.
+    // Fetched through Firecrawl for residential egress + header forwarding.
+    note: 'The rate list behind their online price calculator.',
+    async fetchRate() {
+      const clientId = (process.env.SENCO_CLIENT_ID ?? '').replace(/^﻿/, '').trim()
+      if (!clientId) throw new Error('SENCO_CLIENT_ID not set')
+      const j = await firecrawlJson('https://api.sencogoldanddiamonds.com/calculator/list', {
+        'Client-ID': clientId,
+        Accept: 'application/json',
+        Referer: 'https://sencogoldanddiamonds.com/',
+      })
+      const gold = j.GOLD ?? j.gold ?? []
+      const line = (name) => gold.find((x) => String(x.name).replace(/[^\d.]/g, '') === name)
+      const g24 = line('99.99') ?? line('999.9') ?? gold.find((x) => /24/.test(String(x.name)))
+      const g22 = line('916') ?? line('91.6') ?? gold.find((x) => /22/.test(String(x.name)))
+      if (!g24 || !g22) throw new Error(`purity lines missing (${gold.map((x) => x.name).join(',')})`)
+      return { buy24: num(g24.price), buy22: num(g22.price) }
     },
   },
 ]
