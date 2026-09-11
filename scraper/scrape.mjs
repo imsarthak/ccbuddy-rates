@@ -460,9 +460,15 @@ const MERCHANTS = [
     // The homepage carries the same markup but Cloudflare-caches it stale —
     // only this page is cf-cache-status DYNAMIC. Rates are per gram (1gm),
     // despite the Tamil Nadu per-sovereign convention.
+    //
+    // Fetched via Firecrawl. Their WAF fingerprints the TLS handshake: Node
+    // 20's undici 5 passed, but undici 6 (Node 22+) gets a flat 403, and so
+    // does curl from a datacenter IP — the same wall Bhima hit. Reproduced by
+    // interleaving CI runs: N24 fail, N20 ok, N24 fail, N22 fail. Without
+    // this the scraper could never leave Node 20, which is past EOL.
     note: 'Madurai board — the ticker on their rates page, per gram.',
     async fetchRate() {
-      const html = await get(this.site)
+      const html = await firecrawlGet(this.site)
       const grab = (k) => {
         const m = html.match(new RegExp(`GOLD RATE ${k}k \\(1gm\\):\\s*<span class="rate">₹([\\d,]+)`))
         if (!m) throw new Error(`${k}K pattern not found`)
