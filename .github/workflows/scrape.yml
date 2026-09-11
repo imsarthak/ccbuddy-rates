@@ -2,7 +2,21 @@ name: Scrape gold rates
 
 on:
   schedule:
-    - cron: '17 */2 * * *' # every 2 hours
+    # GitHub's scheduler is best-effort and drops a lot of slots on free
+    # runners: asking for 12 runs a day ('17 */2 * * *') delivered 5-7, with
+    # observed gaps of 7h52m. Asking for MORE slots is the only lever we have
+    # over that, since we cannot make a given slot fire.
+    #
+    # So the slots are spent where the rates actually move. Measured over 100
+    # run-to-run comparisons of docs/rates.json, changes cluster hard on the
+    # Indian business day: a run at 05:47 IST moved 1 merchant of 15, while
+    # 12:51 and 16:59 IST moved 12 of 15. Overnight runs cost the same three
+    # Firecrawl credits (Bhima, Tanishq, Senco) and buy almost nothing.
+    #
+    # Hourly through the IST working day, sparse outside it. Off-peak minutes
+    # on purpose — :00, :15, :30 and :45 are the congested ones.
+    - cron: '23 3-14 * * *'   # 08:53-20:23 IST, hourly — where the board moves
+    - cron: '41 18,22 * * *'  # 23:41 and 03:41 IST — overnight sanity checks
   workflow_dispatch:
 
 permissions:
