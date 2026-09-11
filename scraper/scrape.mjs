@@ -192,7 +192,18 @@ const MERCHANTS = [
     site: 'https://bangalorerefinery.com/pages/todays-rates',
     note: 'Wholesale refinery rate, 18% GST extra — the only board here with a published buyback.',
     async fetchRate() {
-      const txt = await get('https://www.bangalorerefinery.com/cdn/shop/files/rates.txt')
+      // Their rates.txt is a Shopify CDN asset served with max-age=31557600
+      // (one year), so the bare URL comes back cf-cache-status HIT from a
+      // snapshot that was 29 days old when this was written — the scraper
+      // would keep publishing a dead number, ok:true, for up to a year after
+      // they next move their board. The page busts it with a ?v= token, so
+      // read the token off the page and ask for that exact version.
+      const page = await get(this.site)
+      const v = page.match(/rates\.txt\?v=(\d+)/)?.[1]
+      const asset = 'https://www.bangalorerefinery.com/cdn/shop/files/rates.txt'
+      // No token means their markup changed; the stale asset still beats no
+      // rate at all, and a frozen value is visible in the spark line.
+      const txt = await get(v ? `${asset}?v=${v}` : asset)
       const pairs = JSON.parse(txt).map(([label, price]) => [String(label).replace(/\s+/g, ' ').trim(), price])
       const find = (re) => {
         const hit = pairs.find(([label]) => re.test(label))
