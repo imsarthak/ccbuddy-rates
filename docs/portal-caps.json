@@ -1,0 +1,1104 @@
+{
+ "generated": "2026-09-11",
+ "rules": [
+  {
+   "id": "hdfc-infinia-flights",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Infinia"
+   ],
+   "portal": {
+    "name": "SmartBuy",
+    "url": "https://offers.smartbuy.hdfc.bank.in"
+   },
+   "category": "flights",
+   "earn": {
+    "slab": 150,
+    "base": 5,
+    "bonus": 20
+   },
+   "caps": [
+    {
+     "value": 15000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 15000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://offers.smartbuy.hdfc.bank.in/v2/accelerated-earn-rules",
+   "confidence": "verified",
+   "notes": "Flights 5X; Infinia max 15,000 per calendar month and per day. Base 5/₹150 from the Infinia page."
+  },
+  {
+   "id": "hdfc-infinia-hotels",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Infinia"
+   ],
+   "portal": {
+    "name": "SmartBuy",
+    "url": "https://offers.smartbuy.hdfc.bank.in"
+   },
+   "category": "hotels",
+   "earn": {
+    "slab": 150,
+    "base": 5,
+    "bonus": 45
+   },
+   "caps": [
+    {
+     "value": 15000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 15000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://offers.smartbuy.hdfc.bank.in/v2/accelerated-earn-rules",
+   "confidence": "verified",
+   "notes": "Hotels 10X; Infinia max 15,000 per calendar month and per day."
+  },
+  {
+   "id": "hdfc-infinia-vouchers",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Infinia"
+   ],
+   "portal": {
+    "name": "SmartBuy",
+    "url": "https://offers.smartbuy.hdfc.bank.in"
+   },
+   "category": "vouchers",
+   "earn": {
+    "slab": 150,
+    "base": 5,
+    "bonus": 20
+   },
+   "caps": [
+    {
+     "value": 3000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://offers.smartbuy.hdfc.bank.in/offer_details/smartbuy/15282",
+   "confidence": "verified",
+   "notes": "Instant Voucher 5X (official rules page). From 1 Jul 2026 brand-voucher (GyFTR/Woohoo) bonus is capped at 3,000 a month inside the 15,000 overall cap; the 15,000 daily cap is unreachable on vouchers, so only the month is shown. Offer 15282 (HDFC's own T&C page): \"Brand Vouchers Maxcap (Gyftr/Woohoo) per calendar month\" 3,000 on every reward-point card, \"included within the overall maximum cap\"; the per-day column is the overall cap only. Sample: ₹30,000 of vouchers on Infinia → 3,000 accelerated points, base \"over and above\"."
+  },
+  {
+   "id": "hdfc-dcb-flights",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black"
+   ],
+   "portal": {
+    "name": "SmartBuy",
+    "url": "https://offers.smartbuy.hdfc.bank.in"
+   },
+   "category": "flights",
+   "earn": {
+    "slab": 150,
+    "base": 5,
+    "bonus": 20
+   },
+   "caps": [
+    {
+     "value": 2500,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 7500,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://offers.smartbuy.hdfc.bank.in/v2/accelerated-earn-rules",
+   "confidence": "verified",
+   "notes": "Flights 5X; Diners Black max 7,500 per calendar month, 2,500 per day. Base 5/₹150 from the card page."
+  },
+  {
+   "id": "hdfc-dcb-hotels",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black"
+   ],
+   "portal": {
+    "name": "SmartBuy",
+    "url": "https://offers.smartbuy.hdfc.bank.in"
+   },
+   "category": "hotels",
+   "earn": {
+    "slab": 150,
+    "base": 5,
+    "bonus": 45
+   },
+   "caps": [
+    {
+     "value": 2500,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 7500,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://offers.smartbuy.hdfc.bank.in/v2/accelerated-earn-rules",
+   "confidence": "verified",
+   "notes": "Hotels 10X; Diners Black max 7,500 per calendar month, 2,500 per day."
+  },
+  {
+   "id": "hdfc-dcb-vouchers",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black"
+   ],
+   "portal": {
+    "name": "SmartBuy",
+    "url": "https://offers.smartbuy.hdfc.bank.in"
+   },
+   "category": "vouchers",
+   "earn": {
+    "slab": 150,
+    "base": 5,
+    "bonus": 10
+   },
+   "caps": [
+    {
+     "value": 2500,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 3000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://offers.smartbuy.hdfc.bank.in/offer_details/smartbuy/15282",
+   "confidence": "verified",
+   "notes": "Instant Voucher 3X (official rules page). From 1 Jul 2026 brand-voucher bonus capped at 3,000 a month; the 2,500 daily cap still applies. Offer 15282 (HDFC's own T&C page): \"Brand Vouchers Maxcap (Gyftr/Woohoo) per calendar month\" 3,000 on every reward-point card, \"included within the overall maximum cap\"; the per-day column is the overall cap only. Sample: ₹30,000 of vouchers on Infinia → 3,000 accelerated points, base \"over and above\"."
+  },
+  {
+   "id": "hdfc-dcbm-flights",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black Metal",
+    "BizBlack Metal"
+   ],
+   "portal": {
+    "name": "SmartBuy",
+    "url": "https://offers.smartbuy.hdfc.bank.in"
+   },
+   "category": "flights",
+   "earn": {
+    "slab": 150,
+    "base": 5,
+    "bonus": 20
+   },
+   "caps": [
+    {
+     "value": 10000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 10000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://offers.smartbuy.hdfc.bank.in/v2/accelerated-earn-rules",
+   "confidence": "verified",
+   "notes": "Flights 5X; Diners Black Metal & BizBlack Metal max 10,000 per calendar month and per day. BizBlack base 5/₹150 from its page; the DCB Metal page does not print its base line."
+  },
+  {
+   "id": "hdfc-dcbm-hotels",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black Metal",
+    "BizBlack Metal"
+   ],
+   "portal": {
+    "name": "SmartBuy",
+    "url": "https://offers.smartbuy.hdfc.bank.in"
+   },
+   "category": "hotels",
+   "earn": {
+    "slab": 150,
+    "base": 5,
+    "bonus": 45
+   },
+   "caps": [
+    {
+     "value": 10000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 10000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://offers.smartbuy.hdfc.bank.in/v2/accelerated-earn-rules",
+   "confidence": "verified",
+   "notes": "Hotels 10X; max 10,000 per calendar month and per day."
+  },
+  {
+   "id": "hdfc-dcbm-vouchers",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black Metal",
+    "BizBlack Metal"
+   ],
+   "portal": {
+    "name": "SmartBuy",
+    "url": "https://offers.smartbuy.hdfc.bank.in"
+   },
+   "category": "vouchers",
+   "earn": {
+    "slab": 150,
+    "base": 5,
+    "bonus": 10
+   },
+   "caps": [
+    {
+     "value": 3000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://offers.smartbuy.hdfc.bank.in/offer_details/smartbuy/15282",
+   "confidence": "verified",
+   "notes": "Instant Voucher 3X (official rules page). From 1 Jul 2026 brand-voucher bonus capped at 3,000 a month inside the 10,000 overall cap; the daily cap is unreachable on vouchers. Offer 15282 (HDFC's own T&C page): \"Brand Vouchers Maxcap (Gyftr/Woohoo) per calendar month\" 3,000 on every reward-point card, \"included within the overall maximum cap\"; the per-day column is the overall cap only. Sample: ₹30,000 of vouchers on Infinia → 3,000 accelerated points, base \"over and above\"."
+  },
+  {
+   "id": "hdfc-bizblack-business",
+   "bank": "HDFC Bank",
+   "cards": [
+    "BizBlack Metal"
+   ],
+   "portal": {
+    "name": "BizBlack 5X",
+    "url": "https://www.hdfc.bank.in/business-credit-cards/biz-black-credit-card"
+   },
+   "category": "others",
+   "categoryNote": "Tax, GST, utility bills, MyBiz travel, business tools",
+   "earn": {
+    "slab": 150,
+    "base": 5,
+    "bonus": 20
+   },
+   "caps": [
+    {
+     "value": 7500,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "statement"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.hdfc.bank.in/business-credit-cards/biz-black-credit-card",
+   "confidence": "verified",
+   "notes": "\"Get 5X reward points on spends exceeding ₹50,000 per statement cycle, capped at 7,500 RP per cycle\" on telecom & utility via SmartPay/PayZapp, income tax, GST, MMT MyBiz hotels & flights, business tools via BizDeals. Needs ₹50,000 of eligible spend in the cycle first; no daily cap. Not a SmartBuy portal cap."
+  },
+  {
+   "id": "hdfc-regalia-flights",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Regalia Gold"
+   ],
+   "portal": {
+    "name": "SmartBuy",
+    "url": "https://offers.smartbuy.hdfc.bank.in"
+   },
+   "category": "flights",
+   "earn": {
+    "slab": 200,
+    "base": 5,
+    "bonus": 20
+   },
+   "caps": [
+    {
+     "value": 2000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 4000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://offers.smartbuy.hdfc.bank.in/v2/accelerated-earn-rules",
+   "confidence": "verified",
+   "notes": "Flights 5X; Regalia group max 4,000 per calendar month, 2,000 per day. Base is 5/₹200 (card page, effective 15 May 2026), so the sheet figures ₹18,750/₹37,500 became ₹20,000/₹40,000."
+  },
+  {
+   "id": "hdfc-regalia-hotels",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Regalia Gold"
+   ],
+   "portal": {
+    "name": "SmartBuy",
+    "url": "https://offers.smartbuy.hdfc.bank.in"
+   },
+   "category": "hotels",
+   "earn": {
+    "slab": 200,
+    "base": 5,
+    "bonus": 45
+   },
+   "caps": [
+    {
+     "value": 2000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 4000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://offers.smartbuy.hdfc.bank.in/v2/accelerated-earn-rules",
+   "confidence": "verified",
+   "notes": "Hotels 10X; max 4,000 per calendar month, 2,000 per day. Base 5/₹200."
+  },
+  {
+   "id": "hdfc-regalia-vouchers",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Regalia Gold"
+   ],
+   "portal": {
+    "name": "SmartBuy",
+    "url": "https://offers.smartbuy.hdfc.bank.in"
+   },
+   "category": "vouchers",
+   "earn": {
+    "slab": 200,
+    "base": 5,
+    "bonus": 20
+   },
+   "caps": [
+    {
+     "value": 2000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 3000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://offers.smartbuy.hdfc.bank.in/offer_details/smartbuy/15282",
+   "confidence": "verified",
+   "notes": "Instant Voucher 5X (official rules page). From 1 Jul 2026 brand-voucher bonus capped at 3,000 a month; the 2,000 daily cap still applies. Offer 15282 (HDFC's own T&C page): \"Brand Vouchers Maxcap (Gyftr/Woohoo) per calendar month\" 3,000 on every reward-point card, \"included within the overall maximum cap\"; the per-day column is the overall cap only. Sample: ₹30,000 of vouchers on Infinia → 3,000 accelerated points, base \"over and above\"."
+  },
+  {
+   "id": "hdfc-regalia-gold-brands",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Regalia Gold"
+   ],
+   "portal": {
+    "name": "Regalia Gold 5X",
+    "url": "https://www.hdfc.bank.in/credit-cards/regalia-gold-credit-card"
+   },
+   "category": "others",
+   "categoryNote": "Myntra, Nykaa, Reliance Digital, Marks & Spencer",
+   "earn": {
+    "slab": 200,
+    "base": 5,
+    "bonus": 20
+   },
+   "caps": [
+    {
+     "value": 5000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/regalia-gold-credit-card/pdfs/regalia-gold-credit-card-reward-points-t-and-cs.pdf",
+   "confidence": "verified",
+   "notes": "\"5X Reward points will be capped at 5000 RP per month across all brands combined. Base reward points accrued on these will continue as is with no capping.\" Minimum transaction ₹200. Not a SmartBuy cap; direct spends at the four brands."
+  },
+  {
+   "id": "icici-epm-flights",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Emeralde Private Metal"
+   ],
+   "portal": {
+    "name": "iShop",
+    "url": "https://www.icici.bank.in/ishop"
+   },
+   "category": "flights",
+   "earn": {
+    "slab": 200,
+    "base": 6,
+    "bonus": 30
+   },
+   "caps": [
+    {
+     "value": 10000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 18000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/pdf/capping.pdf",
+   "confidence": "assumed",
+   "assumption": "ICICI gives the caps but not what they count or when the month starts. Assumed: bonus points, calendar month.",
+   "notes": "6X on flights is the total (iShop FAQ: Sapphiro \"2 reward points per ₹100\" becomes \"12 reward points per ₹100\" on iShop), so bonus 30 on base 6/₹200 (EPM T&C, 21 May 2026). Caps from ICICI capping.pdf (Oct 2025): \"Emeralde Private Metal 18,000 [monthly] 10,000 [daily]\". ICICI does not say whether the cap counts accelerated or total points, nor calendar month vs statement; bonus-only and calendar month assumed, as the Times Black co-brand site states for its card."
+  },
+  {
+   "id": "icici-epm-hotels",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Emeralde Private Metal"
+   ],
+   "portal": {
+    "name": "iShop",
+    "url": "https://www.icici.bank.in/ishop"
+   },
+   "category": "hotels",
+   "earn": {
+    "slab": 200,
+    "base": 6,
+    "bonus": 66
+   },
+   "caps": [
+    {
+     "value": 10000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 18000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/pdf/capping.pdf",
+   "confidence": "assumed",
+   "assumption": "ICICI gives the caps but not what they count or when the month starts. Assumed: bonus points, calendar month.",
+   "notes": "12X on hotels is the total, so bonus 66 on base 6/₹200. Caps from ICICI capping.pdf: EPM 18,000 monthly, 10,000 daily. Counting and period not stated by ICICI; bonus-only, calendar month assumed."
+  },
+  {
+   "id": "icici-epm-vouchers",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Emeralde Private Metal"
+   ],
+   "portal": {
+    "name": "iShop",
+    "url": "https://www.icici.bank.in/ishop"
+   },
+   "category": "vouchers",
+   "earn": {
+    "slab": 200,
+    "base": 6,
+    "bonus": 30
+   },
+   "caps": [
+    {
+     "value": 10000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 18000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/pdf/capping.pdf",
+   "confidence": "assumed",
+   "assumption": "ICICI gives the caps but not what they count or when the month starts. Assumed: bonus points, calendar month.",
+   "notes": "6X on shopping vouchers is the total, so bonus 30 on base 6/₹200. Caps from ICICI capping.pdf: EPM 18,000 monthly, 10,000 daily. Since Jan 2026 several brands (Amazon Pay, Swiggy, Kalyan, Tanishq, Reliance Jewels) reportedly no longer earn 6X; no ICICI page found. Counting and period assumed."
+  },
+  {
+   "id": "icici-times-black-flights",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Times Black"
+   ],
+   "portal": {
+    "name": "iShop",
+    "url": "https://www.icici.bank.in/ishop"
+   },
+   "category": "flights",
+   "earn": {
+    "slab": 100,
+    "base": 2,
+    "bonus": 10
+   },
+   "caps": [
+    {
+     "value": 8000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 15000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/pdf/capping.pdf",
+   "confidence": "assumed",
+   "assumption": "ICICI gives the caps but not what they count or when the month starts. Assumed: bonus points, calendar month.",
+   "notes": "6X on flights is the total; base \"2% ICICI Bank reward points on all eligible domestic transactions\" (Times Black T&C v3, 2 May 2025) = 2/₹100, so bonus 10. Caps from ICICI capping.pdf: \"Times Black 15,000 [monthly] 8,000 [daily]\". timesblack.com: \"Accelerated Reward Points are capped at 8,000 points per day and 15,000 points per calendar month\"."
+  },
+  {
+   "id": "icici-times-black-hotels",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Times Black"
+   ],
+   "portal": {
+    "name": "iShop",
+    "url": "https://www.icici.bank.in/ishop"
+   },
+   "category": "hotels",
+   "earn": {
+    "slab": 100,
+    "base": 2,
+    "bonus": 22
+   },
+   "caps": [
+    {
+     "value": 8000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 15000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/pdf/capping.pdf",
+   "confidence": "assumed",
+   "assumption": "ICICI gives the caps but not what they count or when the month starts. Assumed: bonus points, calendar month.",
+   "notes": "12X on hotels is the total, so bonus 22 on base 2/₹100. Caps from ICICI capping.pdf: 15,000 monthly, 8,000 daily; timesblack.com says accelerated points, calendar month."
+  },
+  {
+   "id": "icici-times-black-vouchers",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Times Black"
+   ],
+   "portal": {
+    "name": "iShop",
+    "url": "https://www.icici.bank.in/ishop"
+   },
+   "category": "vouchers",
+   "earn": {
+    "slab": 100,
+    "base": 2,
+    "bonus": 10
+   },
+   "caps": [
+    {
+     "value": 8000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "day"
+    },
+    {
+     "value": 15000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/pdf/capping.pdf",
+   "confidence": "assumed",
+   "assumption": "ICICI gives the caps but not what they count or when the month starts. Assumed: bonus points, calendar month.",
+   "notes": "6X on shopping vouchers is the total, so bonus 10 on base 2/₹100. Caps from ICICI capping.pdf: 15,000 monthly, 8,000 daily. Jan-2026 brand exclusions reported; no ICICI page found."
+  },
+  {
+   "id": "axis-atlas-flights",
+   "bank": "Axis Bank",
+   "cards": [
+    "Atlas"
+   ],
+   "portal": {
+    "name": "Travel EDGE",
+    "url": "https://traveledge.axisbank.com"
+   },
+   "category": "flights",
+   "earn": {
+    "slab": 100,
+    "base": 2,
+    "bonus": 3
+   },
+   "beyondCap": {
+    "slab": 100,
+    "base": 2,
+    "bonus": 0
+   },
+   "caps": [
+    {
+     "value": 200000,
+     "unit": "spend",
+     "counts": "spend",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/credit-cards/terms-and-conditions-of-features-of-axis-bank-atlas-credit-card.pdf?sfvrsn=8bde9bb5_6",
+   "confidence": "verified",
+   "notes": "Atlas features T&C: \"5 EDGE Miles for every Rs. 100 spent on Travel EDGE, airline and hotel merchants up to cumulative transactions of Rs. 2,00,000 per month\" and \"2 EDGE Mile per INR 100 spent on cumulative transactions above Rs. 2,00,000 per month\"; base \"2 EDGE Miles on Other Spends\". One ₹2,00,000 bucket shared by Travel EDGE, direct airline and direct hotel spends, flights and hotels together. \"Per month\" only; calendar vs statement not stated. Cap effective 20 Apr 2024."
+  },
+  {
+   "id": "axis-atlas-hotels",
+   "bank": "Axis Bank",
+   "cards": [
+    "Atlas"
+   ],
+   "portal": {
+    "name": "Travel EDGE",
+    "url": "https://traveledge.axisbank.com"
+   },
+   "category": "hotels",
+   "earn": {
+    "slab": 100,
+    "base": 2,
+    "bonus": 3
+   },
+   "beyondCap": {
+    "slab": 100,
+    "base": 2,
+    "bonus": 0
+   },
+   "caps": [
+    {
+     "value": 200000,
+     "unit": "spend",
+     "counts": "spend",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/credit-cards/terms-and-conditions-of-features-of-axis-bank-atlas-credit-card.pdf?sfvrsn=8bde9bb5_6",
+   "confidence": "verified",
+   "notes": "Same clause as flights: 5 EDGE Miles per ₹100 on Travel EDGE, airline and hotel merchants up to ₹2,00,000 a month, 2 per ₹100 beyond. The ₹2,00,000 is one bucket shared with flights and direct airline and hotel spends."
+  },
+  {
+   "id": "axis-magnus-flights",
+   "bank": "Axis Bank",
+   "cards": [
+    "Magnus"
+   ],
+   "portal": {
+    "name": "Travel EDGE",
+    "url": "https://traveledge.axisbank.com"
+   },
+   "category": "flights",
+   "earn": {
+    "slab": 200,
+    "base": 12,
+    "bonus": 48
+   },
+   "beyondCap": {
+    "slab": 200,
+    "base": 12,
+    "bonus": 23
+   },
+   "caps": [
+    {
+     "value": 200000,
+     "unit": "spend",
+     "counts": "spend",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.axis.bank.in/docs/default-source/magnus-card/magnus-credit-card-for-burgundy-faq.pdf?sfvrsn=d76d649c_2",
+   "confidence": "verified",
+   "notes": "Magnus for Burgundy FAQ: \"Earn 60 EDGE Reward Points for every INR 200 spent on Travel EDGE portal, up to cumulative transactions of INR 2,00,000 per month. Earn 35 EDGE Reward Points per INR 200 spent above cumulative transactions of INR 2,00,000 per calendar month.\" Burgundy earns the \"same as existing Magnus\"; the Magnus catalog entry covers both. One ₹2,00,000 bucket shared by flights and hotels. The 35 beyond the cap holds only while general spends sit in the ₹1.5L to credit-limit-plus-₹1.5L accelerated band (effective 20 Jun 2025); otherwise 12."
+  },
+  {
+   "id": "axis-magnus-hotels",
+   "bank": "Axis Bank",
+   "cards": [
+    "Magnus"
+   ],
+   "portal": {
+    "name": "Travel EDGE",
+    "url": "https://traveledge.axisbank.com"
+   },
+   "category": "hotels",
+   "earn": {
+    "slab": 200,
+    "base": 12,
+    "bonus": 48
+   },
+   "beyondCap": {
+    "slab": 200,
+    "base": 12,
+    "bonus": 23
+   },
+   "caps": [
+    {
+     "value": 200000,
+     "unit": "spend",
+     "counts": "spend",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.axis.bank.in/docs/default-source/magnus-card/magnus-credit-card-for-burgundy-faq.pdf?sfvrsn=d76d649c_2",
+   "confidence": "verified",
+   "notes": "Same clause as flights: 60 EDGE Reward Points per ₹200 on Travel EDGE up to ₹2,00,000 a calendar month, 35 beyond. One shared bucket for flights and hotels."
+  },
+  {
+   "id": "hsbc-premier-flights",
+   "bank": "HSBC",
+   "cards": [
+    "Premier"
+   ],
+   "portal": {
+    "name": "Travel with Points",
+    "url": "https://www.hsbc.bank.in/credit-cards/rewards/travel-rewards/"
+   },
+   "category": "flights",
+   "earn": {
+    "slab": 100,
+    "base": 3,
+    "bonus": 15
+   },
+   "caps": [
+    {
+     "value": 18000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.hsbc.bank.in/content/dam/hsbc/in/documents/hsbc-rewards-tcs.pdf",
+   "confidence": "verified",
+   "notes": "Rewards Marketplace T&C, table \"Base + Accelerated Rewards\": \"HSBC Premier ... 6X (18 points per 100)\". Cap clause: \"HSBC Reward Points (accelerated points) are capped at 18,000 points per cardholder per calendar month.\" then \"Base points will remain uncapped.\" So the cap counts the 15 bonus per ₹100, giving ₹1,20,000, not the sheet figure of ₹1,00,000. No daily cap anywhere. One 18,000 shared across flights, hotels and car rentals. Base 3/₹100 from the Premier page."
+  },
+  {
+   "id": "hsbc-premier-hotels",
+   "bank": "HSBC",
+   "cards": [
+    "Premier"
+   ],
+   "portal": {
+    "name": "Travel with Points",
+    "url": "https://www.hsbc.bank.in/credit-cards/rewards/travel-rewards/"
+   },
+   "category": "hotels",
+   "earn": {
+    "slab": 100,
+    "base": 3,
+    "bonus": 33
+   },
+   "caps": [
+    {
+     "value": 18000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.hsbc.bank.in/content/dam/hsbc/in/documents/hsbc-rewards-tcs.pdf",
+   "confidence": "verified",
+   "notes": "T&C: \"HSBC Premier ... 12X (36 points per 100)\"; accelerated points capped at 18,000 per calendar month, base uncapped. Bonus 33 per ₹100 gives ₹54,545, not the sheet figure of ₹50,000. No daily cap. Shared with flights and car rentals."
+  },
+  {
+   "id": "hsbc-travelone-flights",
+   "bank": "HSBC",
+   "cards": [
+    "TravelOne"
+   ],
+   "portal": {
+    "name": "Travel with Points",
+    "url": "https://www.hsbc.bank.in/credit-cards/rewards/travel-rewards/"
+   },
+   "category": "flights",
+   "earn": {
+    "slab": 100,
+    "base": 4,
+    "bonus": 12
+   },
+   "caps": [
+    {
+     "value": 18000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.hsbc.bank.in/content/dam/hsbc/in/documents/hsbc-rewards-tcs.pdf",
+   "confidence": "verified",
+   "notes": "T&C: TravelOne \"4X (16 points per 100)\"; accelerated points capped at 18,000 per calendar month, base uncapped. TravelOne page: \"Earn 4 reward points for every INR 100 spent on flights, travel aggregators and in foreign currency\". Split confirmed by HSBC's TravelOne Value Calculator (travelone-value-calculator.pdf, Jul 2026): its Travel with Points line values ₹1,00,000 flights + ₹50,000 hotels + ₹20,000 cars at 22,800 points, which only reconciles as 12/20/4 per ₹100 over a base of 4, with the card's own 2X accelerator (50,000/month cap) counted on a separate line. HSBC states it nowhere in words."
+  },
+  {
+   "id": "hsbc-travelone-hotels",
+   "bank": "HSBC",
+   "cards": [
+    "TravelOne"
+   ],
+   "portal": {
+    "name": "Travel with Points",
+    "url": "https://www.hsbc.bank.in/credit-cards/rewards/travel-rewards/"
+   },
+   "category": "hotels",
+   "earn": {
+    "slab": 100,
+    "base": 4,
+    "bonus": 20
+   },
+   "caps": [
+    {
+     "value": 18000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.hsbc.bank.in/content/dam/hsbc/in/documents/hsbc-rewards-tcs.pdf",
+   "confidence": "verified",
+   "notes": "T&C: TravelOne \"6X (24 points per 100)\"; accelerated points capped at 18,000 per calendar month, base uncapped. Base 4 for hotels is implied by 6X = 24, not stated on the card page. Split confirmed by HSBC's TravelOne Value Calculator, as for flights: 20 per ₹100 over a base of 4, the card's own 2X counted separately."
+  },
+  {
+   "id": "idfc-private-flights",
+   "bank": "IDFC FIRST Bank",
+   "cards": [
+    "FIRST Private"
+   ],
+   "portal": {
+    "name": "Travel & Shop",
+    "url": "https://www.idfcfirst.bank.in/rewards-gallery"
+   },
+   "category": "flights",
+   "earn": {
+    "slab": 150,
+    "base": 10,
+    "bonus": 20
+   },
+   "caps": [],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/credit-card/first-private/FIRST-Private-Credit-Card-Consolidated-TnC-17072026.pdf",
+   "confidence": "verified",
+   "notes": "FIRST Private consolidated T&C (17 Jul 2026): +20 bonus per ₹150 on flights booked in the FIRST Rewards Gallery, on a flat base of 10 per ₹150 domestic. No bonus-earning cap is stated. The sheet figure of 2,00,000 was the Ashva annual redemption cap, wrong card and wrong quantity."
+  },
+  {
+   "id": "idfc-private-hotels",
+   "bank": "IDFC FIRST Bank",
+   "cards": [
+    "FIRST Private"
+   ],
+   "portal": {
+    "name": "Travel & Shop",
+    "url": "https://www.idfcfirst.bank.in/rewards-gallery"
+   },
+   "category": "hotels",
+   "earn": {
+    "slab": 150,
+    "base": 10,
+    "bonus": 50
+   },
+   "caps": [],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/credit-card/first-private/FIRST-Private-Credit-Card-Consolidated-TnC-17072026.pdf",
+   "confidence": "verified",
+   "notes": "FIRST Private consolidated T&C (17 Jul 2026): +50 bonus per ₹150 on hotels booked in the FIRST Rewards Gallery, base 10 per ₹150. No bonus-earning cap is stated."
+  },
+  {
+   "id": "idfc-ashva-flights",
+   "bank": "IDFC FIRST Bank",
+   "cards": [
+    "Ashva"
+   ],
+   "portal": {
+    "name": "Travel & Shop",
+    "url": "https://www.idfcfirst.bank.in/rewards-gallery"
+   },
+   "category": "flights",
+   "earn": {
+    "slab": 150,
+    "base": 10,
+    "bonus": 15
+   },
+   "caps": [
+    {
+     "value": 15000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/Ashva-CC-Rewards-Structure-TnC-28-05-25-copy.pdf",
+   "confidence": "verified",
+   "notes": "Ashva rewards T&C (May 2026): flights in the Travel & Shop section earn +15 bonus per ₹150 (the sheet said +30); \"Total Bonus Reward Points that can be earned in a calendar month\" 15,000. No daily cap. Base is 10 per ₹150 only on spend above ₹20,000 in the statement cycle, 5 below; 10 is used here."
+  },
+  {
+   "id": "idfc-ashva-hotels",
+   "bank": "IDFC FIRST Bank",
+   "cards": [
+    "Ashva"
+   ],
+   "portal": {
+    "name": "Travel & Shop",
+    "url": "https://www.idfcfirst.bank.in/rewards-gallery"
+   },
+   "category": "hotels",
+   "earn": {
+    "slab": 150,
+    "base": 10,
+    "bonus": 30
+   },
+   "caps": [
+    {
+     "value": 15000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/Ashva-CC-Rewards-Structure-TnC-28-05-25-copy.pdf",
+   "confidence": "verified",
+   "notes": "Ashva rewards T&C (May 2026): hotels earn +30 bonus per ₹150 (the sheet said +50); 15,000 bonus per calendar month, no daily cap. Base 10 per ₹150 above ₹20,000 in the cycle."
+  },
+  {
+   "id": "idfc-mayura-flights",
+   "bank": "IDFC FIRST Bank",
+   "cards": [
+    "Mayura"
+   ],
+   "portal": {
+    "name": "Travel & Shop",
+    "url": "https://www.idfcfirst.bank.in/rewards-gallery"
+   },
+   "category": "flights",
+   "earn": {
+    "slab": 150,
+    "base": 10,
+    "bonus": 15
+   },
+   "caps": [
+    {
+     "value": 25000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/Mayura-CC-Rewards-Structure-TnC-28-05-25.pdf",
+   "confidence": "verified",
+   "notes": "Mayura rewards T&C (May 2026): flights earn +15 bonus per ₹150 (the sheet said +30); \"Total Bonus Reward Points that can be earned in a calendar month\" 25,000. No daily cap. Base 10 per ₹150 above ₹20,000 in the cycle, 5 below."
+  },
+  {
+   "id": "idfc-mayura-hotels",
+   "bank": "IDFC FIRST Bank",
+   "cards": [
+    "Mayura"
+   ],
+   "portal": {
+    "name": "Travel & Shop",
+    "url": "https://www.idfcfirst.bank.in/rewards-gallery"
+   },
+   "category": "hotels",
+   "earn": {
+    "slab": 150,
+    "base": 10,
+    "bonus": 30
+   },
+   "caps": [
+    {
+     "value": 25000,
+     "unit": "points",
+     "counts": "bonus",
+     "period": "month"
+    }
+   ],
+   "verifiedOn": "2026-09-11",
+   "source": "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/Mayura-CC-Rewards-Structure-TnC-28-05-25.pdf",
+   "confidence": "verified",
+   "notes": "Mayura rewards T&C (May 2026): hotels earn +30 bonus per ₹150 (the sheet said +50); 25,000 bonus per calendar month, no daily cap. Base 10 per ₹150 above ₹20,000 in the cycle."
+  }
+ ]
+}

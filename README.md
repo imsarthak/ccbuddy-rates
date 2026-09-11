@@ -24,6 +24,20 @@ Schema: `{ updated, merchants: [{ id, name, short, site, note, rate:
 { fetched, buy24, buy22, sell22?, ok, stale?, error? }, spark: [buy24…] }] }`
 — prices in INR per gram.
 
+```
+https://imsarthak.github.io/ccbuddy-rates/portal-caps.json
+```
+
+Reward-portal earning caps (SmartBuy, iShop, Travel EDGE, Travel with Points,
+Travel & Shop): base + bonus points per slab and what each cap counts, so the
+₹-to-cap figure is derived, never typed. Hand-maintained in the ccbuddy repo
+(`src/data/portalCaps.data.ts`, every row read from the issuer's own terms)
+and written here with `npm run caps:json`; `generated` decides which copy the
+app uses. Schema: `{ generated, rules: [{ id, bank, cards, portal: { name,
+url }, category, earn: { slab, base, bonus }, beyondCap?, caps: [{ value,
+unit, counts, period }], verifiedOn?, source, confidence, notes?,
+assumption? }] }`.
+
 ## Merchants investigated but currently blocked
 
 Tanishq, Bhima, and MMTC-PAMP hard-403 non-browser clients (bot protection
