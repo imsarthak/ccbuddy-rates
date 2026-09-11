@@ -3,14 +3,26 @@
 Public gold-rate feed for the [CCBuddy](https://github.com/imsarthak/ccbuddy)
 app's Gold Rates module.
 
-A GitHub Actions cron job runs `scraper/scrape.mjs` every 2 hours, reading
-publicly published gold rates from Indian jewellers/refiners (Malabar,
-Kalyan/Candere, Bangalore Refinery, PNG — more to come) and committing the
-result to `docs/rates.json`, which GitHub Pages serves with permissive CORS.
+A GitHub Actions cron job runs `scraper/scrape.mjs` hourly through the Indian
+business day (and twice overnight), reading publicly published gold rates from
+Indian jewellers/refiners (Malabar, Kalyan/Candere, Bangalore Refinery, PNG —
+more to come) and committing the result to `docs/rates.json`, which GitHub
+Pages serves with permissive CORS.
+
+**On the schedule** (changed 2026-09-11). It used to be a flat `every 2 hours`,
+which delivered badly: GitHub's scheduler is best-effort on free runners and
+drops slots, so 12 requested runs a day produced 5–7, with gaps up to 7h52m —
+the feed read hours stale even though every run succeeded. Nothing can force a
+given slot to fire, so the slots were concentrated where they earn something.
+Measured across 100 run-to-run comparisons of `rates.json`, changes cluster on
+the Indian business day: a 05:47 IST run moved 1 merchant of 15, while 12:51
+and 16:59 IST moved 12 of 15. See `.github/workflows/scrape.yml`.
 
 - **No user data is involved anywhere in this repo or feed** — it only ever
   contains public market rates.
-- Reads are low-volume (~12/merchant/day) with an honest User-Agent.
+- Reads stay low-volume (~14/merchant/day requested, fewer delivered) with an
+  honest User-Agent. Only Bhima, Tanishq and Senco go through Firecrawl; the
+  rest are direct fetches.
 - A merchant read that fails keeps the previous value marked `stale: true`
   ("last good read"); rates outside sane bounds are rejected.
 
