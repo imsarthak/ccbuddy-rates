@@ -21,8 +21,9 @@ and 16:59 IST moved 12 of 15. See `.github/workflows/scrape.yml`.
 - **No user data is involved anywhere in this repo or feed** — it only ever
   contains public market rates.
 - Reads stay low-volume (~14/merchant/day requested, fewer delivered) with an
-  honest User-Agent. Only Bhima, Tanishq and Senco go through Firecrawl; the
-  rest are direct fetches.
+  honest User-Agent. Bhima, Tanishq, Senco and Thangamayil go through
+  Firecrawl — each of them sits behind a WAF that refuses a plain Node fetch;
+  the other eleven are direct.
 - A merchant read that fails keeps the previous value marked `stale: true`
   ("last good read"); rates outside sane bounds are rejected.
 
