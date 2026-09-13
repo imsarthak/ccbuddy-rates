@@ -1,0 +1,2266 @@
+{
+ "generated": "2026-09-14",
+ "rules": [
+  {
+   "id": "hdfc-regalia-gold-quarter",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Regalia Gold"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 150000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 1500,
+      "unit": "inr",
+      "text": "₹1,500 Myntra/Nykaa voucher"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Rs 1500 worth Myntra/Nykaa vouchers on quarterly spends of Rs 1.5 lakhs."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/regalia-gold-credit-card",
+   "confidence": "assumed",
+   "notes": "Page: \"Milestone benefits once unlocked, have a 60 days validity to avail\". Older AMP page listed Marriott/Myntra/M&S/Reliance Digital brands; current page says Myntra/Nykaa. A product-feature change is dated 15 May 2026 (PDF not read).",
+   "assumption": "HDFC says \"quarterly\" without defining the quarter; read as calendar quarters because the lounge rule on the same page uses calendar quarters. Excluded spends not stated."
+  },
+  {
+   "id": "hdfc-regalia-gold-year",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Regalia Gold"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 5000,
+      "unit": "inr",
+      "text": "₹5,000 SmartBuy flight voucher"
+     }
+    },
+    {
+     "threshold": 750000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 5000,
+      "unit": "inr",
+      "text": "additional ₹5,000 SmartBuy flight voucher"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "Get ₹ 5,000 worth flight vouchers when you spend Rs. 5 Lakhs spends in an anniversary year. Get additional ₹ 5,000 worth flight vouchers when you spend Rs. 7.5 Lakhs spends in an anniversary year."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/regalia-gold-credit-card",
+   "confidence": "verified",
+   "notes": "Current page: \"Rs. 5,000 worth flight vouchers on spends of Rs. 5 lakh and Rs. 7.5 lakh\". Anniversary-year wording from HDFC AMP page https://v.hdfc.bank.in/htdocs/amp/personal/pay/cards/credit-cards22may23/regalia-gold-credit-card.html. Excluded spends not stated by HDFC."
+  },
+  {
+   "id": "hdfc-regalia-gold-welcome",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Regalia Gold"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 90
+   },
+   "tiers": [
+    {
+     "threshold": 100000,
+     "kind": "reward",
+     "benefit": {
+      "type": "membership",
+      "text": "Swiggy One + MMT Black Gold membership"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Complimentary Swiggy One and MMT Black Gold Membership on ₹1 Lakh and above spends within 90 days of card issuance"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://v.hdfc.bank.in/regalia-gold/features.html",
+   "confidence": "verified",
+   "notes": "Current hdfc.bank.in page: \"On spends of 1 lakh in first 90 days\". Pre-2026 welcome (Club Vistara Silver + MMT Black Elite) had no spend gate."
+  },
+  {
+   "id": "hdfc-regalia-gold-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Regalia Gold"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 400000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend Rs. 4 Lakhs in an anniversary year (12 billing cycles) and get Renewal Fee waived for next renewal year."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://v.hdfc.bank.in/htdocs/amp/personal/pay/cards/credit-cards22may23/regalia-gold-credit-card.html",
+   "confidence": "verified",
+   "notes": "Current page FAQ: \"renewal fee waiver by spending ₹4 lakh annually\"; microsite: \"Get Renewal Fee waived for next renewal on spends of ₹4 Lakhs.\""
+  },
+  {
+   "id": "hdfc-regalia-gold-quarter-lounge",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Regalia Gold"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 60000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "value": 3,
+      "unit": "visits",
+      "text": "3 domestic lounge visits in the next calendar quarter"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "3 Lounge visits within India per calendar quarter on spends of ₹60,000 or more in the preceding calendar quarter"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/regalia-gold-credit-card",
+   "confidence": "verified",
+   "notes": "Paid in the quarter after the qualifying one. Blogs date this to 1 July 2026; the HDFC page carries no date for it."
+  },
+  {
+   "id": "hdfc-dcb-metal-quarter",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black Metal"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 400000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 10000,
+      "unit": "points",
+      "text": "10,000 bonus Reward Points"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Get 10,000 Bonus Reward Points on spends of ₹ 4 lakhs every calendar quarter. Calendar quarter is defined as Jan – Mar; Apr – Jun; Jul – Sep; Oct – Dec."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/diners-club-black-metal-edition-credit-card",
+   "confidence": "verified",
+   "notes": "Excluded spends not stated on the page; the milestone T&C PDF on hdfcbank.com returned 403."
+  },
+  {
+   "id": "hdfc-dcb-metal-welcome",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black Metal"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 90
+   },
+   "tiers": [
+    {
+     "threshold": 150000,
+     "kind": "reward",
+     "benefit": {
+      "type": "membership",
+      "text": "Club Marriott + Amazon Prime + Swiggy One annual memberships"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Avail Complimentary Annual memberships of Club Marriott, Amazon Prime, Swiggy One on spending ₹ 1.5 Lakh within the first 90 days of card issuance."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/diners-club-black-metal-edition-credit-card",
+   "confidence": "verified"
+  },
+  {
+   "id": "hdfc-dcb-metal-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black Metal"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 800000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend ₹ 8 Lakhs in 12 Months and get Renewal Fee waived for next renewal year."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/diners-club-black-metal-edition-credit-card",
+   "confidence": "assumed",
+   "assumption": "\"12 Months\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "hdfc-dcb-month",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black"
+   ],
+   "period": {
+    "kind": "month"
+   },
+   "tiers": [
+    {
+     "threshold": 80000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 1000,
+      "unit": "inr",
+      "text": "any 2 of ₹500 Tata CLiQ / Uber / BookMyShow / Cult.fit vouchers"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "emi",
+     "wallet"
+    ],
+    "note": "net spend Rs. 80,000 in a calendar month ... EMI Principal & Wallet Loading transactions will not contribute towards Welcome/Annual/Monthly Milestone spends."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/diners-club-black-credit-card/pdfs/T%20and%20C%20Diners%20Club%20Black.pdf",
+   "confidence": "verified",
+   "notes": "T&C dated 26 June 2025: \"Monthly Benefit Period is defined as Calendar month.\" Product page: \"Spend INR 80,000 or more to avail 2 voucher worth INR 500 from Tata Cliq, Uber, Book My Show or Cult Fit.\" (its FAQ loosely says \"quarterly vouchers\" — the T&C wins)."
+  },
+  {
+   "id": "hdfc-dcb-year",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 800000,
+     "kind": "reward",
+     "benefit": {
+      "type": "membership",
+      "text": "Club Marriott, Times Prime, Amazon Prime, Swiggy One (3 months), MMT Black memberships"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "emi",
+     "wallet"
+    ],
+    "note": "subject to achieving annual spend milestone of Rs 8 Lakhs for Diners Club Black ... Annual Benefit Period is defined as 365 days from card issuance or last upgrade/downgrade date."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/diners-club-black-credit-card/pdfs/T%20and%20C%20Diners%20Club%20Black.pdf",
+   "confidence": "verified",
+   "notes": "Product page: \"Complimentary Annual memberships of Club Marriott, Times Prime, Amazon Prime, Swiggy One (3 months), MMT BLACK on 8 Lac spends in anniversary year.\""
+  },
+  {
+   "id": "hdfc-dcb-welcome",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 90
+   },
+   "tiers": [
+    {
+     "threshold": 150000,
+     "kind": "reward",
+     "benefit": {
+      "type": "membership",
+      "text": "Club Marriott, Swiggy One (3 months), MMT Black Gold, Amazon Prime, Times Prime memberships"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "emi",
+     "wallet"
+    ],
+    "note": "Spending Rs. 1.5 lakhs within the first 90 days (or) Joining fee realization"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/diners-club-black-credit-card/pdfs/T%20and%20C%20Diners%20Club%20Black.pdf",
+   "confidence": "verified",
+   "notes": "Either condition unlocks it — joining-fee realisation alone suffices, so the spend gate only matters for fee-waived issuances. Reviewer may drop this row."
+  },
+  {
+   "id": "hdfc-dcb-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 500000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹10,000 renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "On annual spends of ₹5 lakh, get ₹10,000 renewal fee waived off on your Diners Club Black Credit Card"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/diners-club-black-credit-card",
+   "confidence": "assumed",
+   "notes": "Blogs (search snippets) claimed ₹8 lakh; HDFC page says ₹5 lakh.",
+   "assumption": "\"annual spends\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "hdfc-bizblack-welcome",
+   "bank": "HDFC Bank",
+   "cards": [
+    "BizBlack Metal"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 90
+   },
+   "tiers": [
+    {
+     "threshold": 150000,
+     "kind": "reward",
+     "benefit": {
+      "type": "membership",
+      "text": "Club Marriott membership + ₹5,000 Taj stay voucher"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Get Club Marriott membership and Taj stay voucher worth Rs.5000 on a spend of Rs. 1.5 Lac within 90 days of card issuance."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://v.hdfc.bank.in/content/dam/hdfc-aem-microsites/biz-cards/faq/faq-biz-black-apr25.pdf",
+   "confidence": "verified",
+   "notes": "HDFC-hosted FAQ (Apr 2025). Excluded spends stated only for core earn (\"excluding petrol, wallet, rent, education, EMI\"), not for milestones."
+  },
+  {
+   "id": "hdfc-bizblack-welcome-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "BizBlack Metal"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 90
+   },
+   "tiers": [
+    {
+     "threshold": 150000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "first-year joining fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Cardholders should spend more than Rs.1.5 lacs in first 90 days of card issuance to get first year joining fee waived off (Applicable for fresh issuance only)."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://v.hdfc.bank.in/content/dam/hdfc-aem-microsites/biz-cards/faq/faq-biz-black-apr25.pdf",
+   "confidence": "verified"
+  },
+  {
+   "id": "hdfc-bizblack-calendar-year",
+   "bank": "HDFC Bank",
+   "cards": [
+    "BizBlack Metal"
+   ],
+   "period": {
+    "kind": "calendar-year"
+   },
+   "tiers": [
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 5000,
+      "unit": "inr",
+      "text": "₹5,000 flight or Taj stay voucher"
+     },
+     "repeats": true,
+     "repeatCap": 4
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Get Flight voucher or Taj stay voucher worth Rs.5,000 on every Rs.5 Lac spend. Get vouchers worth upto Rs.20,000 on spend of Rs.20 Lac in a calendar year."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://v.hdfc.bank.in/content/dam/hdfc-aem-microsites/biz-cards/faq/faq-biz-black-apr25.pdf",
+   "confidence": "verified"
+  },
+  {
+   "id": "hdfc-bizblack-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "BizBlack Metal"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 750000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Cardholders should spend more than Rs.7.5 lacs in an anniversary year (12 billing cycle) to get renewal fee waived for next renewal year."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://v.hdfc.bank.in/content/dam/hdfc-aem-microsites/biz-cards/faq/faq-biz-black-apr25.pdf",
+   "confidence": "verified"
+  },
+  {
+   "id": "hdfc-dcp-quarter",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Privilege"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 150000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 1500,
+      "unit": "inr",
+      "text": "₹1,500 voucher (Marriott, Dominos, Decathlon, Barbeque Nation, O2 Spa or Lakme Salon)"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Choose any one Rs. 1500 voucher ... upon net spends of Rs. 1,50,000 or more in a calendar quarter. Calendar quarter is defined as Jan – Mar; Apr – Jun; Jul – Sep; Oct – Dec."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/diners-privilege-credit-card/pdf/diners-privilege-tnc-2026.pdf",
+   "confidence": "verified",
+   "notes": "T&C dated June 2026. \"net spends\" — reversals netted; no category exclusions stated for this milestone."
+  },
+  {
+   "id": "hdfc-dcp-welcome",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Privilege"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 90
+   },
+   "tiers": [
+    {
+     "threshold": 75000,
+     "kind": "reward",
+     "benefit": {
+      "type": "membership",
+      "text": "Swiggy One + Times Prime annual memberships"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Complimentary Annual Memberships of Swiggy One & Times Prime on achieving net retail spends of Rs 75,000 within 90 days of card issuance"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/diners-privilege-credit-card/pdf/diners-privilege-tnc-2026.pdf",
+   "confidence": "verified"
+  },
+  {
+   "id": "hdfc-dcp-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Privilege"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 300000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend ₹3,00,000 or more in a year, before your Credit Card renewal date and get your renewal fee waived off."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/diners-privilege-credit-card",
+   "confidence": "assumed",
+   "assumption": "\"in a year, before your renewal date\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "hdfc-dcp-quarter-lounge",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Privilege"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 60000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "value": 3,
+      "unit": "visits",
+      "text": "2 domestic + 1 international lounge vouchers in the next calendar quarter"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Starting 01 July 2026, customer will be able to avail 3 Airport Lounge Access Vouchers in a calendar quarter on Rs. 60,000 eligible spends in previous calendar quarter."
+   },
+   "effectiveFrom": "2026-07-01",
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/diners-privilege-credit-card",
+   "confidence": "verified",
+   "notes": "Paid in the quarter after the qualifying one. \"eligible spends\" undefined on the page."
+  },
+  {
+   "id": "hdfc-millennia-quarter",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Millennia"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 100000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 1000,
+      "unit": "inr",
+      "text": "₹1,000 gift voucher or 1 domestic lounge visit"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "fees"
+    ],
+    "note": "Spends of 1,00,000 is → Cardholder initiated Spends minus of reversals in the Calendar Quarter. Fees and Charges levied will not be considered under Milestone program."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/millennia-credit-card/pdf/quarterly-spends-milestone-program.pdf",
+   "confidence": "verified",
+   "notes": "Page: \"Get either ₹1,000 worth gift voucher or 1 domestic lounge access on spends of ₹1,00,000 and above in each calendar quarter\". PDF published 06 Feb 2026; \"Customers cannot claim more than 1 voucher\"; claim within 120 days."
+  },
+  {
+   "id": "hdfc-millennia-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Millennia"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 100000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend over ₹1,00,000 in a year before renewal to get your Credit Card fee waived."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/millennia-credit-card",
+   "confidence": "assumed",
+   "assumption": "\"in a year before renewal\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "hdfc-tata-neu-infinity-quarter-lounge",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Tata Neu Infinity"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 50000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "value": 2,
+      "unit": "visits",
+      "text": "2 domestic lounge vouchers"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "W.e.f 10-Jun-2025, Domestic Lounge Access benefit will be Milestone based and can be availed as a Lounge Voucher on spends of Rs 50,000 or more in a calendar quarter. Please note, you can access 2 Complimentary Domestic Lounge Vouchers per calendar quarter (up to 8 per calendar year)."
+   },
+   "effectiveFrom": "2025-06-10",
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/tata-neu-infinity-hdfc-bank-credit-card",
+   "confidence": "verified"
+  },
+  {
+   "id": "hdfc-tata-neu-infinity-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Tata Neu Infinity"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 300000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend ₹3,00,000 or more in a year, before your Credit Card renewal date and get your renewal fee waived off."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/tata-neu-infinity-hdfc-bank-credit-card",
+   "confidence": "assumed",
+   "assumption": "\"in a year, before your renewal date\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "hdfc-tata-neu-infinity-welcome",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Tata Neu Infinity"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 30
+   },
+   "metric": "transactions",
+   "tiers": [
+    {
+     "threshold": 1,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1499,
+      "unit": "points",
+      "text": "1,499 NeuCoins (first-year fee reversal)"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Get 1,499 NeuCoins on Tata Neu App (as reversal of 1st Year Membership Fees), applicable on 1st Transaction done within 30 days of card issuance and will be available to claim inside Tata Neu App within 60 days of such transaction."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/tata-neu-infinity-hdfc-bank-credit-card",
+   "confidence": "verified"
+  },
+  {
+   "id": "hdfc-marriott-bonvoy-year",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Marriott Bonvoy"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 600000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "value": 1,
+      "unit": "nights",
+      "text": "1 Free Night Award"
+     }
+    },
+    {
+     "threshold": 900000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "value": 1,
+      "unit": "nights",
+      "text": "1 Free Night Award"
+     }
+    },
+    {
+     "threshold": 1500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "value": 1,
+      "unit": "nights",
+      "text": "1 Free Night Award"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [
+     "fuel",
+     "emi",
+     "wallet",
+     "gift-vouchers",
+     "cash",
+     "fees",
+     "government",
+     "rent"
+    ],
+    "note": "Fuel, Smart EMI / Dial an EMI transaction, Wallet loads / Gift or Prepaid Card load/ Voucher purchase, Cash Advances, Payment of Outstanding Balances, Payment of card fees and other charges, Government related transactions & Rental transactions"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://v.hdfc.bank.in/htdocs/amp/personal/pay/cards/credit-cards/marriott-bonvoy-credit-card.html",
+   "confidence": "assumed",
+   "notes": "\"1 Free Night Award on Eligible Spend of INR 6 lakhs in an Anniversary Year\" / \"...INR 9 lakhs...\" / \"...INR 15 lakhs in an Anniversary Year\". Welcome free night is on fee realisation, not spend. No fee waiver on spend.",
+   "assumption": "\"Eligible Spend\" is not defined for the milestones; read as the points-accrual exclusion list quoted in counts.note. Each award is separate, so read as stacking."
+  },
+  {
+   "id": "hdfc-swiggy-blck-welcome-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Swiggy BLCK"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 90
+   },
+   "tiers": [
+    {
+     "threshold": 75000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹1,000 joining fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Joining Fee of ₹1,000 will be waived on spending ₹75,000 in the first 90 days. (Applicable for first Year only)."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/swiggy-blck-hdfc-bank-credit-card",
+   "confidence": "verified"
+  },
+  {
+   "id": "hdfc-swiggy-blck-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Swiggy BLCK"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 200000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "cash"
+    ],
+    "note": "Spend ₹2,00,000 or more in a year, before your Credit Card renewal date and get your renewal fee waived off. Exclusions for Spends of ₹2,00,000 and above for eligibility of renewal year fee waiver are as follows: Cash on Call, Balance Transfer, Cash Withdrawal."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/swiggy-blck-hdfc-bank-credit-card",
+   "confidence": "assumed",
+   "assumption": "\"in a year, before your renewal date\" read as the card anniversary year. Balance Transfer has no SpendExclusion value; folded into cash."
+  },
+  {
+   "id": "hdfc-infinia-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Infinia"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 1000000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Renewal fee waiver - Spend 10 lakhs or more in the preceding 12 months and get renewal membership fee waived off for next year."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/infinia-credit-card",
+   "confidence": "assumed",
+   "notes": "Page also carries a stray \"Spend ₹8 lakh or more in a year\" line (legacy plastic Infinia); ₹10 lakh is stated three times and taken. Club Marriott + 12,500 points are on fee realisation, not spend.",
+   "assumption": "\"preceding 12 months\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "hdfc-moneyback-plus-quarter",
+   "bank": "HDFC Bank",
+   "cards": [
+    "MoneyBack+"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 50000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 500,
+      "unit": "inr",
+      "text": "₹500 gift voucher"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Gift Voucher worth ₹500 on spends of ₹50,000 per calendar quarter*"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/moneyback-plus-credit-card",
+   "confidence": "verified",
+   "notes": "Milestone PDF linked from the page (.../millennia-credit-card/pdf/quarterly-spends-milestone-program-mb.pdf) not read; exclusions may mirror Millennia (fees/charges)."
+  },
+  {
+   "id": "hdfc-moneyback-plus-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "MoneyBack+"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 50000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend ₹50,000 or more in a year, before your Credit Card renewal date and get your renewal fee waived off"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/moneyback-plus-credit-card",
+   "confidence": "assumed",
+   "assumption": "\"in a year, before your renewal date\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "hdfc-freedom-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Freedom"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 50000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend over ₹50,000 in a year before renewal to get your Credit Card fee waived"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/freedom-credit-card",
+   "confidence": "assumed",
+   "assumption": "\"in a year before renewal\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "hdfc-tata-neu-plus-quarter-lounge",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Tata Neu Plus"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 50000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "value": 1,
+      "unit": "visits",
+      "text": "1 domestic lounge voucher"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "W.e.f 10-Jun-2025, Domestic Lounge Access benefit will be Milestone based and can be availed as a Lounge Voucher on spends of Rs 50,000 or more in a calendar quarter. Please note, you can access 1 Complimentary Domestic Lounge Vouchers per calendar quarter (up to 4 per calendar year)."
+   },
+   "effectiveFrom": "2025-06-10",
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/tata-neu-plus-hdfc-bank-credit-card",
+   "confidence": "verified"
+  },
+  {
+   "id": "hdfc-tata-neu-plus-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Tata Neu Plus"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 100000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend ₹1,00,000 or more in a year, before your Credit Card renewal date and get your renewal fee waived off."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/tata-neu-plus-hdfc-bank-credit-card",
+   "confidence": "assumed",
+   "assumption": "\"in a year, before your renewal date\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "hdfc-tata-neu-plus-welcome",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Tata Neu Plus"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 30
+   },
+   "metric": "transactions",
+   "tiers": [
+    {
+     "threshold": 1,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 499,
+      "unit": "points",
+      "text": "499 NeuCoins (first-year fee reversal)"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Get 499 NeuCoins on Tata Neu App (as reversal of 1st Year Membership Fees), applicable on 1st Transaction done within 30 days of card issuance and will be available to claim inside Tata Neu App within 60 days of such transaction."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/tata-neu-plus-hdfc-bank-credit-card",
+   "confidence": "verified"
+  },
+  {
+   "id": "hdfc-indianoil-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "IndianOil HDFC"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 50000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend ₹50,000 or above in the first year and get a waiver on the renewal membership fee"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.hdfc.bank.in/credit-cards/indianoil-hdfc-bank-credit-card",
+   "confidence": "assumed",
+   "assumption": "\"in the first year\" read as each card anniversary year (page speaks of the renewal fee generally). Excluded spends not stated."
+  },
+  {
+   "id": "icici-times-black-year",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Times Black"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 200000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 10000,
+      "unit": "inr",
+      "text": "Klook gift voucher worth ₹10,000"
+     }
+    },
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "value": 10000,
+      "unit": "inr",
+      "text": "Times Black Mobility Wallet unlocked: ₹10,000 of airport transfers (BLADE / Avis / Indian Travel House) or WeWork day passes"
+     }
+    },
+    {
+     "threshold": 1000000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 10000,
+      "unit": "inr",
+      "text": "Tata CLiQ Luxury gift card worth ₹10,000"
+     }
+    },
+    {
+     "threshold": 2000000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 20000,
+      "unit": "inr",
+      "text": "One-night luxury stay voucher worth ₹20,000 at Ayatana or Lohono"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [
+     "fuel",
+     "rent",
+     "emi"
+    ],
+    "note": "Milestone Benefits: Benefits are offered to the Cardholder as per the Customer Value Proposition (CVP) of the Credit Card on achieving the threshold spends in an Anniversary Year."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/revamp-page-images/docs/pdf/times-black-icici-credit-card-terms-conditions.pdf",
+   "confidence": "assumed",
+   "notes": "T&C: \"Gift voucher worth INR <10,000> on spends of a minimum of INR <2,00,000>\"; \"Points will be unlocked once the Eligible Cardholder achieves a spend of INR 5,00,000\"; \"Gift voucher worth INR <10,000> on spends of a minimum of INR <10,00,000>\"; \"Gift voucher worth INR <20,000> on spends of a minimum of INR <20,00,000>\". Each tier is a separate offer, once per cycle (\"will not be eligible again until the next periodic cycle\"), so tiers stack. Benefits are claimed in the Times Black app \"for a period of six months from the date when the Eligible Cardholder is notified\". Product page says WeWork day passes OR airport transfers at ₹5L; the PDF names only BLADE/Avis/Indian Travel House. Blog (cardexpert.in) matches thresholds and values.",
+   "assumption": "ICICI never says which transactions count towards milestone spend. Taken as the card's reward-point exclusions: fuel, rent, and EMI-converted transactions."
+  },
+  {
+   "id": "icici-times-black-fee-waiver",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Times Black"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 2500000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "Annual fee (₹20,000 + GST) waived for the next year on ₹25 lakh annual spend"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "fuel",
+     "rent",
+     "emi"
+    ]
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/times-black-icici-credit-card",
+   "confidence": "assumed",
+   "notes": "Product page: annual fee waiver for next year on ₹25 lakh annual spend (timesblack.com: \"annual fee of ₹20,000 can be waived with ₹25 lakhs in annual spending\"). The waiver clause is not in the card T&C PDF.",
+   "assumption": "\"Annual\" read as the card Anniversary Year (the T&C defines all periodic benefits on the Anniversary Year). Exclusions unstated; taken as the reward-point exclusions (fuel, rent, EMI)."
+  },
+  {
+   "id": "icici-emeralde-private-metal-year",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Emeralde Private Metal"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 400000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 3000,
+      "unit": "inr",
+      "text": "EaseMyTrip Air travel voucher worth ₹3,000"
+     }
+    },
+    {
+     "threshold": 800000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 3000,
+      "unit": "inr",
+      "text": "Second EaseMyTrip Air travel voucher worth ₹3,000"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [
+     "government",
+     "rent",
+     "wallet",
+     "fuel",
+     "emi"
+    ],
+    "note": "You will receive the 1st EaseMyTrip voucher on spending ₹4 lakh and 2nd EaseMyTrip voucher on reaching spends of ₹8 lakh in an anniversary year."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/revamp-page-images/docs/pdf/metal-gifts-tc-website-51023.pdf",
+   "confidence": "assumed",
+   "notes": "T&C: \"EaseMyTrip Air Travel Vouchers worth ₹6,000 (Two vouchers worth ₹3,000 each) with annual spends of ₹8 lakh\". Product page: \"Get 2 EaseMyTrip vouchers on annual spends of ₹8 lakh\". Vouchers are for easemytrip.com flight bookings only, \"non-cumulative\". Blog (cardinsider) gives ₹6,000 at ₹8L without the ₹4L first voucher.",
+   "assumption": "What spend counts is not stated for the milestone; taken as the card's reward-point exclusions (government services, tax, rent, property management, wallet load, fuel; EMI reversed)."
+  },
+  {
+   "id": "icici-emeralde-private-metal-fee-waiver",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Emeralde Private Metal"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 1000000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "Annual fee (₹12,499 + GST) waived for the next year on ₹10 lakh spend"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "emi"
+    ],
+    "note": "Spend over ₹10 lakh and get your annual fee waived for the next year"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/emeralde-private-metal-credit-card",
+   "confidence": "assumed",
+   "assumption": "Period unstated on the page; read as the card Anniversary Year like every other ICICI fee-waiver T&C read (MMT, Adani, HPCL). Exclusions unstated; EMI excluded as in those T&Cs."
+  },
+  {
+   "id": "icici-emeralde-fee-waiver",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Emeralde"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 1000000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "Annual fee (₹12,000 + GST) waived for the next year on ₹10 lakh spend"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "emi"
+    ],
+    "note": "Annual Fee- ₹12,000 + GST (Spend over ₹10 lakh and get your Annual Fee waived for the next year)"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/emeralde-credit-card",
+   "confidence": "assumed",
+   "assumption": "Period unstated; read as the card Anniversary Year. Exclusions unstated; EMI excluded as in ICICI's other fee-waiver T&Cs."
+  },
+  {
+   "id": "icici-emeralde-quarter",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Emeralde"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 25000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "BookMyShow movie offer in the following quarter (buy one, up to ₹750 off the second, 4 a month)"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend ₹25,000 or more on your Emeralde Credit Card within the preceding spends quarter"
+   },
+   "effectiveFrom": "2026-04-01",
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/emeralde-credit-card",
+   "confidence": "assumed",
+   "notes": "ICICI example: \"Spend ₹25,000 between Dec 26, 2025 and Mar 25, 2026 - Get movie offer benefit between Apr 01, 2026 and June 30, 2026\". Lounge access on Emeralde is not spend-gated.",
+   "assumption": "ICICI's \"spends quarter\" runs from the 26th to the 25th (Dec 26–Mar 25 pays Apr–Jun); modelled as the calendar quarter, a few days off at each end. Exclusions unstated."
+  },
+  {
+   "id": "icici-sapphiro-year",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Sapphiro"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 400000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 4000,
+      "unit": "points",
+      "text": "4,000 reward points on ₹4 lakh spend"
+     }
+    },
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 2000,
+      "unit": "points",
+      "text": "2,000 reward points for each further ₹1 lakh (₹5 lakh)"
+     }
+    },
+    {
+     "threshold": 600000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 2000,
+      "unit": "points",
+      "text": "2,000 reward points (₹6 lakh)"
+     }
+    },
+    {
+     "threshold": 700000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 2000,
+      "unit": "points",
+      "text": "2,000 reward points (₹7 lakh)"
+     }
+    },
+    {
+     "threshold": 800000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 2000,
+      "unit": "points",
+      "text": "2,000 reward points (₹8 lakh)"
+     }
+    },
+    {
+     "threshold": 900000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 2000,
+      "unit": "points",
+      "text": "2,000 reward points (₹9 lakh)"
+     }
+    },
+    {
+     "threshold": 1000000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 2000,
+      "unit": "points",
+      "text": "2,000 reward points (₹10 lakh)"
+     }
+    },
+    {
+     "threshold": 1100000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 2000,
+      "unit": "points",
+      "text": "2,000 reward points (₹11 lakh)"
+     }
+    },
+    {
+     "threshold": 1200000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 2000,
+      "unit": "points",
+      "text": "2,000 reward points (₹12 lakh; 20,000-point yearly cap reached)"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "Get 4,000 reward points on ₹4 lakh spend & 2,000 for every additional ₹1 lakh spend, upto 20,000 RPs in an anniversary year."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/sapphiro-card",
+   "confidence": "assumed",
+   "notes": "Enumerated per ₹1 lakh so the 20,000 cap lands exactly at ₹12 lakh. Blog (cardinsider) matches.",
+   "assumption": "What spend counts is not stated; all card spend taken as counting."
+  },
+  {
+   "id": "icici-sapphiro-fee-waiver",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Sapphiro"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 600000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "Annual fee (₹3,500 + GST) waived for the next year on ₹6 lakh spend"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "emi"
+    ],
+    "note": "Annual fee- ₹3,500 + GST (Spend over ₹6 lakh and get your Annual Fee waived off for the next year)"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/sapphiro-card",
+   "confidence": "assumed",
+   "assumption": "Period unstated; read as the card Anniversary Year. Exclusions unstated; EMI excluded as in ICICI's other fee-waiver T&Cs."
+  },
+  {
+   "id": "icici-sapphiro-quarter",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Sapphiro"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 25000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "BookMyShow movie offer in the following quarter"
+     }
+    },
+    {
+     "threshold": 75000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "unit": "visits",
+      "text": "Domestic airport lounge access in the following calendar quarter"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "To enjoy domestic airport lounge access, you must spend ₹75,000 or more on your Sapphiro Credit Card in a calendar quarter."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/sapphiro-card",
+   "confidence": "assumed",
+   "notes": "Movie gate: \"Starting Apr 1, 2026, ... you must spend ₹25,000 or more on your Sapphiro Credit Card within the preceding spends quarter.\" Lounge visit count per quarter not quoted on the page.",
+   "assumption": "Lounge uses the calendar quarter (stated); the movie \"spends quarter\" runs 26th–25th per ICICI's example and is modelled as the calendar quarter. Exclusions unstated."
+  },
+  {
+   "id": "icici-rubyx-year",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Rubyx"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 300000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 3000,
+      "unit": "points",
+      "text": "3,000 reward points on ₹3 lakh spend"
+     }
+    },
+    {
+     "threshold": 400000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1500,
+      "unit": "points",
+      "text": "1,500 reward points for each further ₹1 lakh (₹4 lakh)"
+     }
+    },
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1500,
+      "unit": "points",
+      "text": "1,500 reward points (₹5 lakh)"
+     }
+    },
+    {
+     "threshold": 600000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1500,
+      "unit": "points",
+      "text": "1,500 reward points (₹6 lakh)"
+     }
+    },
+    {
+     "threshold": 700000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1500,
+      "unit": "points",
+      "text": "1,500 reward points (₹7 lakh)"
+     }
+    },
+    {
+     "threshold": 800000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1500,
+      "unit": "points",
+      "text": "1,500 reward points (₹8 lakh)"
+     }
+    },
+    {
+     "threshold": 900000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1500,
+      "unit": "points",
+      "text": "1,500 reward points (₹9 lakh)"
+     }
+    },
+    {
+     "threshold": 1000000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1500,
+      "unit": "points",
+      "text": "1,500 reward points (₹10 lakh)"
+     }
+    },
+    {
+     "threshold": 1100000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1500,
+      "unit": "points",
+      "text": "1,500 reward points (₹11 lakh; 15,000-point yearly cap reached)"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "Get 3,000 Reward Points on ₹ 3 lakh spend & 1,500 for every additional ₹ 1 lakh spend (up to 15,000 reward points per year)"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/rubyx-credit-card",
+   "confidence": "assumed",
+   "notes": "Enumerated per ₹1 lakh so the 15,000 cap lands at ₹11 lakh.",
+   "assumption": "\"Per year\" read as the card Anniversary Year (Coral and Sapphiro say anniversary year for the same scheme). What spend counts is not stated."
+  },
+  {
+   "id": "icici-rubyx-fee-waiver",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Rubyx"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 300000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "Annual fee waived for the next year on ₹3 lakh spend"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "emi"
+    ],
+    "note": "Spend over ₹3 lakh and get annual fee waived off for the next year"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/rubyx-credit-card",
+   "confidence": "assumed",
+   "notes": "Blog (WebSearch snippet) says ₹6L; ICICI page says ₹3L — issuer wins.",
+   "assumption": "Period unstated; read as the card Anniversary Year. Exclusions unstated; EMI excluded as in ICICI's other fee-waiver T&Cs."
+  },
+  {
+   "id": "icici-rubyx-quarter",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Rubyx"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 25000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "BookMyShow movie offer in the following quarter"
+     }
+    },
+    {
+     "threshold": 75000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "value": 2,
+      "unit": "visits",
+      "text": "2 domestic airport lounge visits in the following calendar quarter"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "spend ₹75,000 or more on your Rubyx Credit Card in a preceding spend quarter"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/rubyx-credit-card",
+   "confidence": "assumed",
+   "notes": "\"entitles you to avail the lounge access benefit in the following calendar quarter\"; \"2 domestic Airport Lounge access\"; primary cardholder only. Movie: \"spend ₹25,000 or more ... within the preceding spends quarter\".",
+   "assumption": "ICICI's \"spend quarter\" runs 26th–25th per its example; modelled as the calendar quarter. Exclusions unstated."
+  },
+  {
+   "id": "icici-coral-year",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Coral"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 200000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 2000,
+      "unit": "points",
+      "text": "2,000 reward points on ₹2 lakh spend"
+     }
+    },
+    {
+     "threshold": 300000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1000,
+      "unit": "points",
+      "text": "1,000 reward points for each further ₹1 lakh (₹3 lakh)"
+     }
+    },
+    {
+     "threshold": 400000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1000,
+      "unit": "points",
+      "text": "1,000 reward points (₹4 lakh)"
+     }
+    },
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1000,
+      "unit": "points",
+      "text": "1,000 reward points (₹5 lakh)"
+     }
+    },
+    {
+     "threshold": 600000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1000,
+      "unit": "points",
+      "text": "1,000 reward points (₹6 lakh)"
+     }
+    },
+    {
+     "threshold": 700000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1000,
+      "unit": "points",
+      "text": "1,000 reward points (₹7 lakh)"
+     }
+    },
+    {
+     "threshold": 800000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1000,
+      "unit": "points",
+      "text": "1,000 reward points (₹8 lakh)"
+     }
+    },
+    {
+     "threshold": 900000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1000,
+      "unit": "points",
+      "text": "1,000 reward points (₹9 lakh)"
+     }
+    },
+    {
+     "threshold": 1000000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1000,
+      "unit": "points",
+      "text": "1,000 reward points (₹10 lakh; 10,000-point yearly cap reached)"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "Get 2,000 reward points on ₹2 lakh spend and 1,000 for every additional ₹1 lakh spend (max 10,000 points per Anniversary year)"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/coral-credit-card",
+   "confidence": "assumed",
+   "notes": "Enumerated per ₹1 lakh so the 10,000 cap lands at ₹10 lakh.",
+   "assumption": "What spend counts is not stated; all card spend taken as counting."
+  },
+  {
+   "id": "icici-coral-fee-waiver",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Coral"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 150000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "Annual fee waived for the next year on ₹1.5 lakh spend"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "emi"
+    ],
+    "note": "Spend over ₹1.5 lakh and get annual fee waived off for the next year"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/coral-credit-card",
+   "confidence": "assumed",
+   "assumption": "Period unstated; read as the card Anniversary Year. Exclusions unstated; EMI excluded as in ICICI's other fee-waiver T&Cs."
+  },
+  {
+   "id": "icici-coral-quarter",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Coral"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 25000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "BookMyShow movie/event ticket offer in the following quarter"
+     }
+    },
+    {
+     "threshold": 75000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "unit": "visits",
+      "text": "Domestic airport lounge access in the following calendar quarter"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "To enjoy domestic airport lounge access, you must spend ₹75,000 or more on your Coral Credit Card in a calendar quarter. This entitles you to avail the lounge access benefit in the following calendar quarter."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/coral-credit-card",
+   "confidence": "assumed",
+   "notes": "Movie gate from 2026-04-01: \"you must spend ₹25,000 or more on your Coral Credit Card within the preceding spends quarter.\" Lounge visit count per quarter not quoted on the page.",
+   "assumption": "Lounge uses the calendar quarter (stated); the movie \"spends quarter\" runs 26th–25th per ICICI's example and is modelled as the calendar quarter. Exclusions unstated."
+  },
+  {
+   "id": "icici-makemytrip-fee-waiver",
+   "bank": "ICICI Bank",
+   "cards": [
+    "MakeMyTrip ICICI"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 300000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "Annual fee (₹999 + GST) reversed for the next year on ₹3 lakh spend; the annual MakeMyTrip voucher is then not given"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "emi"
+    ],
+    "note": "MakeMyTrip ICICI Bank Credit Card transactions for which the Equated Monthly Instalment (EMI) facility is availed will not be considered in calculating the total spends for waiver of the Annual Fee."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/revamp-page-images/docs/pdf/makemytrip-icici-credit-card-terms-and-conditions.pdf",
+   "confidence": "verified",
+   "notes": "T&C: \"eligible for an Annual Fee waiver from the 2nd Anniversary Year onwards if the total spends ... are equal to or more than ₹3,00,000 during the previous Anniversary Year. ... However, in such cases, the annual benefits will not be extended to the Cardholder\". Page: \"Spend over ₹3 lakh in one year and get your annual fee waived off for the next year\". MMTBLACK Platinum upgrade (₹2L + 4 trips on MakeMyTrip) is a partner-platform condition, not a card milestone."
+  },
+  {
+   "id": "icici-makemytrip-quarter",
+   "bank": "ICICI Bank",
+   "cards": [
+    "MakeMyTrip ICICI"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 25000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "Movie ticket offer (25% off up to ₹150, twice a month) in the following quarter"
+     }
+    },
+    {
+     "threshold": 75000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "value": 2,
+      "unit": "visits",
+      "text": "2 domestic airport lounge visits in the following quarter"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "Spend ₹75,000 or more in a calendar quarter to receive 2 complimentary domestic lounge passes in the following quarter"
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/makemytrip/makemytrip-icici-bank-credit-card",
+   "confidence": "assumed",
+   "notes": "Movie gate effective 2026-04-01 on ₹25,000+ in the preceding spends quarter; primary cardholder only for lounge.",
+   "assumption": "Lounge uses the calendar quarter (stated); the movie \"spends quarter\" runs 26th–25th per ICICI's example and is modelled as the calendar quarter. Exclusions unstated."
+  },
+  {
+   "id": "icici-adani-one-signature-welcome",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Adani One Signature"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 60
+   },
+   "tiers": [
+    {
+     "threshold": 25000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 5000,
+      "unit": "inr",
+      "text": "Adani One flight voucher worth ₹5,000"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "fees"
+    ],
+    "note": "Earn flight vouchers on spends of ₹25,000 (not including joining/annual fee, interest or bank levies) within 60 days of card activation."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/adani-icici-credit-card/signature-credit-card",
+   "confidence": "verified",
+   "notes": "T&C: \"Flight voucher worth ₹5,000 on spending ₹25,000 within the first 60 days of Card activation and payment of joining fee\"; \"Customers who have availed card without joining/annual fee shall be ineligible for flight voucher.\" Window runs from card activation, which the app approximates with the card date."
+  },
+  {
+   "id": "icici-adani-one-signature-fee-waiver",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Adani One Signature"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 600000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "Annual fee (₹5,000 + GST) reversed for the next year on ₹6 lakh spend; the flight voucher is then not given"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "emi"
+    ],
+    "note": "Transactions on Credit Card for which the Equated Monthly Instalment (EMI) facility is availed, shall not be considered in calculating the total spends for waiver of the Annual Fee."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/revamp-page-images/docs/pdf/signature-credit-card.pdf",
+   "confidence": "verified",
+   "notes": "T&C: \"eligible for an Annual Fee waiver from the 2nd Anniversary Year onwards, if the total spending on the Credit Card is equal to or more than ₹6,00,000 during the previous Anniversary Year.\" Page: \"Annual fee- ₹5,000 + GST (Spend over ₹6 lakh and get your annual fee waived off for the next year)\". Blogs say \"calendar year\" — the T&C says Anniversary Year."
+  },
+  {
+   "id": "icici-adani-one-signature-quarter",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Adani One Signature"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 75000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "value": 4,
+      "unit": "visits",
+      "text": "4 domestic airport lounge visits in the following calendar quarter"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "To enjoy domestic airport lounge access, you must spend ₹75,000 or more on your Adani One Signature Credit Card in a spends quarter. This entitles you to avail the 4 lounge accesses benefit in the following calendar quarter."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/adani-icici-credit-card/signature-credit-card",
+   "confidence": "assumed",
+   "assumption": "ICICI's \"spends quarter\" runs 26th–25th per its example; modelled as the calendar quarter. Exclusions unstated."
+  },
+  {
+   "id": "icici-emirates-sapphiro-year",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Emirates Skywards Sapphiro"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "miles",
+      "value": 5000,
+      "unit": "miles",
+      "text": "5,000 bonus Skywards Miles on renewal and Skywards Silver tier retained (₹5 lakh in the card year, annual fee paid)"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "fuel",
+     "cash",
+     "emi",
+     "fees",
+     "insurance",
+     "utilities",
+     "government",
+     "education",
+     "rent",
+     "wallet"
+    ],
+    "note": "Cardholder(s) will qualify for bonus 5,000 Skywards Miles as Joining and Annual Benefit if he / she is a Cardholder, subject to ₹(INR) 5 lakh spends in the previous year for the Annual Benefit."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/revamp-page-images/docs/pdf/emirates-icici-bank-sapphiro-tnc.pdf",
+   "confidence": "assumed",
+   "notes": "T&C: \"retain the Emirates Skywards silver tier membership with a total spend of ₹5 lakh within 12 months from the Credit Card issuance date and upon payment of the Annual Fee in the subsequent year\"; milestone spends run \"from the primary Card setup date till the end of the Anniversary Year ... reset post the completion of each anniversary cycle\", \"only once per anniversary year\". Page: \"To retain the Silver Tier status in subsequent years, an annual spend of ₹5 lakh is required.\" Both benefits also need the annual fee paid. No fee waiver on spend for this card.",
+   "assumption": "\"Qualifying retail spends\" for the milestone is undefined; taken as the categories that earn zero Skywards Miles in the same T&C (fuel, cash, EMI/BT/PLCC, fees, insurance, utilities, government, education, rent, e-wallet)."
+  },
+  {
+   "id": "icici-emirates-sapphiro-quarter",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Emirates Skywards Sapphiro"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 25000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "BookMyShow offer (up to ₹500 off the second ticket, twice a month) in the following quarter"
+     }
+    },
+    {
+     "threshold": 75000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "value": 2,
+      "unit": "visits",
+      "text": "2 domestic airport lounge visits in the following calendar quarter"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "To enjoy domestic airport lounge access, you must spend ₹75,000 or more on your Emirates Sapphiro ICICI Bank Credit Card in a spend quarter."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/emirates-skywards/emirates-sapphiro",
+   "confidence": "assumed",
+   "notes": "Movie gate from 2026-04-01: \"you must spend ₹25,000 or more on your Emirates Sapphiro Credit Card within the preceding spends quarter.\"",
+   "assumption": "ICICI's \"spend quarter\" runs 26th–25th per its example; modelled as the calendar quarter. Exclusions unstated."
+  },
+  {
+   "id": "icici-hpcl-super-saver-fee-waiver",
+   "bank": "ICICI Bank",
+   "cards": [
+    "HPCL Super Saver"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 150000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "Annual fee (₹500 + GST) reversed for the next year on ₹1.5 lakh spend"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "emi"
+    ],
+    "note": "Spends through Equated Monthly Instalment (EMI) transactions on the Credit Card shall not be included in total spends calculation."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/managed-assets/docs/terms-condition/hpcl-super-saver-credit-card-tnc.pdf",
+   "confidence": "verified",
+   "notes": "T&C: \"eligible for an annual fee waiver year 02 onward, if the total spends on the Credit Card is equal to or more than INR 1,50,000 during an Anniversary Year. In the such case, the Annual Fee applicable on the Credit Card for the subsequent year shall be reversed.\" Page: \"Annual Fee- ₹500 + GST (Spend over ₹1.5 lakh and get your annual Fee waived off for the next year)\"."
+  },
+  {
+   "id": "icici-hpcl-super-saver-quarter",
+   "bank": "ICICI Bank",
+   "cards": [
+    "HPCL Super Saver"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 25000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "Movie ticket offer (25% off up to ₹100) in the following quarter"
+     }
+    },
+    {
+     "threshold": 75000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "unit": "visits",
+      "text": "Domestic airport lounge access in the following calendar quarter"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "To enjoy domestic lounge access, you must spend ₹75,000 or more on your HPCL Super Saver Credit Card in a calendar quarter. This entitles you to avail the lounge access benefit in the following calendar quarter."
+   },
+   "verifiedOn": "2026-09-12",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/hpcl-super-saver",
+   "confidence": "assumed",
+   "notes": "Movie: \"you must spend ₹25,000 or more on your ICICI Bank HPCL Super Saver Credit Card within the preceding spends quarter.\" Lounge visit count per quarter not quoted.",
+   "assumption": "Lounge uses the calendar quarter (stated); the movie \"spends quarter\" runs 26th–25th per ICICI's example and is modelled as the calendar quarter. Exclusions unstated."
+  }
+ ]
+}
