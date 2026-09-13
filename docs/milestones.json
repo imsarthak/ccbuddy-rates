@@ -2261,6 +2261,2861 @@
    "confidence": "assumed",
    "notes": "Movie: \"you must spend ₹25,000 or more on your ICICI Bank HPCL Super Saver Credit Card within the preceding spends quarter.\" Lounge visit count per quarter not quoted.",
    "assumption": "Lounge uses the calendar quarter (stated); the movie \"spends quarter\" runs 26th–25th per ICICI's example and is modelled as the calendar quarter. Exclusions unstated."
+  },
+  {
+   "id": "amex-plat-travel-welcome",
+   "bank": "American Express",
+   "cards": [
+    "Platinum Travel"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 90
+   },
+   "tiers": [
+    {
+     "threshold": 15000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 10000,
+      "unit": "points",
+      "text": "10,000 Membership Rewards points"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "cash",
+     "fees"
+    ],
+    "note": "Spending ₹15,000 within 90 days of Card Membership entitles you to a Welcome Gift of 10,000 Membership Rewards® points. Eligible spends do not include cash advances, express cash transaction, draft made from the account, balance transfer, fees and is net of any returns"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/credit-cards/platinum-travel-credit-card/",
+   "confidence": "verified",
+   "notes": "\"Welcome Gift is available only in the 1st year on payment of the annual fee\". Balance transfer / express cash / drafts have no SpendExclusion value; folded into cash."
+  },
+  {
+   "id": "amex-plat-travel-year",
+   "bank": "American Express",
+   "cards": [
+    "Platinum Travel"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 400000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 10000,
+      "unit": "points",
+      "text": "10,000 Membership Rewards points (Platinum Travel Collection)"
+     }
+    },
+    {
+     "threshold": 700000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 20000,
+      "unit": "inr",
+      "text": "₹20,000 Taj Stay voucher (Taj, SeleQtions, Vivanta)"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [
+     "cash",
+     "fees"
+    ],
+    "note": "Reaching spend threshold of ₹ 4 Lakhs entitles you to 10,000 Membership Rewards® points that can be redeemed on Platinum Travel Collection. Reaching the spend threshold of ₹ 7 Lakhs in a Card Membership year entitles you to a Taj Stay voucher worth ₹20,000 from Taj, SeleQtions, and Vivanta Hotels."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/credit-cards/platinum-travel-credit-card/",
+   "confidence": "assumed",
+   "notes": "Footnote 5: \"Card Membership year\" = \"12 months from the date of card issuance/renewal\". Blogs (cardexpert, technofino) claim a March 2026 revision to ₹1.9L → 7,500 pts / ₹4L → 10,000 / ₹7L → 22,500 pts + ₹10,000 Taj e-gift; none of \"1,90,000\", \"1.9 Lakh\" or \"7,500\" appears on the Amex page (three reads), so the page figures are shipped. Re-check on next pass.",
+   "assumption": "The ₹4 lakh points and the ₹7 lakh Taj voucher are separate benefits; read as both paid on crossing ₹7 lakh (Amex does not say \"additional\")."
+  },
+  {
+   "id": "amex-plat-travel-quarter-lounge-q3-2026",
+   "bank": "American Express",
+   "cards": [
+    "Platinum Travel"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 70000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "value": 2,
+      "unit": "visits",
+      "text": "2 domestic lounge visits in Q4 2026"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "cash",
+     "fees"
+    ],
+    "note": "Effective 1 October 2026, enjoy 2 complimentary domestic lounge visits per calendar quarter upon reaching eligible spends in the preceding quarter (₹70,000 in Q3'26 for Q4'26 visits; ₹1 Lakh per quarter from Q4'26 onwards for Q1'27 visits)*."
+   },
+   "effectiveFrom": "2026-07-01",
+   "withdrawnOn": "2026-10-01",
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/credit-cards/platinum-travel-credit-card/",
+   "confidence": "verified",
+   "notes": "Transitional rule: the Jul–Sep 2026 quarter qualifies at ₹70,000; from Oct 2026 the steady-state ₹1 lakh row applies."
+  },
+  {
+   "id": "amex-plat-travel-quarter-lounge",
+   "bank": "American Express",
+   "cards": [
+    "Platinum Travel"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 100000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "value": 2,
+      "unit": "visits",
+      "text": "2 domestic lounge visits in the next calendar quarter"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "cash",
+     "fees"
+    ],
+    "note": "Effective 1 October 2026, enjoy 2 complimentary domestic lounge visits per calendar quarter upon reaching eligible spends in the preceding quarter (₹70,000 in Q3'26 for Q4'26 visits; ₹1 Lakh per quarter from Q4'26 onwards for Q1'27 visits)*."
+   },
+   "effectiveFrom": "2026-10-01",
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/credit-cards/platinum-travel-credit-card/",
+   "confidence": "verified",
+   "notes": "Paid in the quarter after the qualifying one."
+  },
+  {
+   "id": "amex-mrcc-welcome",
+   "bank": "American Express",
+   "cards": [
+    "Membership Rewards"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 90
+   },
+   "tiers": [
+    {
+     "threshold": 15000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 4000,
+      "unit": "points",
+      "text": "4,000 bonus Membership Rewards points"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Welcome Gift of 4,000 Bonus Membership Rewards® Points will be applicable on payment of joining fee and on spending INR 15,000 within first 90 days of Cardmembership."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/credit-cards/membership-rewards-card/",
+   "confidence": "verified",
+   "notes": "Also requires payment of the joining fee. Excluded spends not stated for the milestone (points-accrual exclusions: fuel, insurance, utilities, EMI)."
+  },
+  {
+   "id": "amex-mrcc-month-transactions",
+   "bank": "American Express",
+   "cards": [
+    "Membership Rewards"
+   ],
+   "period": {
+    "kind": "month"
+   },
+   "metric": "transactions",
+   "tiers": [
+    {
+     "threshold": 4,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1000,
+      "unit": "points",
+      "text": "1,000 bonus Membership Rewards points (4 transactions of ₹1,500+)"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Earn 1,000 Bonus Membership Rewards Points for simply using your card 4 times on transactions of Rs. 1,500 or above in a calendar month."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/credit-cards/membership-rewards-card/",
+   "confidence": "verified",
+   "notes": "Each transaction must be ₹1,500 or more (blogs still quote the older ₹1,000 minimum). Whether a qualifying transaction in a no-points category counts is not stated."
+  },
+  {
+   "id": "amex-mrcc-month",
+   "bank": "American Express",
+   "cards": [
+    "Membership Rewards"
+   ],
+   "period": {
+    "kind": "month"
+   },
+   "tiers": [
+    {
+     "threshold": 20000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1000,
+      "unit": "points",
+      "text": "1,000 bonus Membership Rewards points"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Earn an additional 1,000 Membership Rewards points simply by spending INR 20,000 or more in a calendar month. This is an enrollment based benefit."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/credit-cards/membership-rewards-card/",
+   "confidence": "verified",
+   "notes": "Enrolment required (https://amex.co/mrccenroll). Independent of the 4-transaction bonus."
+  },
+  {
+   "id": "amex-mrcc-year-fee",
+   "bank": "American Express",
+   "cards": [
+    "Membership Rewards"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 90000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "50% of ₹4,500 renewal fee waived"
+     }
+    },
+    {
+     "threshold": 150000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹4,500 renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "The Annual Membership Renewal fee of Rs.4500 will be 100% waived off if total spends on American Express Credit Card in the immediately preceding membership year is Rs.1,50,000 and above; else 50% annual membership renewal fee will be waived off if total spends on American Express Credit Card in the immediately preceding membership year is Rs.90,000 to Rs.1,49,999."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/credit-cards/membership-rewards-card/",
+   "confidence": "verified",
+   "notes": "Excluded spends not stated for the waiver."
+  },
+  {
+   "id": "amex-gold-welcome",
+   "bank": "American Express",
+   "cards": [
+    "Gold Card"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 90
+   },
+   "tiers": [
+    {
+     "threshold": 10000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 4000,
+      "unit": "points",
+      "text": "4,000 bonus Membership Rewards points"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Welcome Gift is available only in the 1st year on payment of the annual fee and on spending INR 10,000 within 90 days of Cardmembership."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/charge-cards/gold-card/",
+   "confidence": "verified",
+   "notes": "Also requires payment of the annual fee. Excluded spends not stated for the milestone."
+  },
+  {
+   "id": "amex-gold-month-transactions",
+   "bank": "American Express",
+   "cards": [
+    "Gold Card"
+   ],
+   "period": {
+    "kind": "month"
+   },
+   "metric": "transactions",
+   "tiers": [
+    {
+     "threshold": 6,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1000,
+      "unit": "points",
+      "text": "1,000 bonus Membership Rewards points (6 transactions of ₹1,000+)"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Earn 1,000 bonus points on 6 transactions of ₹1,000 each every calendar month."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/charge-cards/gold-card/",
+   "confidence": "verified",
+   "notes": "Whether a qualifying transaction in a no-points category (insurance, cash, fuel from 12 Jun 2025) counts is not stated."
+  },
+  {
+   "id": "amex-smartearn-welcome",
+   "bank": "American Express",
+   "cards": [
+    "SmartEarn"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 90
+   },
+   "tiers": [
+    {
+     "threshold": 10000,
+     "kind": "reward",
+     "benefit": {
+      "type": "cashback",
+      "value": 500,
+      "unit": "inr",
+      "text": "₹500 cashback (statement credit)"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "cash",
+     "fees"
+    ],
+    "note": "Rs. 500 cashback as a Welcome Gift in form of statement credit on eligible spends of Rs. 10,000 in the first 90 days. Eligible spends do not include cash advances, express cash transactions, drafts made from the Account, balance transfers and fees."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/credit-cards/smart-earn-credit-card/",
+   "confidence": "verified",
+   "notes": "\"Welcome Gift is available only in the 1st year on payment of the annual fee\". Balance transfer / express cash / drafts folded into cash."
+  },
+  {
+   "id": "amex-smartearn-year",
+   "bank": "American Express",
+   "cards": [
+    "SmartEarn"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 120000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 500,
+      "unit": "inr",
+      "text": "₹500 voucher (Amazon, Flipkart, Myntra, Uber, PVR, BookMyShow…)"
+     }
+    },
+    {
+     "threshold": 180000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 500,
+      "unit": "inr",
+      "text": "additional ₹500 voucher"
+     }
+    },
+    {
+     "threshold": 240000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 500,
+      "unit": "inr",
+      "text": "additional ₹500 voucher"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [
+     "fees"
+    ],
+    "note": "The spending mentioned here is net spending, post any reversals and cashbacks and doesn't include payment of any fees and charges including but not limited to Annual Fee, Finance Charges, Surcharge, Transaction fee, Overlimit charges, delinquent charges, etc."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/content/dam/amex/in/assets/lms/pdf/secc-amazon-termsandconditions.pdf",
+   "confidence": "verified",
+   "notes": "T&C (16 Sep 2022): \"Spend Rs 1.20 Lacs in a Cardmembership year and get a voucher worth Rs 500. Spend Rs 1.80 Lacs ... an additional voucher worth Rs 500. Spend Rs 2.40 Lacs ... an additional voucher worth Rs 500.\" \"A Cardmembership year is defined as 12 months from the date of Card issuance/renewal.\" Product page: \"Earn vouchers worth ₹500 upon reaching the spend milestones of ₹1.20 lacs, ₹1.80 lacs, and ₹2.40 lacs respectively in a Cardmembership year.\" Promo code within 30 days, valid 180 days."
+  },
+  {
+   "id": "amex-smartearn-year-fee",
+   "bank": "American Express",
+   "cards": [
+    "SmartEarn"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 40000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "cash",
+     "fees"
+    ],
+    "note": "Get a renewal fee waiver on eligible spends of Rs.40,000 and above in the previous year of Cardmembership. Eligible spends do not include cash advances, express cash transactions, drafts made from the Account, balance transfers and fees."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/credit-cards/smart-earn-credit-card/",
+   "confidence": "verified"
+  },
+  {
+   "id": "amex-plat-reserve-welcome",
+   "bank": "American Express",
+   "cards": [
+    "Platinum Reserve"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 90
+   },
+   "tiers": [
+    {
+     "threshold": 30000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 11000,
+      "unit": "points",
+      "text": "11,000 bonus Membership Rewards points"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "cash",
+     "fees"
+    ],
+    "note": "Welcome Gift is available only in the 1st year on payment of the annual fee and on spending INR 30,000 within 90 days of Cardmembership. Eligible spends do not include cash advances, express cash transaction, draft made from the account, balance transfer, fees and is net of any returns."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/credit-cards/platinum-reserve-credit-card/",
+   "confidence": "verified",
+   "notes": "Also requires payment of the annual fee."
+  },
+  {
+   "id": "amex-plat-reserve-month",
+   "bank": "American Express",
+   "cards": [
+    "Platinum Reserve"
+   ],
+   "period": {
+    "kind": "month"
+   },
+   "tiers": [
+    {
+     "threshold": 50000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 1000,
+      "unit": "inr",
+      "text": "₹1,000 voucher (Tata CLiQ Luxury, BookMyShow, Shoppers Stop, Big Basket, PVR, MakeMyTrip)"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "cash",
+     "fees"
+    ],
+    "note": "Effective 1st May 2024, upon reaching spend milestone of ₹50,000 respectively in a Calendar month you can avail voucher worth Rs. 1000 of any of the available brands (as mentioned above)"
+   },
+   "effectiveFrom": "2024-05-01",
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/content/dam/amex/in/legal-disclosures/BMS-and-FK-Terms-and-Conditions.pdf",
+   "confidence": "verified",
+   "notes": "Product page: \"Enjoy movie or online shopping vouchers worth Rs.12,000 per year on spending Rs. 50,000 every month\". Enrolment-based; promo code arrives before the end of the next-to-next calendar month, valid 90 days. The same ₹50,000/month also unlocks \"complimentary access twice a month to 32+ lush green courses in India\" (golf). Exclusions taken from the product page's eligible-spends footnote; the PDF defines none."
+  },
+  {
+   "id": "amex-plat-reserve-year-fee",
+   "bank": "American Express",
+   "cards": [
+    "Platinum Reserve"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 1000000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹10,000 renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "The Annual Membership Renewal fee of Rs.10,000 will be 100% waived off if total spends on American Express Platinum Reserve Credit Card in the immediately preceding membership year is Rs.10,00,000 and above"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/credit-cards/platinum-reserve-credit-card/",
+   "confidence": "verified",
+   "notes": "\"total spends\" — no exclusions stated for the waiver."
+  },
+  {
+   "id": "amex-platinum-welcome",
+   "bank": "American Express",
+   "cards": [
+    "Platinum Card"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 60
+   },
+   "tiers": [
+    {
+     "threshold": 50000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "text": "welcome gift vouchers (choice from the benefits catalogue)"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "You will receive the welcome gift within 6-8 weeks of payment of annual fee and upon net spends of INR 50,000 in first 2 months of Cardmembership."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/charge-cards/platinum-card/",
+   "confidence": "assumed",
+   "notes": "Voucher value is not stated on the page (T&C PDF https://www.americanexpress.com/content/dam/amex/in/benefits/Termsandcondition.pdf not read). Also requires payment of the annual fee.",
+   "assumption": "\"first 2 months of Cardmembership\" read as 60 days. \"net spends\" read as net of returns; no category exclusions stated."
+  },
+  {
+   "id": "amex-platinum-year",
+   "bank": "American Express",
+   "cards": [
+    "Platinum Card"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 2000000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 35000,
+      "unit": "inr",
+      "text": "renewal vouchers up to ₹35,000"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "On spends on INR 20 Lakhs in membership year and payment of renewal fee, get vouchers upto INR 35,000* as renewal benefit on the product"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.americanexpress.com/in/charge-cards/platinum-card/",
+   "confidence": "verified",
+   "notes": "Paid only with the renewal fee; the spend gate makes it a milestone rather than a plain renewal benefit. No fee waiver on spend for this card. Excluded spends not stated."
+  },
+  {
+   "id": "axis-atlas-year",
+   "bank": "Axis Bank",
+   "cards": [
+    "Atlas"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 300000,
+     "kind": "reward",
+     "benefit": {
+      "type": "miles",
+      "value": 2500,
+      "unit": "miles",
+      "text": "2,500 EDGE Miles"
+     }
+    },
+    {
+     "threshold": 750000,
+     "kind": "reward",
+     "benefit": {
+      "type": "miles",
+      "value": 2500,
+      "unit": "miles",
+      "text": "additional 2,500 EDGE Miles"
+     }
+    },
+    {
+     "threshold": 1500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "miles",
+      "value": 5000,
+      "unit": "miles",
+      "text": "additional 5,000 EDGE Miles"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [
+     "rent",
+     "wallet",
+     "jewellery",
+     "government",
+     "insurance",
+     "fuel",
+     "utilities",
+     "gift-vouchers"
+    ],
+    "note": "Spends threshold for Milestone achievement will exclude transactions done on Gold/ Jewellery, Rent, Wallet, Government Institution, Insurance, Fuel, Utilities and Telecom merchants w.e.f. 20th April, 2024 ... will exclude transactions done on bridge fees, road fees & tolls w.e.f. 21st August, 2026. Gift card purchases ... will not ... contribute towards ... milestone benefits."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/credit-cards/terms-and-conditions-of-features-of-axis-bank-atlas-credit-card.pdf?sfvrsn=8bde9bb5_6",
+   "confidence": "assumed",
+   "notes": "T&C table: 3,00,000 → 2500; 7,50,000 → Additional 2500; 15,00,000 → Additional 5000 (\"additional\" → stacks). Miles credit within 30 days of crossing. Tolls/bridge fees (from 21 Aug 2026) have no SpendExclusion value. Tier upgrades (Gold ₹7.5L, Platinum ₹15L) are a separate tier system, not modelled.",
+   "assumption": "The milestone clause names no period; read as the card anniversary year because the Tiers clause of the same T&C measures \"card spends of 7.5 lacs in an anniversary year\" and its examples walk card-anniversary years."
+  },
+  {
+   "id": "axis-atlas-welcome",
+   "bank": "Axis Bank",
+   "cards": [
+    "Atlas"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 37
+   },
+   "metric": "transactions",
+   "tiers": [
+    {
+     "threshold": 1,
+     "kind": "reward",
+     "benefit": {
+      "type": "miles",
+      "value": 2500,
+      "unit": "miles",
+      "text": "2,500 EDGE Miles"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "2500 EDGE Miles shall be credited to cardholders' EDGE Miles account upon successful completion of 1 transaction on the card within 37 days from the date of card issuance. Note: This will be applicable for all cards sourced from 20th April 2024 onwards."
+   },
+   "effectiveFrom": "2024-04-20",
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/credit-cards/terms-and-conditions-of-features-of-axis-bank-atlas-credit-card.pdf?sfvrsn=8bde9bb5_6",
+   "confidence": "verified",
+   "notes": "\"Welcome Benefit is applicable only for paid cards.\" Cards sourced 20 Dec 2022 – 19 Apr 2024: 5,000 miles on 1 txn in 30 days; earlier: 5,000 miles on 3 txns in 60 days."
+  },
+  {
+   "id": "axis-select-year",
+   "bank": "Axis Bank",
+   "cards": [
+    "Select"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 300000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 5000,
+      "unit": "points",
+      "text": "5,000 EDGE REWARD Points (+6 international lounge visits, +6 golf rounds, Priority Pass renewed next year)"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "insurance",
+     "rent",
+     "fuel",
+     "education",
+     "utilities",
+     "government",
+     "wallet",
+     "jewellery",
+     "gift-vouchers"
+    ],
+    "note": "Spends threshold for 5000 EDGE points and Annual fee waiver will exclude Insurance, rent, fuel, educational services, utilities & telecom, government services, wallet, gold and gift card."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/axis-bank-select-credit-card",
+   "confidence": "verified",
+   "notes": "\"5000 EDGE REWARD points on spending ₹3 lakhs in a card anniversary year.\" Same ₹3L gate: \"Customer is eligible for additional 6 visits per year by spending greater than Rs. 3 lakhs in that anniversary year\" and \"Priority Pass will renew automatically upon meeting ₹3 Lakhs Spends in preceding card anniversary year\" (PP T&C PDF), \"Unlock additional 6 complimentary golf rounds wihin the same anniversary year on achieving the spends of ₹3 Lakhs\". Blogs date the exclusion list to 1 Oct 2026; the page carries it undated."
+  },
+  {
+   "id": "axis-select-year-fee",
+   "bank": "Axis Bank",
+   "cards": [
+    "Select"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 800000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹3,000 annual fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "insurance",
+     "rent",
+     "fuel",
+     "education",
+     "utilities",
+     "government",
+     "wallet",
+     "jewellery",
+     "gift-vouchers"
+    ],
+    "note": "Complete annual fee waiver on spending of ₹8 lakhs in a card anniversary year. Spends threshold for 5000 EDGE points and Annual fee waiver will exclude Insurance, rent, fuel, educational services, utilities & telecom, government services, wallet, gold and gift card."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/axis-bank-select-credit-card",
+   "confidence": "verified",
+   "notes": "MITC: \"3,000 (Nil for Burgundy account holders) (Waived on spends* of INR 8 lakhs in the preceding card anniversary year)\"."
+  },
+  {
+   "id": "axis-select-welcome",
+   "bank": "Axis Bank",
+   "cards": [
+    "Select"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 30
+   },
+   "metric": "transactions",
+   "tiers": [
+    {
+     "threshold": 1,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 10000,
+      "unit": "points",
+      "text": "10,000 EDGE REWARD Points"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Get 10,000 EDGE REWARD Points worth ₹2000 on your first card transaction (Not applicable for life time free credit card / burgundy account holders). First transaction to be done within 30 days of card issuance."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/axis-bank-select-credit-card",
+   "confidence": "verified"
+  },
+  {
+   "id": "axis-magnus-year-fee",
+   "bank": "Axis Bank",
+   "cards": [
+    "Magnus"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 2500000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹12,500 annual fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "utilities",
+     "rent",
+     "wallet",
+     "government",
+     "insurance",
+     "jewellery",
+     "fuel",
+     "cash"
+    ],
+    "note": "Excluded spend categories for reward earn / spend based fee waiver: Transactions made on Utility & Telecom, Rent (capped at INR 50,000 per month), Wallet, Government spends, Insurance, Gold & Jewellery, Fuel, Cash advances and Repayments."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/axis-bank-magnus-credit-card",
+   "confidence": "assumed",
+   "notes": "Page: \"Annual fee of ₹12,500 + Taxes waived off* on spend of ₹25 Lakhs in preceding year.\" Magnus for Burgundy (catalog alias): \"Annual Fee of Rs. 30,000 + Taxes waived off on spend of Rs. 30 Lakhs in preceding year\". Exclusions from the 20 Jun 2025 revision PDF. No reward milestone on the page; blogs say the old 25,000-points-on-₹1L milestone was withdrawn.",
+   "assumption": "\"preceding year\" read as the card anniversary year (the Reserve and Privilege pages spell out \"preceding card anniversary year\" for the same clause)."
+  },
+  {
+   "id": "axis-reserve-year-fee",
+   "bank": "Axis Bank",
+   "cards": [
+    "Reserve"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 3500000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹50,000 annual fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "rent",
+     "wallet",
+     "gift-vouchers",
+     "utilities",
+     "government",
+     "cash",
+     "insurance",
+     "jewellery",
+     "fuel",
+     "fees"
+    ],
+    "note": "Spends threshold for annual fee reversal will exclude transactions identified through Rent, Wallet, Gift Card, Utilities & Telecom, Government Institutions, Cash Withdrawals, Insurance, Gold and Jewellery, Fuel, Bridge Fees, Road Fees & Tolls, Reversals, fees, and charges."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/reserve-credit-card/beyond-expectations-always",
+   "confidence": "verified",
+   "notes": "\"Customers on-boarded from 1st September 2023, will receive fee waiver of INR 50,000 on spends of INR 35,00,000 in the preceding card anniversary year\" (pre-Sep-2023 cards: ₹25L until anniversaries after 1 Sep 2024). Gift-card exclusion dated 28 Aug 2026 on the page. No reward milestone (cardinsider agrees)."
+  },
+  {
+   "id": "axis-reserve-welcome",
+   "bank": "Axis Bank",
+   "cards": [
+    "Reserve"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 30
+   },
+   "metric": "transactions",
+   "tiers": [
+    {
+     "threshold": 1,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 15000,
+      "unit": "points",
+      "text": "15,000 EDGE REWARD Points"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "15,000 Reward Points on Card activation* — *Customer must do first transaction within 30 days of card creation to be eligible for 15,000 Edge Reward points in the first year. Activation benefit is not appliable for customers who have first year free and life-time free credit card."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/reserve-credit-card/beyond-expectations-always",
+   "confidence": "verified"
+  },
+  {
+   "id": "axis-privilege-year",
+   "bank": "Axis Bank",
+   "cards": [
+    "Privilege"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 250000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 10000,
+      "unit": "points",
+      "text": "10,000 EDGE REWARD Points"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "utilities",
+     "rent",
+     "wallet",
+     "government",
+     "insurance",
+     "jewellery",
+     "fuel",
+     "education",
+     "gift-vouchers"
+    ],
+    "note": "Spends threshold for Milestone benefits will exclude transactions made on Utility & Telecom, Rent, Wallet, Government services, Insurance, Gold & Jewellery, Fuel, Educational services, Gift card, Bridge Fees, Road Fees & Tolls."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/credit-card/axis-privilege-credit-card-milestone-benefit-terms-and-conditions.pdf?sfvrsn=ab8f36bf_2",
+   "confidence": "verified",
+   "notes": "PDF: \"card holders are entitled to additional 10,000 Edge Reward points on spends of Rs. 2.5 lakhs in a card anniversary year.\" Page: \"Get an additional 10,000 EDGE REWARDS points worth ₹2000 by spending ₹2.5 lakhs in a card anniversary year.\" Primary + add-on spends count. Earlier repeating \"every 2.5 Lakhs\" multi-brand voucher milestone was discontinued 20 Apr 2024."
+  },
+  {
+   "id": "axis-privilege-year-fee",
+   "bank": "Axis Bank",
+   "cards": [
+    "Privilege"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 500000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹1,500 annual fee reversed"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "utilities",
+     "rent",
+     "wallet",
+     "government",
+     "insurance",
+     "jewellery",
+     "fuel",
+     "education",
+     "gift-vouchers"
+    ],
+    "note": "Spends threshold for annual fee waiver will exclude transactions made on Utility & Telecom, Rent, Wallet, Government services, Insurance, Gold & Jewellery, Fuel, Educational services, Gift Card, Bridge Fees, Road Fees and Tolls"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/privilege-credit-card-with-unlimited-benefits",
+   "confidence": "verified",
+   "notes": "\"Annual fees of ₹1500 will be reversed on achieving spending* of ₹5 lakhs in the previous card anniversary year.\" Cards on-boarded before 20 Apr 2024 had ₹2.5L until card anniversaries after 20 Apr 2025 (revision PDF)."
+  },
+  {
+   "id": "axis-privilege-welcome",
+   "bank": "Axis Bank",
+   "cards": [
+    "Privilege"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 30
+   },
+   "metric": "transactions",
+   "tiers": [
+    {
+     "threshold": 1,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 12500,
+      "unit": "points",
+      "text": "12,500 EDGE REWARD Points"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "12,500 EDGE REWARD points, Worth ₹2500 redeemable against vouchers upon levy of joining fees and on completion of 1st transaction within 30 days of card issuance."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/privilege-credit-card-with-unlimited-benefits",
+   "confidence": "verified",
+   "notes": "Requires the ₹1,500 joining fee to be levied — fee-waived issuances get nothing."
+  },
+  {
+   "id": "axis-horizon-welcome",
+   "bank": "Axis Bank",
+   "cards": [
+    "Horizon"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 30
+   },
+   "metric": "transactions",
+   "tiers": [
+    {
+     "threshold": 1,
+     "kind": "reward",
+     "benefit": {
+      "type": "miles",
+      "value": 5000,
+      "unit": "miles",
+      "text": "5,000 EDGE Miles (first transaction must be ₹1,000 or more)"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "5000 EDGE Miles shall be credited if the first transaction from the card is greater than INR 1000 within 30 days of Credit Card issuance. In the event that a customer's first transaction is below 1,000, and a subsequent second transaction is of 1,000 or above (even within 30 days), the customer will not be eligible for the welcome benefit."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/credit-cards/terms-and-conditions-for-horizon-credit-card.pdf",
+   "confidence": "verified",
+   "notes": "Paid cards only; not for cards migrated to Horizon before 31 Jul 2024. No spend milestone and no fee waiver on spend on the page or the T&C."
+  },
+  {
+   "id": "axis-ace-year-fee",
+   "bank": "Axis Bank",
+   "cards": [
+    "Ace"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 200000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹499 annual fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "rent",
+     "wallet"
+    ],
+    "note": "Annual fee waived off on annual spends greater than ₹2,00,000/- {Rent transactions ( MCC 6513 ) and wallet load transactions ( MCC 6540 ) will not be eligible for spends counted in availing annual fee waiver}"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/axis-bank-ace-credit-card",
+   "confidence": "verified",
+   "notes": "MITC: \"499 (Waived on spends of INR 2,00,000 in the preceding card anniversary year)\". Jun 2025 revision PDF: \"For spend based fee waiver calculation: Transactions made on Rent and Wallet load\"."
+  },
+  {
+   "id": "axis-ace-welcome-fee",
+   "bank": "Axis Bank",
+   "cards": [
+    "Ace"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 45
+   },
+   "tiers": [
+    {
+     "threshold": 10000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹499 joining fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "INR 499 (Waived on spends of INR10000 within 45 days of Card set-up)"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/mitc-credit-cards.pdf",
+   "confidence": "verified",
+   "notes": "MITC Schedule of Charges. Same row adds \"INR 0 – Limited time offer on select channels\" (joining fee nil for some channels). Product page shows \"Joining fee reversal 499\" in its value chart without the condition."
+  },
+  {
+   "id": "axis-flipkart-year-fee",
+   "bank": "Axis Bank",
+   "cards": [
+    "Flipkart Axis"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 350000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹500 annual fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "rent",
+     "wallet"
+    ],
+    "note": "Annual fee waived off on annual spends greater than ₹3,50,000. Rent transactions ( MCC 6513 ) and wallet load transactions ( MCC 6540 ) will not be eligible for spends counted in availing annual fee waiver. Spends for annual fee waiver are calculated based on posting date of the transactions and not based on the transaction date. It is advised to meet the required waiver criteria 3 working days prior to the card anniversary date."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/flipkart-axisbank-credit-card",
+   "confidence": "verified",
+   "notes": "Counted by posting date up to the card anniversary date."
+  },
+  {
+   "id": "axis-flipkart-welcome",
+   "bank": "Axis Bank",
+   "cards": [
+    "Flipkart Axis"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 30
+   },
+   "metric": "transactions",
+   "tiers": [
+    {
+     "threshold": 1,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 250,
+      "unit": "inr",
+      "text": "₹250 Flipkart voucher"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Flipkart voucher worth ₹250 on making the first transaction using your Flipkart Axis Bank Credit Card within 30 days of card issuance."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/flipkart-axisbank-credit-card",
+   "confidence": "verified",
+   "notes": "Part of \"₹350 worth of activation benefits\"; the balance is a partner offer without a spend gate. A dated \"Cleartrip Voucher worth ₹1500 on minimum spends of ₹30,000 ... within 30 days\" promo is not shipped."
+  },
+  {
+   "id": "axis-airtel-year-fee",
+   "bank": "Axis Bank",
+   "cards": [
+    "Airtel Axis"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 200000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹500 annual fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "rent",
+     "wallet"
+    ],
+    "note": "annual fee waived off on annual spends greater than ₹ 2,00,000/- {rent transactions ( MCC 6513 ) and wallet load transactions ( MCC 6540 ) will not be eligible for spends counted in availing annual fee waiver}"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/airtel-axis-bank-credit-card",
+   "confidence": "verified",
+   "notes": "MITC: \"500 (Waived on spends of INR 2,00,000 in the preceding card anniversary year)\". Page banner: T&C to be updated w.e.f. 28 Aug 2026 (link not followed)."
+  },
+  {
+   "id": "axis-airtel-welcome",
+   "bank": "Axis Bank",
+   "cards": [
+    "Airtel Axis"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 30
+   },
+   "metric": "transactions",
+   "tiers": [
+    {
+     "threshold": 1,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 250,
+      "unit": "inr",
+      "text": "₹250 Amazon eVoucher"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Get Amazon eVoucher worth ₹250 on first transaction made within first 30 days of card issuance. (offer not applicable for cards issued without Joining fee)"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/airtel-axis-bank-credit-card",
+   "confidence": "verified",
+   "notes": "Welcome T&C PDF: \"Customer will have to make first transaction within first 30 days of card issuance\"; \"applicable only for cards which have been charged with a Joining Fee\"."
+  },
+  {
+   "id": "axis-indigo-year",
+   "bank": "Axis Bank",
+   "cards": [
+    "IndiGo Axis"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 150000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1200,
+      "unit": "points",
+      "text": "voucher worth 1,200 IndiGo BluChips"
+     }
+    },
+    {
+     "threshold": 300000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1200,
+      "unit": "points",
+      "text": "voucher worth 1,200 IndiGo BluChips"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [
+     "government",
+     "insurance",
+     "utilities",
+     "rent",
+     "wallet",
+     "fuel",
+     "jewellery"
+    ],
+    "note": "The milestone spends calculation will be based on cumulative spends (net of any reversals) across eligible categories & transactions within a card anniversary year. Purchase transactions performed on Merchant Category Codes (MCC) detailed below shall not be considered for milestone benefit spends calculation: Government services, Insurance services, Utility Services (Including telecom), Rental payments, Wallet, Fuel, Jewelry, Bridge Fees, Road Fees & Tolls"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/final_indigo-base_customer-tnc.pdf?sfvrsn=797c78d0_2",
+   "confidence": "verified",
+   "notes": "Page: \"Voucher worth 1,200 IndiGo BluChips on achieving spends milestone of ₹1.5 Lakhs and again at ₹3 Lakhs cumulative annual spends.\" Fee-paid cards only (\"Not applicable for Lifetime free & First Year free\"). Checked at statement generation; credited within 30 days of the next statement."
+  },
+  {
+   "id": "axis-indigo-premium-year",
+   "bank": "Axis Bank",
+   "cards": [
+    "IndiGo Axis Premium"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 200000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 5000,
+      "unit": "points",
+      "text": "voucher worth 5,000 IndiGo BluChips"
+     }
+    },
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 5000,
+      "unit": "points",
+      "text": "voucher worth 5,000 IndiGo BluChips"
+     }
+    },
+    {
+     "threshold": 800000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 5000,
+      "unit": "points",
+      "text": "voucher worth 5,000 IndiGo BluChips"
+     }
+    },
+    {
+     "threshold": 1200000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 5000,
+      "unit": "points",
+      "text": "voucher worth 5,000 IndiGo BluChips"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [
+     "government",
+     "insurance",
+     "utilities",
+     "rent",
+     "wallet",
+     "fuel",
+     "jewellery"
+    ],
+    "note": "The milestone spends calculation will be based on cumulative spends (net of any reversals) across eligible categories & transactions within a card anniversary year. ... shall not be considered for milestone benefit spends calculation: Government services, Insurance services, Utility Services (Including telecom), Rental payments, Wallet, Fuel, Jewelry, Bridge Fees, Road Fees & Tolls"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/final_indigo-premium_customer-tnc.pdf?sfvrsn=6394c91f_2",
+   "confidence": "verified",
+   "notes": "Page: \"Unlock 4 vouchers worth 5000 IndiGo BluChips on achieving spends milestone at ₹2 Lakhs, ₹5 Lakhs, ₹8 lakhs and ₹12 Lakhs spends.\" Fee-paid cards only. No spend-based fee waiver stated for the ₹500 fee."
+  },
+  {
+   "id": "axis-samsung-signature-welcome",
+   "bank": "Axis Bank",
+   "cards": [
+    "Samsung Axis Signature"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 30
+   },
+   "metric": "transactions",
+   "tiers": [
+    {
+     "threshold": 3,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 2500,
+      "unit": "points",
+      "text": "2,500 EDGE REWARD Points"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "2500 EDGE REWARD Points on doing 3 transactions within 30 days from card issuance date"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/samsung-axis-bank-signature-credit-card",
+   "confidence": "verified",
+   "notes": "T&C PDF: \"completion of 3 card transactions for spends of any value within 30 days of credit card issuance\". Once per customer per variant."
+  },
+  {
+   "id": "axis-samsung-signature-year-fee",
+   "bank": "Axis Bank",
+   "cards": [
+    "Samsung Axis Signature"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 200000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹500 annual fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Annual Fee: 500 2nd year onward. Annual fee waived off on annual spends greater than ₹2,00,000/-"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/samsung-axis-bank-signature-credit-card",
+   "confidence": "verified",
+   "notes": "MITC: \"500 (Waived on spends of INR 2,00,000 in the preceding card anniversary year)\". Excluded spends not stated for this card's waiver (sister cards exclude rent and wallet loads). Page banner: T&C to be updated w.e.f. 28 Aug 2026 (link not followed)."
+  },
+  {
+   "id": "axis-my-zone-year",
+   "bank": "Axis Bank",
+   "cards": [
+    "My Zone"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 150000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1000,
+      "unit": "points",
+      "text": "1,000 EDGE REWARD Points"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [
+     "fuel",
+     "insurance",
+     "utilities",
+     "rent",
+     "wallet",
+     "jewellery",
+     "education",
+     "government"
+    ],
+    "note": "Spends on Movie, Fuel, Insurance, Utility, Rent, Wallet, Jewelry, Education, Government Institutions will be excluded from the calculation."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.axis.bank.in/cards/credit-card/axis-bank-my-zone-credit-card",
+   "confidence": "verified",
+   "notes": "\"You will be eligible to earn 1,000 EDGE REWARD Points on achieving annual spends of ₹1.5 lakhs in your card anniversary year. Spends will be evaluated 60 days after your card anniversary date to ensure any reversals or cancellations are excluded.\" Movie spends are also excluded (no SpendExclusion value). No spend-based fee waiver on the page."
+  },
+  {
+   "id": "sbi-elite-year",
+   "bank": "SBI Card",
+   "cards": [
+    "Elite"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 300000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 10000,
+      "unit": "points",
+      "text": "10,000 bonus Reward Points"
+     }
+    },
+    {
+     "threshold": 400000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 10000,
+      "unit": "points",
+      "text": "10,000 bonus Reward Points"
+     }
+    },
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 15000,
+      "unit": "points",
+      "text": "15,000 bonus Reward Points"
+     }
+    },
+    {
+     "threshold": 800000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 15000,
+      "unit": "points",
+      "text": "15,000 bonus Reward Points"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "Get 10,000 Bonus Reward Points on reaching Rs. 3 lakh and Rs. 4 lakh annual spends. Get 15,000 Bonus Reward Points on reaching Rs. 5 lakh and Rs. 8 lakh annual spends."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/lifestyle/sbi-card-elite.page",
+   "confidence": "assumed",
+   "notes": "\"Up to 50,000 Bonus Reward Points worth Rs. 12,500 every year\" = 10k+10k+15k+15k, so the tiers add up. Excluded spends not stated.",
+   "assumption": "\"annual spends\" read as the card anniversary year (SBI's IRCTC Premier T&C says milestones are \"calculated from account set up date for a period of 12 months\"). Excluded spends not stated."
+  },
+  {
+   "id": "sbi-elite-year-fee",
+   "bank": "SBI Card",
+   "cards": [
+    "Elite"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 1000000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "annual fee reversed"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend based reversal of Annual Fee on spends of Rs. 10 lakhs"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/lifestyle/sbi-card-elite.page",
+   "confidence": "assumed",
+   "notes": "Rewards tab: \"Annual fee reversal on annual spends of Rs. 10 lakh.\"",
+   "assumption": "\"annual spends\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-elite-welcome-itc",
+   "bank": "SBI Card",
+   "cards": [
+    "Elite"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 60
+   },
+   "metric": "transactions",
+   "tiers": [
+    {
+     "threshold": 1,
+     "kind": "reward",
+     "benefit": {
+      "type": "membership",
+      "text": "1-year Club ITC Silver Tier membership"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Cardholders will be eligible for membership after their first transaction within 60 days of card issuance."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/lifestyle/sbi-card-elite.page",
+   "confidence": "verified",
+   "notes": "The ₹5,000 welcome e-gift voucher has no spend gate on the page and is not a milestone."
+  },
+  {
+   "id": "sbi-prime-quarter",
+   "bank": "SBI Card",
+   "cards": [
+    "Prime"
+   ],
+   "period": {
+    "kind": "quarter",
+    "quarterBasis": "calendar"
+   },
+   "tiers": [
+    {
+     "threshold": 50000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 1000,
+      "unit": "inr",
+      "text": "₹1,000 Pizza Hut e-voucher"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend more than `50,000 in a calendar quarter to get a Pizza Hut e-Voucher* worth `1,000"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/personal/credit-cards/rewards/sbi-card-prime/prime-web-brochure.pdf",
+   "confidence": "verified",
+   "notes": "Product page: \"Earn a Pizza Hut e-Voucher worth Rs. 1,000 on quarterly spends of Rs. 50,000 (Prime Pro cardholders: Voucher worth Rs. 500 on the same spends).\" Brochure: \"You will receive the e-Voucher within 15 days of achieving spends of `50,000.\" Excluded spends not stated."
+  },
+  {
+   "id": "sbi-prime-year",
+   "bank": "SBI Card",
+   "cards": [
+    "Prime"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 7000,
+      "unit": "inr",
+      "text": "₹7,000 Yatra.com / Pantaloons e-gift voucher"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "E-Gift Voucher worth Rs. 7,000 from Yatra.com/Pantaloons on annual spends of Rs. 5 lakhs."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/rewards/sbi-card-prime.page",
+   "confidence": "assumed",
+   "notes": "Brochure: \"on reaching annual spends of `5 Lakhs in a year\"; SMS to choose the voucher within 10 days of reaching the spend.",
+   "assumption": "\"annual spends\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-prime-year-fee",
+   "bank": "SBI Card",
+   "cards": [
+    "Prime"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 300000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Renewal fee waived on annual spends of Rs. 3 lakhs."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/rewards/sbi-card-prime.page",
+   "confidence": "assumed",
+   "assumption": "\"annual spends\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-pulse-year",
+   "bank": "SBI Card",
+   "cards": [
+    "Pulse"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 400000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 1500,
+      "unit": "inr",
+      "text": "₹1,500 e-voucher"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Get Rs. 1,500 e-Voucher on annual retail spends of Rs. 4 lakhs"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/lifestyle/sbi-card-pulse.page",
+   "confidence": "assumed",
+   "notes": "Voucher brand not named on the page (\"Click here to learn more\" not followed).",
+   "assumption": "\"annual retail spends\" read as the card anniversary year; \"retail\" not itemised by SBI, so no exclusions coded."
+  },
+  {
+   "id": "sbi-pulse-year-fee",
+   "bank": "SBI Card",
+   "cards": [
+    "Pulse"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 200000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Waiver of Renewal Fee on annual spends of Rs. 2 lakhs"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/lifestyle/sbi-card-pulse.page",
+   "confidence": "assumed",
+   "notes": "Fees tab: \"Renewal Fee is reversed if annual spends for last year >= Rs. 2,00,000.\"",
+   "assumption": "\"annual spends for last year\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-simplyclick-year",
+   "bank": "SBI Card",
+   "cards": [
+    "SimplyCLICK"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 100000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 2000,
+      "unit": "inr",
+      "text": "₹2,000 Cleartrip / Yatra e-voucher"
+     }
+    },
+    {
+     "threshold": 200000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 2000,
+      "unit": "inr",
+      "text": "₹2,000 Cleartrip / Yatra e-voucher"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "E-Vouchers worth Rs. 2,000 each on reaching annual online spends of 1 Lakh and 2 Lakhs respectively. E-Voucher Brands: Cleartrip, Yatra"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/shopping/simplyclick-sbi-card.page",
+   "confidence": "assumed",
+   "notes": "ONLINE spends only — the tracker's total-spend figure will overstate progress. SBI notice: \"W.e.f. 15th September, 2023, SimplyCLICK / SimplyCLICK Advantage SBI Cardholders will get Cleartrip / Yatra e-Vouchers worth Rs.2,000 each on reaching annual online spends of Rs.1 Lakh and Rs.2 Lakh respectively\".",
+   "assumption": "\"annual online spends\" read as the card anniversary year. Only online spends count; the schema has no online/offline split."
+  },
+  {
+   "id": "sbi-simplyclick-year-fee",
+   "bank": "SBI Card",
+   "cards": [
+    "SimplyCLICK"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 100000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "annual fee reversed"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Annual Fee reversal on annual spends of 1 Lakh or more"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/shopping/simplyclick-sbi-card.page",
+   "confidence": "assumed",
+   "notes": "Fees tab: \"Renewal Fee is reversed if annual spends for last year >= Rs. 1,00,000.\"",
+   "assumption": "\"annual spends for last year\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-simplysave-welcome",
+   "bank": "SBI Card",
+   "cards": [
+    "SimplySAVE"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 60
+   },
+   "tiers": [
+    {
+     "threshold": 2000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 2000,
+      "unit": "points",
+      "text": "2,000 bonus Reward Points"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend Rs. 2,000 or more in first 60 days and get 2,000 Bonus Reward Points"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/shopping/simplysave-sbi-card.page",
+   "confidence": "verified",
+   "notes": "SBI calls it the \"Extravaganza Offer\". Excluded spends not stated."
+  },
+  {
+   "id": "sbi-simplysave-year-fee",
+   "bank": "SBI Card",
+   "cards": [
+    "SimplySAVE"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 100000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee reversed"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Reversal of renewal fee on annual spends of Rs. 1 lakh"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/shopping/simplysave-sbi-card.page",
+   "confidence": "assumed",
+   "notes": "Fees tab: \"Renewal Fee is reversed if annual spends for last year >= Rs. 1,00,000.\"",
+   "assumption": "\"annual spends for last year\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-cashback-year-fee",
+   "bank": "SBI Card",
+   "cards": [
+    "Cashback"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 200000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee reversed"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Reversal of renewal fee on annual spends of Rs. 2 Lakhs"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/rewards/cashback-sbi-card.page",
+   "confidence": "assumed",
+   "notes": "Fees tab: \"Renewal Fee is reversed if annual spends for last year >= Rs. 2,00,000.\" No reward milestone on the card. The 1 Apr 2026 revision PDF changes cashback caps only.",
+   "assumption": "\"annual spends for last year\" read as the card anniversary year. The cashback exclusion list is not stated to apply to the fee-reversal spend."
+  },
+  {
+   "id": "sbi-miles-elite-welcome",
+   "bank": "SBI Card",
+   "cards": [
+    "Miles Elite"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 60
+   },
+   "tiers": [
+    {
+     "threshold": 100000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 5000,
+      "unit": "points",
+      "text": "5,000 Travel Credits"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Get 5,000 Travel Credits on spends of Rs. 1 lakh within 60 days of card issuance"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles-elite.page",
+   "confidence": "verified",
+   "notes": "\"Travel Credits will be credited on payment of Joining Fee\". Excluded spends not stated."
+  },
+  {
+   "id": "sbi-miles-elite-year",
+   "bank": "SBI Card",
+   "cards": [
+    "Miles Elite"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 1200000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 20000,
+      "unit": "points",
+      "text": "20,000 bonus Travel Credits"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "20,000 Bonus Travel Credits on annual spends of Rs. 12 lakhs"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles-elite.page",
+   "confidence": "assumed",
+   "assumption": "\"annual spends\" read as the membership year, as the fee-reversal line on the same page says. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-miles-elite-year-fee",
+   "bank": "SBI Card",
+   "cards": [
+    "Miles Elite"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 1500000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "annual fee reversed"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Annual Fee reversal on spends of Rs. 15 lakhs in a membership year"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles-elite.page",
+   "confidence": "verified",
+   "notes": "\"membership year\" = card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-miles-elite-year-lounge",
+   "bank": "SBI Card",
+   "cards": [
+    "Miles Elite"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 100000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "value": 1,
+      "unit": "visits",
+      "text": "1 extra domestic lounge visit"
+     },
+     "repeats": true,
+     "repeatCap": 15
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "For every spend of Rs. 1 lakh, 1 complimentary Domestic Airport Lounge visit over & above the complimentary visits. Additional lounge visits are capped at 15 visits in a membership year"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles-elite.page",
+   "confidence": "verified"
+  },
+  {
+   "id": "sbi-miles-prime-welcome",
+   "bank": "SBI Card",
+   "cards": [
+    "Miles Prime"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 60
+   },
+   "tiers": [
+    {
+     "threshold": 60000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 3000,
+      "unit": "points",
+      "text": "3,000 Travel Credits"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Get 3,000 Travel Credits on spends of Rs. 60,000 within 60 days of card issuance"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles-prime.page",
+   "confidence": "verified",
+   "notes": "\"Travel Credits will be credited on payment of Joining Fee\". Excluded spends not stated."
+  },
+  {
+   "id": "sbi-miles-prime-year",
+   "bank": "SBI Card",
+   "cards": [
+    "Miles Prime"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 800000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 10000,
+      "unit": "points",
+      "text": "10,000 bonus Travel Credits"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "10,000 Bonus Travel Credits on annual spends of Rs. 8 lakhs"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles-prime.page",
+   "confidence": "assumed",
+   "assumption": "\"annual spends\" read as the membership year, as the fee-reversal line on the same page says. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-miles-prime-year-fee",
+   "bank": "SBI Card",
+   "cards": [
+    "Miles Prime"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 1000000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "annual fee reversed"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Annual Fee reversal on spends of Rs. 10 lakhs in a membership year"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles-prime.page",
+   "confidence": "verified",
+   "notes": "\"membership year\" = card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-miles-prime-year-lounge",
+   "bank": "SBI Card",
+   "cards": [
+    "Miles Prime"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 100000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "value": 1,
+      "unit": "visits",
+      "text": "1 extra domestic lounge visit"
+     },
+     "repeats": true,
+     "repeatCap": 12
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "For every spend of Rs. 1 lakh, 1 complimentary Domestic Airport Lounge visit over & above the complimentary visits. Additional lounge visits are capped at 12 visits in a membership year"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles-prime.page",
+   "confidence": "verified"
+  },
+  {
+   "id": "sbi-miles-welcome",
+   "bank": "SBI Card",
+   "cards": [
+    "Miles"
+   ],
+   "period": {
+    "kind": "welcome",
+    "days": 60
+   },
+   "tiers": [
+    {
+     "threshold": 30000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 1500,
+      "unit": "points",
+      "text": "1,500 Travel Credits"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Travel Credits will be credited on spends of Rs. 30,000 within 60 days of card issuance"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles.page",
+   "confidence": "verified",
+   "notes": "Excluded spends not stated."
+  },
+  {
+   "id": "sbi-miles-year",
+   "bank": "SBI Card",
+   "cards": [
+    "Miles"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 5000,
+      "unit": "points",
+      "text": "5,000 bonus Travel Credits"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "5,000 Bonus Travel Credits on annual spends of Rs. 5 lakhs."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles.page",
+   "confidence": "assumed",
+   "assumption": "\"annual spends\" read as the membership year, as the fee-reversal line on the same page says. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-miles-year-fee",
+   "bank": "SBI Card",
+   "cards": [
+    "Miles"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 600000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "annual fee reversed"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Annual fee reversed on spends of Rs. 6 lakhs in a membership year."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles.page",
+   "confidence": "verified",
+   "notes": "\"membership year\" = card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-miles-year-lounge",
+   "bank": "SBI Card",
+   "cards": [
+    "Miles"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 100000,
+     "kind": "reward",
+     "benefit": {
+      "type": "lounge",
+      "value": 1,
+      "unit": "visits",
+      "text": "1 extra domestic lounge visit"
+     },
+     "repeats": true,
+     "repeatCap": 8
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Earn 1 additional domestic airport lounge visit for every Rs. 1 lakh spent, over and above complimentary visits. Additional lounge visits capped at 8 per membership year."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles.page",
+   "confidence": "verified"
+  },
+  {
+   "id": "sbi-irctc-premier-year",
+   "bank": "SBI Card",
+   "cards": [
+    "IRCTC SBI Premier"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 50000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 2500,
+      "unit": "points",
+      "text": "2,500 Reward Points"
+     }
+    },
+    {
+     "threshold": 100000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 5000,
+      "unit": "points",
+      "text": "5,000 Reward Points"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "Earn 2,500 Reward points on annual travel spends of `50,000 or above. Earn 5,000 Reward Points on annual travel spends of `1,00,000 or above. Eligible Travel spends for milestone includes Visa/RuPay defined MCC category: Travel Agents, Railways. Product milestones and spend based waivers are calculated from account set up date for a period of 12 months."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/ekit-tncs/IRCTCPremiertnc.pdf",
+   "confidence": "verified",
+   "notes": "TRAVEL-MCC spends only (Travel Agents, Railways) — the tracker's total-spend figure will overstate progress. Two separate awards, read as stacking (7,500 at ₹1 lakh); SBI does not say \"additional\". Product page carries the same figures."
+  },
+  {
+   "id": "sbi-irctc-premier-year-fee",
+   "bank": "SBI Card",
+   "cards": [
+    "IRCTC SBI Premier"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 200000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "annual fee reversed"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend based reversal of annual fee on spends of Rs. 2 Lakhs. Eligible spends incurred on the Credit Card within the last 365 days from the Annual Card Fee billing date shall be considered for the spend-based reversal of the Annual Card fees."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/ekit-tncs/IRCTCPremiertnc.pdf",
+   "confidence": "verified",
+   "notes": "Page: \"Spend Based Renewal Fee will be reversed within 30 days from Annual fee charged date.\" \"Eligible spends\" not itemised."
+  },
+  {
+   "id": "sbi-reliance-prime-year",
+   "bank": "SBI Card",
+   "cards": [
+    "Reliance SBI Prime"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 75000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 1500,
+      "unit": "inr",
+      "text": "₹1,500 Reliance Retail voucher"
+     }
+    },
+    {
+     "threshold": 150000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 2250,
+      "unit": "inr",
+      "text": "₹2,250 Reliance Retail voucher"
+     }
+    },
+    {
+     "threshold": 300000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 5000,
+      "unit": "inr",
+      "text": "₹5,000 Reliance Retail voucher"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "Rs. 1500 worth Reliance Retail Voucher on annual spends of Rs. 75,000 at participating Reliance Retail Stores. Rs. 2250 worth Reliance Retail Voucher on annual spends of Rs. 1,50,000 at participating Reliance Retail Stores. Rs. 5,000 worth Reliance Retail Voucher on annual spends of Rs. 3,00,000 at participating Reliance Retail Stores"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/shopping/reliance-sbi-card-prime.page",
+   "confidence": "assumed",
+   "notes": "Spends AT PARTICIPATING RELIANCE RETAIL STORES only — the tracker's total-spend figure will overstate progress. Privileges tab totals the tiers: \"Rs. 8,750 worth Reliance Retail Voucher on annual spends of Rs. 3,00,000\" (1,500+2,250+5,000).",
+   "assumption": "\"annual spends\" read as the card anniversary year. Only Reliance-store spends count; the schema has no merchant filter."
+  },
+  {
+   "id": "sbi-reliance-prime-year-fee",
+   "bank": "SBI Card",
+   "cards": [
+    "Reliance SBI Prime"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 300000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "annual fee reversed"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend Based Reversal on annual spends of Rs 3 Lakh"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/shopping/reliance-sbi-card-prime.page",
+   "confidence": "assumed",
+   "assumption": "\"annual spends\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-bpcl-octane-year",
+   "bank": "SBI Card",
+   "cards": [
+    "BPCL Octane"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 300000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 2000,
+      "unit": "inr",
+      "text": "₹2,000 Aditya Birla Fashion / Yatra / Hush Puppies e-gift voucher"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "e-Gift Vouchers worth Rs. 2,000 from Aditya Birla fashion or Yatra or Hush Puppies on annual spend of Rs. 3 Lakhs."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/bpcl-sbi-card-octane.page",
+   "confidence": "assumed",
+   "assumption": "\"annual spend\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-bpcl-octane-year-fee",
+   "bank": "SBI Card",
+   "cards": [
+    "BPCL Octane"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 200000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee reversed"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Spend Based fee reversal benefit on annual spends of 2 Lakhs. Spend based Renewal fee will be reversed within 30 days from Annual fee charged date."
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/bpcl-sbi-card-octane.page",
+   "confidence": "assumed",
+   "notes": "Fees tab: \"Renewal Fee is reversible if annual spend for last year ≥ Rs. 200,000\".",
+   "assumption": "\"annual spend for last year\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-aurum-month",
+   "bank": "SBI Card",
+   "cards": [
+    "Aurum"
+   ],
+   "period": {
+    "kind": "month"
+   },
+   "tiers": [
+    {
+     "threshold": 100000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 1500,
+      "unit": "inr",
+      "text": "₹1,500 Tata CLiQ e-gift voucher"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "On a spend of Rs 1 lakh in a month, cardholders receive a Rs 1,500 TATA CLiQ e-Gift voucher."
+   },
+   "source": "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/who-we-are/news/2025/The-Economic-Times-20250709.pdf",
+   "confidence": "partial",
+   "notes": "Sentence is The Economic Times' (09/07/2025), hosted by SBI Card — not SBI's own wording. Aurum product page https://www.sbicard.com/en/personal/credit-cards/aurum-sbi-card.html shows no milestone text; no Aurum milestone T&C found on sbicard.com. Blogs (cardinsider, cardexpert, technofino) agree on the figure. Month basis (calendar vs statement) unknown."
+  },
+  {
+   "id": "sbi-aurum-year",
+   "bank": "SBI Card",
+   "cards": [
+    "Aurum"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 5000,
+      "unit": "inr",
+      "text": "₹5,000 Tata CLiQ Luxury e-gift voucher"
+     }
+    },
+    {
+     "threshold": 1000000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 10000,
+      "unit": "inr",
+      "text": "₹10,000 Taj Experiences e-gift voucher"
+     }
+    },
+    {
+     "threshold": 2000000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 20000,
+      "unit": "inr",
+      "text": "₹20,000 Apple Premium Reseller gift card"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "On annual spends of Rs 5 lakhs, cardholders can unlock a Rs 5,000 TATA CLiQ Luxury e-Gift voucher. On annual spends of Rs 10 lakhs, cardholders receive Rs 10,000 TAJ Experiences e-Gift voucher. On annual spends of Rs 20 lakhs, cardholders receive Rs 20,000 Apple Premium Reseller Gift Card."
+   },
+   "source": "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/who-we-are/news/2025/The-Economic-Times-20250709.pdf",
+   "confidence": "partial",
+   "notes": "The ₹5 lakh tier is in SBI's own words on https://www.sbicard.com/en/customer-notices.page: \"W.e.f. 01 May 2023, AURUM Cardholders will get Rs.5,000 voucher from Tata CLiQ Luxury instead of RBL Luxe, offered currently on reaching annual spend milestone of Rs. 5 Lakh.\" The ₹10L/₹20L tiers and stacking are from the ET reprint only."
+  },
+  {
+   "id": "sbi-aurum-year-fee",
+   "bank": "SBI Card",
+   "cards": [
+    "Aurum"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 1200000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "₹9,999 annual fee reversed"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "This fee is reversed on achieving the spends milestone of Rs 12 lakhs during a card membership year."
+   },
+   "source": "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/who-we-are/news/2025/The-Economic-Times-20250709.pdf",
+   "confidence": "partial",
+   "notes": "ET reprint hosted by SBI Card; not on the Aurum product page."
+  },
+  {
+   "id": "sbi-cv-year",
+   "bank": "SBI Card",
+   "cards": [
+    "Club Vistara SBI"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 5000,
+      "unit": "inr",
+      "text": "₹5,000 Yatra hotel e-voucher"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "1 hotel e-Voucher from Yatra worth Rs. 5,000 on annual spends of Rs. 5 lakhs"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/club-vistara-sbi-card.page",
+   "confidence": "assumed",
+   "notes": "Page: \"Cardholders whose card renewal date precedes 01 April 2025 will still be able to avail the Milestone Benefits, if, and when they become eligible for the same.\" Card no longer issued; renewal fee now Nil.",
+   "assumption": "\"annual spends\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-cv-year-tickets",
+   "bank": "SBI Card",
+   "cards": [
+    "Club Vistara SBI"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 125000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "1 Economy ticket voucher"
+     }
+    },
+    {
+     "threshold": 250000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "1 Economy ticket voucher"
+     }
+    },
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "1 Economy ticket voucher"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "Milestone benefit (1 Economy Ticket each, on annual spend of ₹1.25 Lakhs, ₹2.5 Lakhs and ₹5 Lakhs) on Club Vistara SBI Card will be discontinued for all cards due for renewal after 01 April 2025."
+   },
+   "withdrawnOn": "2025-04-01",
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/customer-notices.page",
+   "confidence": "assumed",
+   "assumption": "\"annual spend\" read as the card anniversary year. Withdrawal applies per card at its first renewal after 1 Apr 2025; a single date is used."
+  },
+  {
+   "id": "sbi-cv-prime-year",
+   "bank": "SBI Card",
+   "cards": [
+    "Club Vistara SBI Prime"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 800000,
+     "kind": "reward",
+     "benefit": {
+      "type": "voucher",
+      "value": 10000,
+      "unit": "inr",
+      "text": "₹10,000 Yatra hotel e-voucher"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "Get 1 Hotel E-Voucher from Yatra worth Rs. 10,000 on reaching annual spends of Rs. 8 lakhs"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/club-vistara-sbi-card-prime.page",
+   "confidence": "assumed",
+   "notes": "Card no longer issued; renewal fee now Nil.",
+   "assumption": "\"annual spends\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "sbi-cv-prime-year-tickets",
+   "bank": "SBI Card",
+   "cards": [
+    "Club Vistara SBI Prime"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 150000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "1 Premium Economy ticket voucher"
+     }
+    },
+    {
+     "threshold": 300000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "1 Premium Economy ticket voucher"
+     }
+    },
+    {
+     "threshold": 450000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "1 Premium Economy ticket voucher"
+     }
+    },
+    {
+     "threshold": 800000,
+     "kind": "reward",
+     "benefit": {
+      "type": "other",
+      "text": "1 Premium Economy ticket voucher"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "Milestone benefit (1 Premium Economy Ticket each, on annual spend of ₹1.5 Lakhs, ₹3 Lakhs, ₹4.5 Lakh and ₹8 Lakhs) on Club Vistara SBI Card PRIME will be discontinued for all cards due for renewal after 01 April 2025."
+   },
+   "withdrawnOn": "2025-04-01",
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/customer-notices.page",
+   "confidence": "assumed",
+   "assumption": "\"annual spend\" read as the card anniversary year. Withdrawal applies per card at its first renewal after 1 Apr 2025; a single date is used."
+  },
+  {
+   "id": "sbi-air-india-signature-year",
+   "bank": "SBI Card",
+   "cards": [
+    "Air India SBI Signature"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 500000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 20000,
+      "unit": "points",
+      "text": "20,000 bonus Reward Points"
+     }
+    },
+    {
+     "threshold": 1000000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 30000,
+      "unit": "points",
+      "text": "30,000 bonus Reward Points"
+     }
+    },
+    {
+     "threshold": 2000000,
+     "kind": "reward",
+     "benefit": {
+      "type": "points",
+      "value": 50000,
+      "unit": "points",
+      "text": "50,000 bonus Reward Points"
+     }
+    }
+   ],
+   "stacks": true,
+   "counts": {
+    "excludes": [],
+    "note": "20,000 bonus Reward points on annual spends of Rs. 5 lakhs. 30,000 bonus Reward points on annual spends of Rs. 10 lakhs. 50,000 bonus Reward points on annual spends of Rs. 20 lakhs"
+   },
+   "verifiedOn": "2026-09-14",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/air-india-sbi-signature-card.page",
+   "confidence": "assumed",
+   "notes": "\"Up to 1,00,000 bonus Reward points annually\" = 20k+30k+50k, so the tiers add up. No fee waiver on spend. Card no longer issued.",
+   "assumption": "\"annual spends\" read as the card anniversary year. Excluded spends not stated."
   }
  ]
 }
