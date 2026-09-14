@@ -19,6 +19,11 @@ on:
         type: choice
         default: probe
         options: [probe, run]
+      via:
+        description: direct = the runner's own egress; firecrawl = through Firecrawl's proxy pool (costs credits)
+        type: choice
+        default: direct
+        options: [direct, firecrawl]
 
 permissions:
   contents: write
@@ -45,10 +50,14 @@ jobs:
           done
       - name: Probe
         if: ${{ inputs.mode == 'probe' }}
-        run: node scraper/blinkdeal.mjs --probe
+        run: node scraper/blinkdeal.mjs --probe --via ${{ inputs.via || 'direct' }}
+        env:
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
       - name: Watch
         if: ${{ inputs.mode != 'probe' }}
-        run: node scraper/blinkdeal.mjs
+        run: node scraper/blinkdeal.mjs --via ${{ inputs.via || 'direct' }}
+        env:
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
       - name: Commit if changed
         if: ${{ inputs.mode != 'probe' }}
         run: |

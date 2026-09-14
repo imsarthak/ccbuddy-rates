@@ -48,10 +48,40 @@ const HEADERS = {
   'Upgrade-Insecure-Requests': '1',
 }
 
+// Myntra serves its real listing to residential connections only: every
+// datacenter egress measured (GitHub runners, Cloudflare, Oracle/Akamai/DO in
+// India) gets a 483-byte "Site Maintenance" page with HTTP 200. `--via
+// firecrawl` routes the fetch through Firecrawl's proxy pool instead.
+const VIA = flag('--via') ?? process.env.BLINKDEAL_VIA ?? 'direct'
+
+async function firecrawlGet(url) {
+  const key = (process.env.FIRECRAWL_API_KEY ?? '').replace(/^FEFF/, '').trim()
+  if (!key) throw new Error('FIRECRAWL_API_KEY not set')
+  const res = await fetch('https://api.firecrawl.dev/v2/scrape', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      url,
+      formats: ['rawHtml'],
+      proxy: 'auto', // basic first, stealth only if the basic pool is refused
+      location: { country: 'IN', languages: ['en-IN'] },
+      timeout: 60000,
+    }),
+    signal: AbortSignal.timeout(90000),
+  })
+  const j = await res.json().catch(() => ({}))
+  if (!res.ok || !j.success) throw new Error(`firecrawl ${res.status}: ${String(j.error ?? '').slice(0, 80)}`)
+  return j.data?.rawHtml ?? ''
+}
+
 async function get(url) {
+  const started = Date.now()
+  if (VIA === 'firecrawl') {
+    const text = await firecrawlGet(url)
+    return { status: 200, text, ms: Date.now() - started }
+  }
   const ctrl = new AbortController()
   const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS)
-  const started = Date.now()
   try {
     const res = await fetch(url, { headers: HEADERS, signal: ctrl.signal })
     const text = await res.text()
@@ -127,6 +157,7 @@ async function fetchListing(url) {
 
 async function probe() {
   let bad = 0
+  console.log(`via ${VIA}`)
   for (const url of [LISTING, filterUrl('BLINKDEAL', SEED_IDS[0])]) {
     try {
       const r = await get(url)
@@ -211,16 +242,12 @@ async function detect(previous) {
 
 const skuKey = (f) => (f.skus ?? []).map((s) => s.id).sort().join(',')
 
-async function main() {
-  if (PROBE) return probe()
-
-  let previous = {}
-  try {
-    previous = JSON.parse(await readFile(OUT, 'utf8'))
-  } catch {
-    // first run
-  }
-
+/**
+ * One watcher step, host-agnostic: given the previous feed, return what to
+ * publish now (null when nothing material changed and the hourly heartbeat
+ * is not yet due) plus a closed window to append to the history, if any.
+ */
+export async function step(previous) {
   const now = new Date().toISOString()
   let next
   try {
@@ -239,24 +266,39 @@ async function main() {
     console.error(`FAIL  ${e.message}`)
   }
 
-  const ended = previous.live && !next.live && next.ok
-  if (ended) {
-    let history = { windows: [] }
-    try {
-      history = JSON.parse(await readFile(HISTORY, 'utf8'))
-    } catch {
-      // first window
-    }
+  let closedWindow = null
+  if (previous.live && !next.live && next.ok) {
     const w = previous.lastLive ?? { code: previous.code, from: previous.checkedAt }
-    history.windows = [...history.windows, { ...w, to: now, maxSkus: previous.skus?.length ?? 0 }].slice(-100)
-    await writeFile(HISTORY, JSON.stringify(history, null, 1) + '\n')
+    closedWindow = { ...w, to: now, maxSkus: previous.skus?.length ?? 0 }
   }
 
   const material =
     !!previous.live !== !!next.live || previous.code !== next.code || !!previous.ok !== !!next.ok ||
     skuKey(previous) !== skuKey(next) || (next.knownIds ?? []).length !== (previous.knownIds ?? []).length
   const heartbeatDue = !previous.checkedAt || Date.now() - Date.parse(previous.checkedAt) > HEARTBEAT_MS
-  if (!material && !heartbeatDue) {
+  return { next: material || heartbeatDue ? next : null, closedWindow }
+}
+
+export function appendWindow(history, w) {
+  return { windows: [...(history?.windows ?? []), w].slice(-100) }
+}
+
+async function main() {
+  if (PROBE) return probe()
+
+  const readJson = async (p, fallback) => {
+    try {
+      return JSON.parse(await readFile(p, 'utf8'))
+    } catch {
+      return fallback
+    }
+  }
+  const previous = await readJson(OUT, {})
+  const { next, closedWindow } = await step(previous)
+  if (closedWindow) {
+    await writeFile(HISTORY, JSON.stringify(appendWindow(await readJson(HISTORY, null), closedWindow), null, 1) + '\n')
+  }
+  if (!next) {
     console.log('unchanged — not rewriting')
     return
   }
@@ -265,4 +307,6 @@ async function main() {
   console.log(`wrote ${OUT}`)
 }
 
-main()
+// Run as a script; stay quiet when a host adapter imports `step`.
+const entry = process.argv[1] ? process.argv[1].replace(/\\/g, '/').toLowerCase() : ''
+if (entry.endsWith('/blinkdeal.mjs')) main()
