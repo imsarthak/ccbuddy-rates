@@ -22,6 +22,10 @@ const flag = (name) => {
   return i === -1 ? null : ARGS[i + 1] ?? true
 }
 const PROBE = ARGS.includes('--probe')
+// --quick: only ask the known filter URLs (≈400 KB each); skip the full
+// listing scan (≈700 KB) that finds a renamed code or a new coupon id. A
+// tight loop runs quick ticks and a full one every so often.
+const QUICK = ARGS.includes('--quick')
 const OUT = flag('--out') ?? join(ROOT, 'docs', 'blinkdeal.json')
 const HISTORY = join(dirname(OUT), 'blinkdeal-history.json')
 
@@ -203,7 +207,7 @@ async function detect(previous) {
     }
     // 2. Otherwise read the plain listing and look for any BLINK* coupon
     //    on any product — that is how a renamed code or a new id is found.
-    if (!live) {
+    if (!live && !QUICK) {
       const plain = await fetchListing(LISTING)
       const hit = [...plain.links].map(parseTagLink).find((m) => m && CODE_RE.test(m[1]))
         ?? [...plain.codes.keys()].filter((c) => CODE_RE.test(c)).map((c) => [null, c, null])[0]

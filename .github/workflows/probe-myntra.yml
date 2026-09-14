@@ -1,0 +1,62 @@
+name: Probe Myntra surfaces
+
+# Throwaway measurement rig. Myntra hands www.myntra.com/gold-coins a
+# 483-byte "Site Maintenance" page to every datacenter egress measured so
+# far. This asks whether ANY other Myntra surface, host, or client identity
+# is reachable from a free runner — the answer decides where the BLINKDEAL
+# watcher can live. Delete once that is settled.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Matrix
+        run: |
+          CHROME="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+          GOOGLEBOT="Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+          BINGBOT="Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"
+          ANDROID="Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36"
+          APPHDR=(-H "x-myntra-app: deviceID=0e1d2c3b-4a59-4687-9f1e-2b3c4d5e6f70;customerID=;reqChannel=web;appFamilyID=MyntraRetailWeb;appVersion=1.0.0;" -H "x-meta-app: channel=web" -H "x-requested-with: browser" -H "accept: application/json")
+
+          probe () { # label, then curl args
+            label="$1"; shift
+            out=$(curl -s -o /tmp/o.bin -w '%{http_code} %{size_download} %{time_total}' --max-time 25 "$@" || echo "CURLFAIL 0 0")
+            title=$(grep -o '<title>[^<]*</title>' /tmp/o.bin 2>/dev/null | head -1)
+            myx=$(grep -c 'window.__myx' /tmp/o.bin 2>/dev/null || echo 0)
+            head=$(head -c 90 /tmp/o.bin | tr -d '\n\r' )
+            printf '%-34s %s | __myx=%s | %s | %s\n' "$label" "$out" "$myx" "${title:-no-title}" "$head"
+          }
+
+          echo "--- baseline: is anything on the host served at all?"
+          probe "robots.txt"            -A "$CHROME" "https://www.myntra.com/robots.txt"
+          probe "sitemap.xml"           -A "$CHROME" "https://www.myntra.com/sitemap.xml"
+
+          echo "--- the page we actually want, by client identity"
+          probe "listing chrome"        -A "$CHROME" "https://www.myntra.com/gold-coins"
+          probe "listing googlebot"     -A "$GOOGLEBOT" "https://www.myntra.com/gold-coins"
+          probe "listing bingbot"       -A "$BINGBOT" "https://www.myntra.com/gold-coins"
+          probe "listing android"       -A "$ANDROID" "https://www.myntra.com/gold-coins"
+          probe "listing http1.1"       --http1.1 -A "$CHROME" "https://www.myntra.com/gold-coins"
+          probe "listing apex host"     -A "$CHROME" "https://myntra.com/gold-coins"
+          probe "listing coupon filter" -A "$CHROME" "https://www.myntra.com/gold-coins?f=Coupons:BLINKDEAL_123190"
+          probe "pdp"                   -A "$CHROME" "https://www.myntra.com/gold-coin/bhima/bhima-floral-24k-999-purity-gold-bar-1-gram/23250690/buy"
+
+          echo "--- JSON surfaces"
+          probe "www gateway search"    -A "$CHROME" "${APPHDR[@]}" "https://www.myntra.com/gateway/v2/search/gold-coins?rows=50&o=0"
+          probe "www gateway offers"    -A "$CHROME" "${APPHDR[@]}" "https://www.myntra.com/gateway/v2/product/23250690/offers/23032"
+          probe "api.myntra gateway"    -A "$ANDROID" "${APPHDR[@]}" "https://api.myntra.com/gateway/v2/search/gold-coins?rows=50&o=0"
+          probe "api.myntra v1 search"  -A "$ANDROID" "${APPHDR[@]}" "https://api.myntra.com/v1/search/gold-coins"
+          probe "api.myntra root"       -A "$ANDROID" "https://api.myntra.com/"
+
+          echo "--- affiliate / share hosts"
+          probe "myntr.in short"        -L -A "$CHROME" "https://myntr.in/7ofFAV"
+          probe "myntr.store share"     -L -A "$CHROME" "https://myntr.store/share/98ihznc"
+
+          echo "--- who does this runner look like"
+          curl -s --max-time 15 https://ipinfo.io/json || true
