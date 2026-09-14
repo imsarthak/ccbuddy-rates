@@ -64,7 +64,9 @@ jobs:
           git config user.name "ccbuddy-rates-bot"
           git config user.email "actions@users.noreply.github.com"
           if [ -n "$(git status --porcelain docs/blinkdeal.json docs/blinkdeal-history.json)" ]; then
-            git add docs/blinkdeal.json docs/blinkdeal-history.json
+            # git add refuses the whole call if one pathspec is missing; the
+            # history file only exists once a window has closed.
+            for f in docs/blinkdeal.json docs/blinkdeal-history.json; do [ -f "$f" ] && git add "$f"; done
             git commit -m "BLINKDEAL $(date -u +'%Y-%m-%d %H:%M UTC')"
             git pull --rebase origin master
             git push

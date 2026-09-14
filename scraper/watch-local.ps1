@@ -60,9 +60,14 @@ try {
   $dirty = git status --porcelain -- docs/blinkdeal.json docs/blinkdeal-history.json
   if (-not $dirty) { exit 0 }
 
-  git add docs/blinkdeal.json docs/blinkdeal-history.json 2>$null
+  # git add refuses the whole call if one pathspec is missing, and the history
+  # file only exists once a window has closed — so add what is there.
+  foreach ($f in @('docs/blinkdeal.json', 'docs/blinkdeal-history.json')) {
+    if (Test-Path $f) { git add -- $f }
+  }
   $stamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm') + ' UTC'
-  git commit -q -m "BLINKDEAL $stamp" 2>&1 | Out-Null
+  $commit = git commit -q -m "BLINKDEAL $stamp" 2>&1
+  if ($LASTEXITCODE -ne 0) { Say "commit failed: $commit"; exit 0 }
   $push = git push -q origin HEAD:master 2>&1
   if ($LASTEXITCODE -ne 0) { Say "push failed (kept for next tick): $push" } else { Say "pushed $stamp" }
 }
