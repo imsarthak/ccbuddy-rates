@@ -68,6 +68,14 @@ fingerprint; measured 2026-09-14, three interleaved runs), and a Cloudflare
 Worker fetch gets a bare 520. The watcher therefore stays workflow_dispatch
 only until it has an Indian egress to run from.
 
+Measured further on 2026-09-14, from a GitHub runner (Microsoft AS8075):
+Myntra allowlists the literal bingbot user-agent on that network and serves
+the real 691 KB page to it, while every honest identity — a self-describing
+CCBuddyRatesBot, a generic crawler string, googlebot, yandexbot, ahrefsbot,
+duckduckbot, applebot, curl, or no UA at all — gets the maintenance page.
+api.myntra.com answers a flat 403 Access Denied. So the only cloud path that
+works is impersonating Bing, which this repo does not do.
+
 ## Run locally
 
 ```bash
