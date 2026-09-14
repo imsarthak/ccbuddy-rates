@@ -55,7 +55,7 @@ const HEADERS = {
 const VIA = flag('--via') ?? process.env.BLINKDEAL_VIA ?? 'direct'
 
 async function firecrawlGet(url) {
-  const key = (process.env.FIRECRAWL_API_KEY ?? '').replace(/^FEFF/, '').trim()
+  const key = (process.env.FIRECRAWL_API_KEY ?? '').replace(/^﻿/, '').trim()
   if (!key) throw new Error('FIRECRAWL_API_KEY not set')
   const res = await fetch('https://api.firecrawl.dev/v2/scrape', {
     method: 'POST',
