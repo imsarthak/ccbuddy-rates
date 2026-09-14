@@ -60,6 +60,14 @@ guesses and its SPA route exposes no static rates; Joyalukkas renders rates
 client-side only. Revisit if their publishing changes, or if this feed ever
 moves to infrastructure with residential egress.
 
+Myntra (for the BLINKDEAL watcher, scraper/blinkdeal.mjs) serves its real
+listing to an Indian residential connection but not to either free egress we
+have: a GitHub-hosted runner gets a 483-byte "Site Maintenance" page with HTTP
+200 (same on Node 20 and 24 and on raw curl, so it is the IP, not the TLS
+fingerprint; measured 2026-09-14, three interleaved runs), and a Cloudflare
+Worker fetch gets a bare 520. The watcher therefore stays workflow_dispatch
+only until it has an Indian egress to run from.
+
 ## Run locally
 
 ```bash
