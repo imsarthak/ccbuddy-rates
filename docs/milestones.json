@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-14",
+ "generated": "2026-09-15",
  "rules": [
   {
    "id": "hdfc-regalia-gold-quarter",
@@ -9540,7 +9540,7 @@
    "verifiedOn": "2026-09-14",
    "source": "https://www.kotak.bank.in/en/personal-banking/cards/credit-cards/kotak-811-credit-card/milestone-program.html",
    "confidence": "verified",
-   "notes": "\"...eligible to get free PVR tickets as mentioned below on achieving the spends criteria of INR 75,000 in an anniversary year\" ; \"Your anniversary year will run from the date of issuance to the next anniversary date.\" ; \"You can claim your PVR tickets within 3 months after the anniversary year gets over.\" Exclusions effective 1 Jun 2025; gaming has no SpendExclusion value."
+   "notes": "\"...eligible to get free PVR tickets as mentioned below on achieving the spends criteria of INR 75,000 in an anniversary year\" ; \"Your anniversary year will run from the date of issuance to the next anniversary date.\" ; \"You can claim your PVR tickets within 3 months after the anniversary year gets over.\" Exclusions effective 1 Jun 2025; gaming has no SpendExclusion value. Re-read 2026-09-14 via the Firecrawl snapshot: the page now renders fully and still carries no such milestone — only a generic \"milestone vouchers\" bullet."
   },
   {
    "id": "kotak-811-welcome",
@@ -9601,6 +9601,38 @@
    "verifiedOn": "2026-09-14",
    "source": "https://www.kotak.bank.in/en/personal-banking/cards/credit-cards/kotak-811-credit-card.html",
    "confidence": "verified"
+  },
+  {
+   "id": "kotak-811-dream-different-statement-cashback",
+   "cards": [
+    "811 Dream Different"
+   ],
+   "period": {
+    "kind": "statement"
+   },
+   "tiers": [
+    {
+     "threshold": 15000,
+     "kind": "reward",
+     "benefit": {
+      "type": "cashback",
+      "value": 500,
+      "unit": "inr",
+      "text": "2% cashback on spends made during that billing cycle, capped at ₹500 per billing cycle (max ₹200 UPI cashback per cycle, max ₹100 per transaction)"
+     },
+     "repeats": false
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "\"Spend ₹15,000 or more in a billing cycle to be eligible for 2% cashback on spends made during that billing cycle. The maximum cashback per billing cycle is ₹500, including a maximum UPI cashback of ₹200 per billing cycle. The maximum cashback per transaction is ₹100.\""
+   },
+   "confidence": "verified",
+   "notes": "New milestone found on this re-fetch: FAQ 'How much do I need to spend to earn cashback?' states the ₹15,000 billing-cycle spend threshold, the 2% cashback rate, and the ₹500 per-cycle / ₹200 UPI / ₹100 per-transaction caps. Not present in the previously recorded dataset for this page.",
+   "bank": "Kotak Mahindra Bank",
+   "source": "https://www.kotak811.bank.in/credit-cards/811-dream-different-credit-card-against-fd",
+   "verifiedOn": "2026-09-14"
   }
  ]
 }
