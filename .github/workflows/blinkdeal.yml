@@ -1,0 +1,64 @@
+name: Watch Myntra BLINKDEAL
+
+on:
+  # Schedule lands once the runner probe (workflow_dispatch below) has shown
+  # that Myntra answers GitHub's egress. Separate from scrape.yml so a tight
+  # cadence here can never delay or break the rates cron.
+  # schedule:
+  #   - cron: '3,13,23,33,43,53 2-18 * * *'   # 07:33-23:53 IST, every 10 min
+  #   - cron: '33 19-23,0-1 * * *'            # overnight, hourly
+  workflow_dispatch:
+    inputs:
+      node:
+        description: Node version (the TLS fingerprint differs between 20 and 22+)
+        type: choice
+        default: '24'
+        options: ['20', '24']
+      mode:
+        description: probe = fetch and report only; run = write docs/blinkdeal.json
+        type: choice
+        default: probe
+        options: [probe, run]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blinkdeal
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ inputs.node || '24' }}
+      - name: Control — raw curl from this runner
+        run: |
+          for u in "https://www.myntra.com/gold-coins" "https://www.myntra.com/gold-coins?f=Coupons:BLINKDEAL_123190"; do
+            printf '%s -> ' "$u"
+            curl -s -o /tmp/page.html -w '%{http_code} %{size_download} bytes %{time_total}s\n' \
+              -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "$u" || true
+            printf '  __myx occurrences: '; grep -c 'window.__myx' /tmp/page.html || true
+          done
+      - name: Probe
+        if: ${{ inputs.mode == 'probe' }}
+        run: node scraper/blinkdeal.mjs --probe
+      - name: Watch
+        if: ${{ inputs.mode != 'probe' }}
+        run: node scraper/blinkdeal.mjs
+      - name: Commit if changed
+        if: ${{ inputs.mode != 'probe' }}
+        run: |
+          git config user.name "ccbuddy-rates-bot"
+          git config user.email "actions@users.noreply.github.com"
+          if [ -n "$(git status --porcelain docs/blinkdeal.json docs/blinkdeal-history.json)" ]; then
+            git add docs/blinkdeal.json docs/blinkdeal-history.json
+            git commit -m "BLINKDEAL $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git pull --rebase origin master
+            git push
+          else
+            echo "No change"
+          fi
