@@ -32,7 +32,16 @@ const HISTORY = join(dirname(OUT), 'blinkdeal-history.json')
 const ORIGIN = 'https://www.myntra.com'
 const LISTING = `${ORIGIN}/gold-coins`
 const CODE_RE = /BLINK/i
-const SEED_IDS = ['123190'] // BLINKDEAL's coupon id as Google last indexed it
+// The coupon id is NOT stable — Myntra mints a new one per campaign, so a
+// single seeded id would miss most windows. These three were recovered on
+// 2026-09-14 from the branded share links deal accounts post, which carry
+// `f=Coupons:<CODE>_<ID>` in their redirect target:
+//   123190  BLINKDEAL   (Google's index)
+//   129356  BLINKDEAL   (an Admitad link)
+//   132202  BLINKDEAL6  (an AppsFlyer OneLink)
+// The full-listing scan in detect() is what finds an id we have never seen;
+// these only make the quick path likely to hit without it.
+const SEED_IDS = ['123190', '129356', '132202']
 const HEARTBEAT_MS = 60 * 60 * 1000 // rewrite an unchanged file at most hourly
 const MAX_PAGES = 3
 const TIMEOUT_MS = 20000
