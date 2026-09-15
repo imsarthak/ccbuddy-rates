@@ -14,6 +14,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { notify, composeAlert } from './notify.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const ARGS = process.argv.slice(2)
@@ -26,6 +27,10 @@ const PROBE = ARGS.includes('--probe')
 // listing scan (≈700 KB) that finds a renamed code or a new coupon id. A
 // tight loop runs quick ticks and a full one every so often.
 const QUICK = ARGS.includes('--quick')
+// Alerting is for the live watcher only. Any run pointed at a test URL or a
+// scratch output file stays silent, so replaying a captured window cannot
+// text him at 3am.
+const NO_NOTIFY = ARGS.includes('--no-notify') || !!flag('--url') || !!flag('--out')
 const OUT = flag('--out') ?? join(ROOT, 'docs', 'blinkdeal.json')
 const HISTORY = join(dirname(OUT), 'blinkdeal-history.json')
 
@@ -334,6 +339,16 @@ export async function step(previous) {
       next.lastLive = previous.lastLive.to ? previous.lastLive : { ...previous.lastLive, to: now }
     }
     console.log(d.live ? `LIVE  ${d.code} — ${d.skus.length}/${d.totalCount} SKUs` : 'quiet — no BLINK* coupon on gold coins')
+
+    // Alert on the OPENING EDGE only — a window starting, or the code
+    // changing mid-window. Firing every tick would mean a text every twenty
+    // seconds for the life of the window.
+    if (d.live && (!previous.live || previous.code !== d.code) && !NO_NOTIFY) {
+      const res = await notify(composeAlert(next))
+      const sent = Object.entries(res).map(([k, v]) => `${k}:${v}`).join(' ')
+      console.log(`ALERT ${sent || '(no channels configured)'}`)
+      next.alertedAt = now
+    }
   } catch (e) {
     // A failed read never ends a window: keep what we knew, mark it stale.
     next = { ...previous, generated: now, checkedAt: now, ok: false, stale: true, error: String(e.message ?? e) }
