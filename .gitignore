@@ -1,3 +1,6 @@
 
 # Local-only Senco app-id for verification (never commit)
 .senco.env
+
+# Local-only Cuelinks publisher API token (never commit)
+.cuelinks.env
