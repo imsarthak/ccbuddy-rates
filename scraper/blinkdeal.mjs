@@ -229,11 +229,17 @@ async function detect(previous) {
     live = { code: m?.[1] ?? 'OVERRIDE', couponId: m?.[2] ?? null, source: override, first: await fetchListing(override) }
   } else {
     // 1. Ask the coupon's own filter page for every id we have seen.
+    //    A non-zero totalCount is NOT proof the coupon is live: measured on
+    //    2026-09-15, minutes after BLINKDEAL6 was withdrawn the filter URL
+    //    still reported 199 products while every one of them carried only the
+    //    generic MYNTRA300. The index lags; the per-product coupon code does
+    //    not. So a window counts as live only when a BLINK* code is actually
+    //    sitting on the products.
     for (const id of knownIds) {
       const url = filterUrl('BLINKDEAL', id)
       const first = await fetchListing(url)
-      if (first.totalCount > 0) {
-        const code = [...first.codes.keys()].find((c) => CODE_RE.test(c)) ?? 'BLINKDEAL'
+      const code = [...first.codes.keys()].find((c) => CODE_RE.test(c))
+      if (first.totalCount > 0 && code) {
         live = { code, couponId: id, source: url, first }
         break
       }
