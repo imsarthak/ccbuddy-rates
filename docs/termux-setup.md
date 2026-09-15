@@ -83,12 +83,13 @@ rather than home Wi-Fi — switch networks and try again.
 bash scraper/watch-termux.sh
 ```
 
-It takes the wake lock and loops every five minutes. Leave Termux open; a
-notification will show the lock is held. To poll every three minutes instead:
+It takes the wake lock and starts polling. Leave Termux open; a notification
+will show the lock is held. Cadence and how to change it are in the Cadence
+section at the end.
 
-```bash
-INTERVAL=180 bash scraper/watch-termux.sh
-```
+It will refuse to start if that clone has uncommitted changes, because it
+resets the tree on a failed rebase. On a dedicated watcher clone that never
+happens.
 
 To have it survive a reboot, install **Termux:Boot** from F-Droid and create
 `~/.termux/boot/watch` containing:
