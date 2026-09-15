@@ -45,6 +45,8 @@ const SEED_IDS = ['123190', '129356', '132202']
 const HEARTBEAT_MS = 60 * 60 * 1000 // rewrite an unchanged file at most hourly
 const PAGE_SIZE = 50 // what the server-rendered listing returns, always
 const EXTRA_SORTS = ['price_desc', 'price_asc', 'discount', 'new']
+const MAX_BRANDS = 25 // brand passes per window — a safety bound on proxy cost
+const MAX_COLLECT = 2000 // above this the filter is too broad to enumerate
 const TIMEOUT_MS = 20000
 
 // The page is served to browsers; ask for it the way Chrome would.
