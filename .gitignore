@@ -7,3 +7,6 @@
 
 # Local-only residential proxy URL, credentials inside (never commit)
 .proxy.env
+
+# Watcher logs, local to whatever device is running it
+logs/
