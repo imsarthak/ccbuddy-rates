@@ -4,3 +4,6 @@
 
 # Local-only Cuelinks publisher API token (never commit)
 .cuelinks.env
+
+# Local-only residential proxy URL, credentials inside (never commit)
+.proxy.env
