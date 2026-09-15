@@ -43,7 +43,8 @@ const CODE_RE = /BLINK/i
 // these only make the quick path likely to hit without it.
 const SEED_IDS = ['123190', '129356', '132202']
 const HEARTBEAT_MS = 60 * 60 * 1000 // rewrite an unchanged file at most hourly
-const MAX_PAGES = 3
+const PAGE_SIZE = 50 // what the server-rendered listing returns, always
+const EXTRA_SORTS = ['price_desc', 'price_asc', 'discount', 'new']
 const TIMEOUT_MS = 20000
 
 // The page is served to browsers; ask for it the way Chrome would.
@@ -141,7 +142,30 @@ export function summarize(myx) {
   const facets = Array.isArray(raw)
     ? raw.map((f) => f?.id ?? f?.filterId ?? f?.name).filter(Boolean)
     : Object.keys(raw)
-  return { totalCount: results.totalCount ?? null, products, codes, links, facets }
+  return { totalCount: results.totalCount ?? null, products, codes, links, facets, brands: brandFacet(results) }
+}
+
+/**
+ * The Brand facet and its per-brand counts. Myntra's server-rendered page
+ * always returns the first 50 products and ignores every pagination param
+ * (`p`, `page`, `o`, `rows` — all measured inert on 2026-09-15), so brand is
+ * how a set larger than 50 gets collected: the counts sum exactly to
+ * totalCount, giving a complete partition.
+ */
+export function brandFacet(results) {
+  const pools = results?.filters ?? {}
+  for (const pool of Object.values(pools)) {
+    if (!Array.isArray(pool)) continue
+    for (const f of pool) {
+      const id = String(f?.filterId ?? f?.id ?? f?.name ?? '').toLowerCase()
+      if (id !== 'brand') continue
+      const values = f.values ?? f.filterValues ?? f.options ?? []
+      return values
+        .map((v) => ({ name: v.value ?? v.name ?? v.id, count: v.count ?? v.docCount ?? 0 }))
+        .filter((b) => b.name)
+    }
+  }
+  return []
 }
 
 export function toSku(p) {
@@ -231,12 +255,42 @@ async function detect(previous) {
 
   if (!live) return { live: false, knownIds }
 
+  // Collect the whole set. The page yields 50 at a time and ignores every
+  // pagination param, so the Brand facet is the partition: its counts sum to
+  // totalCount. A brand holding more than a page gets extra passes under
+  // different sort orders, which do change which 50 come back.
   const products = [...live.first.products]
   const total = live.first.totalCount ?? products.length
-  for (let p = 2; p <= MAX_PAGES && products.length < total; p++) {
-    const page = await fetchListing(`${live.source}${live.source.includes('?') ? '&' : '?'}p=${p}`)
-    if (page.products.length === 0) break
-    products.push(...page.products)
+  const seen = new Set(products.map((p) => p.productId))
+  const add = (list) => {
+    for (const p of list) {
+      if (seen.has(p.productId)) continue
+      seen.add(p.productId)
+      products.push(p)
+    }
+  }
+  const sep = live.source.includes('?') ? '&' : '?'
+  for (const brand of live.first.brands ?? []) {
+    if (seen.size >= total) break
+    const scoped = `${live.source}%3A%3ABrand%3A${encodeURIComponent(brand.name)}`
+    try {
+      const page = await fetchListing(scoped)
+      add(page.products)
+      for (const sort of brand.count > PAGE_SIZE ? EXTRA_SORTS : []) {
+        if (page.products.length === 0) break
+        add((await fetchListing(`${scoped}&sort=${sort}`)).products)
+      }
+    } catch {
+      // one brand failing must not lose the rest of the window
+    }
+  }
+  // Last resort for anything the brand partition missed.
+  for (const sort of seen.size < total ? EXTRA_SORTS : []) {
+    try {
+      add((await fetchListing(`${live.source}${sep}sort=${sort}`)).products)
+    } catch {
+      /* ignore */
+    }
   }
   const skus = products.map(toSku)
   const pcts = skus.filter((s) => s.discount && s.price).map((s) => Math.round((s.discount / s.price) * 100))
