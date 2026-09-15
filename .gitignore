@@ -10,3 +10,6 @@
 
 # Watcher logs, local to whatever device is running it
 logs/
+
+# Local-only alert channel config, tokens inside (never commit)
+.notify.env

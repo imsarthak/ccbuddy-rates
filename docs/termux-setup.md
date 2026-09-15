@@ -129,3 +129,102 @@ historically mattered.
 In order of likelihood: the phone dropped off Wi-Fi, Android killed Termux
 despite step 2, the token expired, or Myntra changed its markup. The log
 distinguishes all four.
+
+---
+
+# Alerting
+
+Detection speed is wasted if the alert is slow. The watcher fires the instant a
+window opens — on the opening edge only, never every tick, or you would get a
+text every twenty seconds for the life of the window.
+
+Create `.notify.env` in the repo root on the phone. Every channel is optional;
+whatever you leave out is skipped. The file is gitignored.
+
+```json
+{
+  "telegram": { "token": "123456:ABC...", "chatId": "987654321" },
+  "sms":      { "to": "+919876543210" },
+  "whatsapp": { "phone": "+919876543210", "apikey": "123456" }
+}
+```
+
+Test it before you rely on it:
+
+```bash
+node scraper/notify.mjs --test
+```
+
+## Telegram — easiest, do this one first
+
+1. Message **@BotFather** on Telegram, send `/newbot`, follow the prompts.
+2. It gives you a token like `123456:ABC...`. That is `telegram.token`.
+3. Send your new bot any message.
+4. Open `https://api.telegram.org/bot<token>/getUpdates` in a browser and read
+   `message.chat.id` out of the JSON. That is `telegram.chatId`.
+
+Free, instant, and it reaches your iPhone, which is the point — the watcher
+phone can sit in a drawer.
+
+## SMS — the one that works when data does not
+
+Sent by the watcher phone itself, so it needs a SIM with credit, and Termux
+needs SMS permission:
+
+```bash
+termux-setup-storage
+termux-sms-send -n +919876543210 "test"
+```
+
+Android will prompt for SMS permission the first time. If that prompt never
+appears, the Termux:API app is not installed — see step 1 of the setup above.
+
+Costs whatever your plan charges per message. Windows are rare, so this is
+pennies, but it is not free like the other two.
+
+## WhatsApp — works, with a caveat worth reading
+
+Meta's own API needs a business account, a dedicated number and template
+approval, which is far more setup than this deserves. So this goes through
+**CallMeBot**, a free third party:
+
+1. Save **+34 644 51 95 23** to your contacts.
+2. WhatsApp it: `I allow callmebot to send me messages`
+3. It replies with your `apikey`.
+
+The caveat: CallMeBot sees the message text. A coupon code is public
+information so nothing sensitive leaks here, but do not extend these alerts to
+carry anything private later without changing this channel first.
+
+## Android notification
+
+No configuration. If the watcher is running under Termux it also raises a
+local notification on the phone itself.
+
+---
+
+# Cadence
+
+Twenty seconds between 11:00 and 23:00 IST, five minutes overnight, plus a few
+seconds of jitter so requests do not land on the same second of every minute.
+Every BLINKDEAL sighting we have a timestamp for landed between 12:34 and
+22:52 IST, which is where that window comes from.
+
+Treat that with some suspicion — nine of those ten are tweet times and people
+tweet when they are awake, so an overnight window might simply never have been
+posted. To poll hard around the clock:
+
+```bash
+FAST=20 SLOW=20 FAST_FROM=0 FAST_TO=24 bash scraper/watch-termux.sh
+```
+
+Twenty seconds puts you roughly forty seconds ahead of every competitor we
+measured; the paid Telegram bot polls at ninety seconds and the tracker site
+rebuilds about once a minute.
+
+**Do not push this much below ten seconds.** Myntra already blocks every
+datacenter we tested, so your home connection is the only vantage point that
+works. Twelve requests a minute forever from one address is an obvious
+signature, and if they blacklist it there is nothing to fall back to. The
+watcher defends against this on its own: three maintenance stubs in a row and
+it backs off fifteen minutes and says so in the log.
