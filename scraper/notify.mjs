@@ -27,7 +27,7 @@
 //             sees the message text. Keep alerts free of anything private —
 //             a coupon code is public information, so this is fine here.
 
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execFile } from 'node:child_process'
@@ -141,7 +141,52 @@ export function composeAlert(feed) {
   return lines.join('\n')
 }
 
+/**
+ * Fill in telegram.chatId by asking the bot who has messaged it, and write it
+ * back to .notify.env. Saves reading raw JSON off a getUpdates URL on a phone.
+ */
+async function resolveChat() {
+  const path = join(ROOT, '.notify.env')
+  const cfg = await loadConfig()
+  const token = cfg.telegram?.token
+  if (!token) {
+    console.error('Put your bot token in .notify.env first, as telegram.token.')
+    process.exitCode = 2
+    return
+  }
+  const res = await fetch(`https://api.telegram.org/bot${token}/getUpdates`, {
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  })
+  const j = await res.json().catch(() => ({}))
+  if (!j.ok) {
+    console.error(`Telegram refused the token (HTTP ${res.status}). Check it was copied whole.`)
+    process.exitCode = 1
+    return
+  }
+  const chats = new Map()
+  for (const u of j.result ?? []) {
+    const c = u.message?.chat ?? u.channel_post?.chat
+    if (c?.id) chats.set(String(c.id), [c.first_name, c.username && `@${c.username}`].filter(Boolean).join(' ') || c.type)
+  }
+  if (chats.size === 0) {
+    console.error('The bot has no messages yet. Open Telegram, find your bot, send it any message, then run this again.')
+    process.exitCode = 1
+    return
+  }
+  const [id, who] = [...chats][chats.size - 1]
+  cfg.telegram.chatId = id
+  await writeFile(path, `${JSON.stringify(cfg, null, 2)}\n`)
+  console.log(`chatId ${id} (${who}) saved to .notify.env`)
+  if (chats.size > 1) {
+    console.log(`note: ${chats.size} chats have messaged this bot; picked the most recent.`)
+  }
+}
+
 if (process.argv[1] && process.argv[1].replace(/\\/g, '/').toLowerCase().endsWith('/notify.mjs')) {
+  if (process.argv.includes('--resolve-chat')) {
+    await resolveChat()
+    process.exit(process.exitCode ?? 0)
+  }
   const cfg = await loadConfig()
   const configured = ['telegram', 'sms', 'whatsapp'].filter((k) => cfg[k])
   console.log('configured channels:', configured.join(', ') || '(none — add .notify.env)')
