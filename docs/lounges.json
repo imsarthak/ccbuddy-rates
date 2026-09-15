@@ -1,0 +1,1345 @@
+{
+ "generated": "2026-09-15",
+ "airports": [
+  {
+   "iata": "DEL",
+   "name": "Indira Gandhi International Airport",
+   "city": "New Delhi",
+   "country": "IN",
+   "terminals": [
+    "T1",
+    "T2",
+    "T3"
+   ]
+  },
+  {
+   "iata": "BOM",
+   "name": "Chhatrapati Shivaji Maharaj International Airport",
+   "city": "Mumbai",
+   "country": "IN",
+   "terminals": [
+    "T1",
+    "T2"
+   ]
+  },
+  {
+   "iata": "BLR",
+   "name": "Kempegowda International Airport",
+   "city": "Bengaluru",
+   "country": "IN",
+   "terminals": [
+    "T1",
+    "T2"
+   ]
+  },
+  {
+   "iata": "HYD",
+   "name": "Rajiv Gandhi International Airport",
+   "city": "Hyderabad",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "MAA",
+   "name": "Chennai International Airport",
+   "city": "Chennai",
+   "country": "IN",
+   "terminals": [
+    "T1",
+    "T2",
+    "T4"
+   ]
+  },
+  {
+   "iata": "CCU",
+   "name": "Netaji Subhash Chandra Bose International Airport",
+   "city": "Kolkata",
+   "country": "IN",
+   "terminals": [
+    "T1",
+    "T2"
+   ]
+  },
+  {
+   "iata": "GOI",
+   "name": "Goa International Airport (Dabolim)",
+   "city": "Goa",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "AMD",
+   "name": "Sardar Vallabhbhai Patel International Airport",
+   "city": "Ahmedabad",
+   "country": "IN",
+   "terminals": [
+    "T1",
+    "T2"
+   ]
+  }
+ ],
+ "lounges": [
+  {
+   "accepts": [
+    "priority-pass",
+    "dragonpass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "del20-encalm-arrivals",
+   "airport": "DEL",
+   "name": "Encalm Lounge - DEL Arrivals",
+   "terminal": "T3",
+   "zone": "both",
+   "side": "arrival",
+   "where": "Landside, before the exit gates, near the Food Court",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/indira-gandhi-international/del20-encalm-lounge-del-arrivals",
+   "notes": "Also on DragonPass as \"Encalm Lounge (T3 Arrival)\" (https://www.dragonpass.com/explore/lounge/A10043/N04547)."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "del14-domestic-lounge-t3",
+   "airport": "DEL",
+   "name": "Domestic Lounge - New Delhi T3",
+   "terminal": "T3",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Security Hold Zone, Food Court Level, Mezzanine Floor",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/indira-gandhi-international/del14-domestic-lounge-new-delhi-t3"
+  },
+  {
+   "accepts": [
+    "priority-pass",
+    "dragonpass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "del19-encalm-domestic-t3",
+   "airport": "DEL",
+   "name": "Encalm Lounge - Delhi Domestic T3",
+   "terminal": "T3",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Airside, domestic departures, Security Hold Area, Food Court Level",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/indira-gandhi-international/del19-encalm-lounge-delhi-domestic-t3",
+   "notes": "Also on DragonPass as \"Encalm Lounge (T3 D49)\" (https://www.dragonpass.com/explore/lounge/A10043/N03662) — the only Encalm T3 domestic row, so the match is unambiguous."
+  },
+  {
+   "accepts": [
+    "priority-pass",
+    "dragonpass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "del15-encalm-intl-t3",
+   "airport": "DEL",
+   "name": "Encalm Lounge",
+   "terminal": "T3",
+   "zone": "international",
+   "side": "departure",
+   "where": "Airside, international departures, Security Hold Area, Food Court Level, next to Encalm Spa",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/indira-gandhi-international/del15-encalm-lounge",
+   "notes": "Also on DragonPass as \"Encalm Lounge (International T3)\" (https://www.dragonpass.com/explore/lounge/A10043/N03663). Two DEL lounges are printed simply \"Encalm Lounge\"; this is the T3 international one (del15)."
+  },
+  {
+   "accepts": [
+    "priority-pass",
+    "dragonpass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "del18-encalm-domestic-t2",
+   "airport": "DEL",
+   "name": "Encalm Lounge - Delhi Domestic T2",
+   "terminal": "T2",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Departures, after security, Food Court Level",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/indira-gandhi-international/del18-encalm-lounge-delhi-domestic-t2",
+   "notes": "Also on DragonPass as \"Encalm Lounge (T2 Domestic)\" (https://www.dragonpass.com/explore/lounge/A10043/N03746)."
+  },
+  {
+   "accepts": [
+    "priority-pass",
+    "dragonpass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "del12-encalm-t1",
+   "airport": "DEL",
+   "name": "Encalm Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Departures, after security, via Level 4 and Level 5",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/indira-gandhi-international/del12-encalm-lounge",
+   "notes": "Also on DragonPass as \"Encalm Lounge (Domestic T1D)\" (https://www.dragonpass.com/explore/lounge/A10043/N03092). Priority Pass prints the terminal as \"Terminal 1D\" (the domestic wing); recorded as T1, the boarding-pass form."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "bom27-aviserv-west",
+   "airport": "BOM",
+   "name": "Aviserv Lounge - West",
+   "terminal": "T2",
+   "zone": "both",
+   "side": "departure",
+   "where": "Departures, before security and passport control, Level 2, near Gate A",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chhatrapati-shivaji-international/bom27-aviserv-lounge-west"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "bom26-adani-silver",
+   "airport": "BOM",
+   "name": "Adani Silver Lounge",
+   "terminal": "T2",
+   "zone": "international",
+   "side": "departure",
+   "where": "Departures, after security and passport control, Level 4, past Duty Free next to Superdry",
+   "hours": "12:00 - 23:59",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chhatrapati-shivaji-international/bom26-adani-silver-lounge"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "bom20-adani-east",
+   "airport": "BOM",
+   "name": "Adani Lounge East",
+   "terminal": "T2",
+   "zone": "international",
+   "side": "departure",
+   "where": "Airside, international departures, Level 4, near Gates 45 and 46",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chhatrapati-shivaji-international/bom20-adani-lounge-east"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "bom16-aviserv-east",
+   "airport": "BOM",
+   "name": "Aviserv Lounge (East)",
+   "terminal": "T2",
+   "zone": "both",
+   "side": "arrival",
+   "where": "Landside, Level 2 arrivals — through Customs and Baggage Claim, turn right, next to Gate C",
+   "hours": "12:00 - 00:00",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chhatrapati-shivaji-international/bom16-aviserv-lounge-east",
+   "notes": "Its Priority Pass page prints both \"Maximum 3 hour stay\" and a 2-hour maximum in different blocks. Left unresolved rather than picked."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "bom10-travel-club-t2",
+   "airport": "BOM",
+   "name": "Travel Club",
+   "terminal": "T2",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Airside, domestic transit and domestic departures only, opposite Gate 44",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chhatrapati-shivaji-international/bom10-travel-club"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "bom21-adani-lounge-t1",
+   "airport": "BOM",
+   "name": "Adani Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Airside, domestic departures, Security Hold Area, Mezzanine Floor, near Gate 9",
+   "hours": "12:00 - 00:00",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chhatrapati-shivaji-international/bom21-adani-lounge",
+   "notes": "Priority Pass prints the terminal as \"Terminal 1B\"; recorded as T1, the boarding-pass form."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "bom13-travel-club-t1",
+   "airport": "BOM",
+   "name": "Travel Club",
+   "terminal": "T1",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Airside, domestic departures, opposite Gate 44",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chhatrapati-shivaji-international/bom13-travel-club"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "bom25s-meghavi-intl",
+   "airport": "BOM",
+   "name": "Meghavi Air Spa Lounge - Intl",
+   "terminal": "T2",
+   "zone": "international",
+   "side": "departure",
+   "where": "Departures, after security and passport control, 4th Floor, between Gates 46 and 53",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chhatrapati-shivaji-international/bom25s-meghavi-air-spa-lounge-intl",
+   "notes": "The airport listing printed no time range; the lounge page says 24 hours daily."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "bom24s-meghavi-domestic",
+   "airport": "BOM",
+   "name": "Meghavi Air Spa Lounge",
+   "terminal": "T2",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Departures, after security, 3rd Floor, near Gate 85",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chhatrapati-shivaji-international/bom24s-meghavi-air-spa-lounge",
+   "notes": "The airport listing printed no time range; the lounge page says 24 hours daily. One of two domestic Meghavi entries."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "bom23s-meghavi-domestic-2",
+   "airport": "BOM",
+   "name": "Meghavi Air Spa Lounge",
+   "terminal": "T2",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Departures, after security, 3rd Floor, near Gates 49-53",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chhatrapati-shivaji-international/bom23s-meghavi-air-spa-lounge"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "blr17-t1-lounge-kerbside",
+   "airport": "BLR",
+   "name": "T1 Lounge (Kerbside)",
+   "terminal": "T1",
+   "zone": "both",
+   "side": "departure",
+   "where": "Landside, outside Terminal 1 arrivals, near Arrivals Gate 13",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/kempegowda-international/blr17-t1-lounge-kerbside",
+   "notes": "Sits by the arrivals kerb but its page classifies it as departures; access from 2 hours before departure."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "blr11-080-domestic-l1",
+   "airport": "BLR",
+   "name": "080 Domestic Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Departures, after security, Level 1, opposite Gate 34 next to Starbucks",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/kempegowda-international/blr11-080-domestic-lounge"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "blr8-080-domestic-l2",
+   "airport": "BLR",
+   "name": "080 Domestic Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Departures, after security, Level 2, above Swarovski opposite Fossil",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/kempegowda-international/blr8-080-domestic-lounge",
+   "notes": "Two T1 lounges share this name; this is the Level 2 one (blr8)."
+  },
+  {
+   "accepts": [
+    "priority-pass",
+    "dreamfolks"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "blr10-080-international",
+   "airport": "BLR",
+   "name": "080 International Lounge",
+   "terminal": "T2",
+   "zone": "international",
+   "side": "departure",
+   "where": "Departures, after security and passport control, Level 3",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/kempegowda-international/blr10-080-international-lounge",
+   "notes": "Also on DreamFolks as \"080 International T2 Departure\" (Terminal 2, International, Operational) under the HDFC Debit programme. Read 2026-09-15 via info.dreamfolks.com; see docs/research/lounges-dreamfolks.md. Access permitted from 3 hours before departure."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "blr12-080-arrival",
+   "airport": "BLR",
+   "name": "080 Arrival Lounge",
+   "terminal": "T2",
+   "zone": "both",
+   "side": "arrival",
+   "where": "Arrivals, after immigration, Ground Level, Arrivals Hall, Level 0",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/kempegowda-international/blr12-080-arrival-lounge"
+  },
+  {
+   "accepts": [
+    "priority-pass",
+    "dreamfolks"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "blr9-080-domestic-t2",
+   "airport": "BLR",
+   "name": "080 Lounge (Domestic T2)",
+   "terminal": "T2",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Departures, after security, Level 4",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/kempegowda-international/blr9-080-lounge-domestic-t2",
+   "notes": "Also on DreamFolks as \"080 Domestic T2 Departure\" (Terminal 2, Domestic, Operational), listed under Axis Atlas, Diners Club Privilege, Flipkart Axis and HDFC Debit — four card programmes independently, and the only 080 domestic row at T2, so the match is unambiguous. Read 2026-09-15 via info.dreamfolks.com; see docs/research/lounges-dreamfolks.md."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "hyd8-encalm-domestic",
+   "airport": "HYD",
+   "name": "Encalm Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Airside, domestic departures, after security, opposite Domestic Transfers, Level E",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/rajiv-gandhi-international/hyd8-encalm-lounge",
+   "notes": "Priority Pass prints the terminal as the bare word \"Terminal\" — HYD is a single integrated terminal, recorded as T1."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "hyd4-encalm-international",
+   "airport": "HYD",
+   "name": "Encalm Lounge",
+   "terminal": "T1",
+   "zone": "international",
+   "side": "departure",
+   "where": "Airside, international departures, Level E, near Gate 23",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/rajiv-gandhi-international/hyd4-encalm-lounge",
+   "notes": "Both HYD lounges are printed \"Encalm Lounge\" with no terminal number; they are separated only by the domestic/international line on their own pages."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "maa12-travel-club-t4",
+   "airport": "MAA",
+   "name": "Travel Club",
+   "terminal": "T4",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Airside, domestic departures, inside the Security Hold Area, opposite Gate 17",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chennai-international/maa12-travel-club"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "maa11-travel-club-t2",
+   "airport": "MAA",
+   "name": "Travel Club",
+   "terminal": "T2",
+   "zone": "international",
+   "side": "departure",
+   "where": "Airside, international departures, after immigration and security, 3rd Floor",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chennai-international/maa11-travel-club"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "maa6-travel-club-t1",
+   "airport": "MAA",
+   "name": "Travel Club",
+   "terminal": "T1",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Departures, inside the Security Hold Area, opposite Gate 5, 3rd Floor via lift",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chennai-international/maa6-travel-club"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "maa10-travel-club-t1-b",
+   "airport": "MAA",
+   "name": "Travel Club",
+   "terminal": "T1",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Airside, domestic departures, after security turn right towards Gate 1, 3rd Floor",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chennai-international/maa10-travel-club",
+   "notes": "All four MAA lounges are printed \"Travel Club\"; two of them are on T1 and are separated only by their location lines."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "ccu8-travel-club-anex",
+   "airport": "CCU",
+   "name": "Travel Club Lounge Anex",
+   "terminal": "T1",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Departures, after security, Mezzanine Level",
+   "hours": "07:00 - 22:00",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/kolkata-netaji-subhash-chandra-bose-intl/ccu8-travel-club-lounge-anex"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "ccu6-travel-club-t1",
+   "airport": "CCU",
+   "name": "Travel Club",
+   "terminal": "T1",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Airside, domestic departures, Mezzanine Level — after security, turn left inside the Security Area",
+   "hours": "04:00 - 00:00",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/kolkata-netaji-subhash-chandra-bose-intl/ccu6-travel-club"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "ccu7-travel-club-t2",
+   "airport": "CCU",
+   "name": "Travel Club",
+   "terminal": "T2",
+   "zone": "international",
+   "side": "departure",
+   "where": "Airside, international departures, Mezzanine Level, on the right after security",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/kolkata-netaji-subhash-chandra-bose-intl/ccu7-travel-club"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "ccu9-travel-club-t2-b",
+   "airport": "CCU",
+   "name": "Travel Club",
+   "terminal": "T2",
+   "zone": "international",
+   "side": "departure",
+   "where": "Airside, international departures, after security, opposite Gate 10",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/kolkata-netaji-subhash-chandra-bose-intl/ccu9-travel-club",
+   "notes": "Three CCU lounges are printed \"Travel Club\"; the two on T2 are separated only by their location lines."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "goi3-travel-club",
+   "airport": "GOI",
+   "name": "Travel Club Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Airside, domestic departures, 2nd Level, near Gate B",
+   "hours": "11:00 - 23:00",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/dabolim/goi3-travel-club-lounge",
+   "notes": "Priority Pass prints the terminal as \"Domestic Terminal\"; recorded as T1."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "goi2d-brew-house",
+   "airport": "GOI",
+   "name": "Brew House",
+   "terminal": "T1",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Airside, after the Security Hold Area, Level 2, near Gate F",
+   "hours": "11:00 - 23:00",
+   "limits": [
+    "One complimentary set menu with soft drinks per 24 hours",
+    "Maximum stay 1 hour"
+   ],
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/dabolim/goi2d-brew-house",
+   "notes": "Not a conventional lounge: the benefit is a meal credit drawn against the lounge visit allowance. Listed on the Priority Pass finder, so it does accept the programme."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "amd11-adani-silver-intl",
+   "airport": "AMD",
+   "name": "Adani Silver Lounge",
+   "terminal": "T2",
+   "zone": "international",
+   "side": "departure",
+   "where": "Departures, after security and passport control, 1st Floor, near Gate 8",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/sardar-vallabhbhai-patel-international/amd11-adani-silver-lounge"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "amd9-adani-silver-domestic",
+   "airport": "AMD",
+   "name": "Adani Silver Lounge",
+   "terminal": "T2",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Departures, after security and passport control, 1st Floor, near Gate 1",
+   "hours": "12:00 - 23:59",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/sardar-vallabhbhai-patel-international/amd9-adani-silver-lounge",
+   "notes": "The airport listing prints both Adani Silver entries as Terminal 2; only their own pages separate them."
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "amd7-the-lounge-intl",
+   "airport": "AMD",
+   "name": "The Lounge",
+   "terminal": "T2",
+   "zone": "international",
+   "side": "departure",
+   "where": "Airside, international departures, after the Security Hold Area, 1st Floor, opposite Gate 3",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/sardar-vallabhbhai-patel-international/amd7-the-lounge"
+  },
+  {
+   "accepts": [
+    "priority-pass"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-15",
+   "confidence": "verified",
+   "id": "amd8-the-lounge-domestic",
+   "airport": "AMD",
+   "name": "The Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "side": "departure",
+   "where": "Airside, domestic departures, after security, 1st Floor past the Food Court",
+   "hours": "24 hours",
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/sardar-vallabhbhai-patel-international/amd8-the-lounge"
+  }
+ ],
+ "entitlements": [
+  {
+   "id": "hdfc-infinia-domestic-india",
+   "grant": "card",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Infinia"
+   ],
+   "programme": "dreamfolks",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary-and-addon",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "conditions": [
+    "Same-day departing boarding pass"
+   ],
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.hdfc.bank.in/credit-cards/infinia-credit-card",
+   "confidence": "partial",
+   "notes": "Quota verified: \"Unlimited complimentary Domestic airport lounge access in India with your HDFC Bank Infinia Credit Card (Primary & Add-on).\" The PROGRAMME is not named, and HDFC’s own linked eligible-lounge list (lms.hoi.in/lounge-list/hdfc-infinia, backed by loungepass.hoi.in) returns an empty result set. Hidden until a source names the programme."
+  },
+  {
+   "id": "hdfc-infinia-priority-pass-outside-india",
+   "grant": "card",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Infinia"
+   ],
+   "programme": "priority-pass",
+   "scope": [
+    "international"
+   ],
+   "region": "outside-india",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary-and-addon",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.hdfc.bank.in/credit-cards/infinia-credit-card",
+   "confidence": "verified",
+   "notes": "HDFC: \"Unlimited complimentary International airport lounge access outside India via Priority Pass for Primary and Add-on cardholders (1,000+ lounges worldwide).\" Correctly opens nothing at an Indian airport — the geography is the issuer’s own word."
+  },
+  {
+   "id": "hdfc-diners-black-metal-lounge",
+   "grant": "card",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Diners Club Black Metal"
+   ],
+   "programme": "diners",
+   "scope": [
+    "domestic",
+    "international"
+   ],
+   "region": "worldwide",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary-and-addon",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.hdfc.bank.in/credit-cards/diners-club-black-metal-edition-credit-card",
+   "confidence": "partial",
+   "notes": "HDFC states unlimited lounge access \"India and worldwide\" — the one card whose own wording covers both zones and both geographies. No programme is named beyond the Diners Club travel tool app, and no lounge in this directory is yet shown to accept a Diners-branded programme, so the row is hidden rather than matched on a guess."
+  },
+  {
+   "id": "hdfc-regalia-gold-dreamfolks-domestic",
+   "grant": "card",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Regalia Gold"
+   ],
+   "programme": "dreamfolks",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 3,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "spendGate": {
+    "milestoneRuleId": "hdfc-regalia-gold-quarter-lounge",
+    "summary": "if you spent ₹60,000 in the previous quarter"
+   },
+   "conditions": [
+    "Same-day departing boarding pass"
+   ],
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.hdfc.bank.in/credit-cards/regalia-gold-credit-card",
+   "confidence": "verified",
+   "notes": "One of only two places any issuer names DreamFolks in a sentence (the other is Axis Atlas). 3 domestic visits per calendar quarter, gated on ₹60,000 spend in the preceding quarter — the gate itself lives in the milestones dataset and is referenced, not copied. HDFC’s marketing tile separately says \"6 Complimentary domestic lounge visits outside India\", which is self-contradicting; the terms were taken over the tile."
+  },
+  {
+   "id": "hdfc-regalia-gold-priority-pass-outside-india",
+   "grant": "card",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Regalia Gold"
+   ],
+   "programme": "priority-pass",
+   "scope": [
+    "international"
+   ],
+   "region": "outside-india",
+   "quota": {
+    "visits": 6,
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.hdfc.bank.in/credit-cards/regalia-gold-credit-card",
+   "confidence": "verified",
+   "notes": "6 international visits a calendar year, outside India, via Priority Pass. Opens nothing at an Indian terminal."
+  },
+  {
+   "id": "hdfc-tata-neu-infinity-priority-pass-outside-india",
+   "grant": "card",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Tata Neu Infinity"
+   ],
+   "programme": "priority-pass",
+   "scope": [
+    "international"
+   ],
+   "region": "outside-india",
+   "quota": {
+    "visits": 4,
+    "period": {
+     "kind": "calendar-year"
+    },
+    "subCap": {
+     "visits": 1,
+     "period": {
+      "kind": "quarter",
+      "quarterBasis": "calendar"
+     }
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.hdfc.bank.in/credit-cards/tata-neu-infinity-hdfc-bank-credit-card",
+   "confidence": "verified",
+   "notes": "4 international visits a calendar year, at most 1 a quarter, outside India, on the Visa variant via Priority Pass. Opens nothing at an Indian terminal."
+  },
+  {
+   "id": "hdfc-marriott-bonvoy-india",
+   "grant": "card",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Marriott Bonvoy"
+   ],
+   "programme": "diners",
+   "scope": [
+    "domestic",
+    "international"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 12,
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.hdfc.bank.in/credit-cards/marriott-bonvoy-credit-card",
+   "confidence": "partial",
+   "notes": "HDFC: \"12 Complimentary access within India (both at domestic and international terminals)\" — twelve visits total across both zones, not twelve of each, which is what `scope` being a list exists for. The programme is named only as the Diners Club travel tool app, and no lounge here is yet shown to accept it, so the row stays hidden. HDFC’s Marriott lounge FAQ PDF could not be read (Firecrawl failed on all engines, WebFetch timed out); nothing is cited from it. The international count is stated only as \"Complimentary access outside India every year\" with no number — a \"12 international\" figure circulates on blogs and was deliberately not recorded."
+  },
+  {
+   "id": "axis-reserve-priority-pass-international",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Reserve"
+   ],
+   "programme": "priority-pass",
+   "scope": [
+    "international"
+   ],
+   "region": "worldwide",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": true,
+    "countsAgainstQuota": false,
+    "perVisit": 1
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.axis.bank.in/cards/credit-card/axis-bank-reserve-credit-card",
+   "confidence": "verified",
+   "notes": "Axis: \"Eligible airport lounges at Indian international terminals after immigration are considered international lounges and can be accessed using your Priority Pass.\" Unlike HDFC, whose Priority Pass is complimentary only outside India. Reserve: unlimited international visits plus 12 complimentary guest visits a year. Guests are recorded as not counting against the cardholder's own visits because the guest allowance is stated separately."
+  },
+  {
+   "id": "axis-olympus-priority-pass-international",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Olympus"
+   ],
+   "programme": "priority-pass",
+   "scope": [
+    "international"
+   ],
+   "region": "worldwide",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": true,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.axis.bank.in/cards/credit-card/olympus-credit-card",
+   "confidence": "verified",
+   "notes": "Axis: \"Eligible airport lounges at Indian international terminals after immigration are considered international lounges and can be accessed using your Priority Pass.\" Unlike HDFC, whose Priority Pass is complimentary only outside India. Olympus: unlimited international visits plus 10 complimentary guest visits an anniversary year. Its terms exist only as a PDF — no live Axis product page for Olympus was found, and two plausible slugs 404."
+  },
+  {
+   "id": "axis-atlas-dreamfolks-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Atlas"
+   ],
+   "programme": "dreamfolks",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 8,
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.axis.bank.in/cards/credit-card/atlas-credit-card",
+   "confidence": "assumed",
+   "notes": "Axis names DreamFolks for Atlas domestic access in its T&C — one of only two places any issuer names DreamFolks in a sentence. Tier quotas are 8 / 12 / 18 domestic visits at ₹3L / ₹7.5L / ₹15L annual spend.",
+   "assumption": "Axis states the tier quotas with NO period attached. The base tier of 8 is shown over a calendar year, which is the usual reading, but Axis does not say so. The higher tiers are not modelled at all, because doing so would need the spend tier tracked and the period guessed twice over."
+  },
+  {
+   "id": "axis-magnus-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Magnus"
+   ],
+   "programme": "dreamfolks",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.axis.bank.in/cards/credit-card/magnus-credit-card",
+   "confidence": "partial",
+   "notes": "Quota read from Axis (unlimited domestic, gated on ₹50,000 spend in the previous 3 months). The PROGRAMME is not named, so which desks honour it is unread and the row stays hidden. Note also that the Magnus page still advertises domestic Priority Pass use, which the 28-08-2026 change appears to have ended — a second reason not to ship this row yet. Beware axisbank.com/retail/cards/credit-card/magnus-credit-card: it does not 404, it silently serves the Axis sitemap page."
+  },
+  {
+   "id": "icici-emeralde-priority-pass-international",
+   "grant": "card",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Emeralde Private Metal"
+   ],
+   "programme": "priority-pass",
+   "scope": [
+    "international"
+   ],
+   "region": "worldwide",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/emeralde-private-metal-credit-card",
+   "confidence": "assumed",
+   "notes": "ICICI states unlimited international lounge access via Priority Pass for Emeralde Private Metal.",
+   "assumption": "ICICI does not say whether its Priority Pass works at Indian international terminals. Axis says its own does and HDFC says its own does not, so the question is genuinely open. Recorded as worldwide, which is the reading that matches Priority Pass’s own programme rules, and shown as assumed so the screen says so."
+  },
+  {
+   "id": "icici-sapphiro-priority-pass-international",
+   "grant": "card",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Sapphiro"
+   ],
+   "programme": "priority-pass",
+   "scope": [
+    "international"
+   ],
+   "region": "worldwide",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/sapphiro-card",
+   "confidence": "assumed",
+   "notes": "ICICI: 2 international visits a year via Priority Pass. Its domestic figure is stated inconsistently — 4 per calendar quarter in one place, \"2 per quarter for each variant\" in another — so no domestic row ships for this card. Beware the slug: /sapphiro-credit-card serves the card LISTING page rather than a 404.",
+   "assumption": "Whether the Priority Pass works at Indian international terminals is not stated; recorded as worldwide and shown as assumed, the same reading as Emeralde."
+  },
+  {
+   "id": "icici-coral-domestic",
+   "grant": "card",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Coral"
+   ],
+   "programme": "dreamfolks",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/coral-credit-card",
+   "confidence": "partial",
+   "notes": "ICICI: 1 domestic visit a calendar quarter, gated on ₹75,000 spend in the preceding calendar quarter. No international access at all. The programme is NOT named in any sentence — the page carries a DreamFolks logo asset only, which is suggestive and not a source — so the row stays hidden. Coral also grants 4 railway lounge visits a year, which this dataset does not model."
+  },
+  {
+   "id": "sbi-elite-priority-pass-outside-india",
+   "grant": "card",
+   "bank": "SBI Card",
+   "cards": [
+    "Elite"
+   ],
+   "programme": "priority-pass",
+   "scope": [
+    "international"
+   ],
+   "region": "outside-india",
+   "quota": {
+    "visits": 6,
+    "period": {
+     "kind": "calendar-year"
+    },
+    "subCap": {
+     "visits": 2,
+     "period": {
+      "kind": "quarter",
+      "quarterBasis": "calendar"
+     }
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-elite.page",
+   "confidence": "verified",
+   "notes": "SBI: 6 international visits a calendar year, at most 2 a quarter, via Priority Pass. SBI’s own charges table has three columns — domestic within India, international within India, international outside India — and only the last is complimentary, so this opens nothing at an Indian terminal."
+  },
+  {
+   "id": "sbi-elite-domestic",
+   "grant": "card",
+   "bank": "SBI Card",
+   "cards": [
+    "Elite"
+   ],
+   "programme": "visa",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-elite.page",
+   "confidence": "partial",
+   "notes": "SBI: 2 domestic visits a quarter, fulfilled through the card NETWORKS (Visa / Mastercard / RuPay / American Express) rather than an aggregator — so the programme depends on which network the holder’s card carries, which one row cannot express. Hidden until the dataset can key a row to the card’s own network. SBI’s published domestic lounge lists also contain International T2/T3 rows, so its \"domestic\" entitlement may reach international terminals; unresolved."
+  },
+  {
+   "id": "sbi-prime-priority-pass-outside-india",
+   "grant": "card",
+   "bank": "SBI Card",
+   "cards": [
+    "Prime"
+   ],
+   "programme": "priority-pass",
+   "scope": [
+    "international"
+   ],
+   "region": "outside-india",
+   "quota": {
+    "visits": 4,
+    "period": {
+     "kind": "calendar-year"
+    },
+    "subCap": {
+     "visits": 2,
+     "period": {
+      "kind": "quarter",
+      "quarterBasis": "calendar"
+     }
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/rewards/sbi-card-prime.page",
+   "confidence": "verified",
+   "notes": "SBI: 4 international visits a calendar year, at most 2 a quarter, outside India, via Priority Pass. PRIME is filed under /rewards/, not /lifestyle/ — the latter 404s."
+  },
+  {
+   "id": "sbi-prime-domestic",
+   "grant": "card",
+   "bank": "SBI Card",
+   "cards": [
+    "Prime"
+   ],
+   "programme": "visa",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 8,
+    "period": {
+     "kind": "calendar-year"
+    },
+    "subCap": {
+     "visits": 2,
+     "period": {
+      "kind": "quarter",
+      "quarterBasis": "calendar"
+     }
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/rewards/sbi-card-prime.page",
+   "confidence": "partial",
+   "notes": "SBI: 8 domestic visits a year, at most 2 a quarter, through the card networks rather than an aggregator. Hidden for the same reason as ELITE’s domestic row — the programme depends on the holder’s network."
+  },
+  {
+   "id": "amex-platinum-priority-pass-outside-india",
+   "grant": "card",
+   "bank": "American Express",
+   "cards": [
+    "Platinum Card"
+   ],
+   "programme": "priority-pass",
+   "scope": [
+    "international"
+   ],
+   "region": "outside-india",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary-and-addon",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-15",
+   "source": "https://www.americanexpress.com/in/charge-cards/platinum-card/",
+   "confidence": "verified",
+   "notes": "Unlimited Priority Pass access outside India; inside India the same pass is chargeable at US$35 a visit, which is not complimentary access and is therefore not modelled as opening anything. Amex also grants its own Centurion, Delta Sky Club, Plaza Premium and Lufthansa lounges — none of those programmes is yet provable against a lounge in this directory. The card is a CHARGE card on a different URL path; /in/credit-cards/platinum-card.html is an Amex error page."
+  }
+ ]
+}
