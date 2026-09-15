@@ -228,34 +228,29 @@ async function detect(previous) {
     const m = parseTagLink(override)
     live = { code: m?.[1] ?? 'OVERRIDE', couponId: m?.[2] ?? null, source: override, first: await fetchListing(override) }
   } else {
-    // 1. Ask the coupon's own filter page for every id we have seen.
-    //    A non-zero totalCount is NOT proof the coupon is live: measured on
-    //    2026-09-15, minutes after BLINKDEAL6 was withdrawn the filter URL
-    //    still reported 199 products while every one of them carried only the
-    //    generic MYNTRA300. The index lags; the per-product coupon code does
-    //    not. So a window counts as live only when a BLINK* code is actually
-    //    sitting on the products.
-    for (const id of knownIds) {
-      const url = filterUrl('BLINKDEAL', id)
-      const first = await fetchListing(url)
-      const code = [...first.codes.keys()].find((c) => CODE_RE.test(c))
-      if (first.totalCount > 0 && code) {
-        live = { code, couponId: id, source: url, first }
-        break
-      }
-    }
-    // 2. Otherwise read the plain listing and look for any BLINK* coupon
-    //    on any product — that is how a renamed code or a new id is found.
-    if (!live && !QUICK) {
-      const plain = await fetchListing(LISTING)
-      const hit = [...plain.links].map(parseTagLink).find((m) => m && CODE_RE.test(m[1]))
-        ?? [...plain.codes.keys()].filter((c) => CODE_RE.test(c)).map((c) => [null, c, null])[0]
-      if (hit) {
-        const [, code, id] = hit
-        if (id && !knownIds.includes(id)) knownIds.push(id)
-        const url = id ? filterUrl(code, id) : LISTING
-        live = { code, couponId: id, source: url, first: id ? await fetchListing(url) : plain }
-      }
+    // One fetch settles it. The plain listing carries, on each product, the
+    // best coupon that applies to it, plus a tagLink holding that coupon's
+    // id — so a single read answers "is anything live" AND "which code and
+    // id", including a code we have never seen. A quiet tick therefore costs
+    // exactly one request (~124 KB gzipped), which is what makes polling
+    // through a metered residential proxy affordable.
+    //
+    // Note what we deliberately do NOT trust: the coupon's own filter URL
+    // reports a stale product count. Measured 2026-09-15, minutes after
+    // BLINKDEAL6 was withdrawn, it still claimed 199 products while every one
+    // of them carried only the generic MYNTRA300. Liveness lives on the
+    // products, never in the count.
+    const plain = await fetchListing(LISTING)
+    const viaLink = [...plain.links].map(parseTagLink).find((m) => m && CODE_RE.test(m[1]))
+    const viaCode = [...plain.codes.keys()].find((c) => CODE_RE.test(c))
+    if (viaLink || viaCode) {
+      const code = viaLink ? viaLink[1] : viaCode
+      const id = viaLink ? viaLink[2] : null
+      if (id && !knownIds.includes(id)) knownIds.push(id)
+      // Scope to the coupon's own filter URL when we have an id, so the SKU
+      // list is exactly what the code covers rather than the whole category.
+      const url = id ? filterUrl(code, id) : LISTING
+      live = { code, couponId: id, source: url, first: id ? await fetchListing(url) : plain }
     }
   }
 
@@ -276,7 +271,11 @@ async function detect(previous) {
     }
   }
   const sep = live.source.includes('?') ? '&' : '?'
-  for (const brand of live.first.brands ?? []) {
+  // Gold coins is a small category (9 brands, ~200 SKUs). If a filter ever
+  // matches a whole department the enumeration would cost hundreds of
+  // requests through a metered proxy, so cap it and keep the first page.
+  const brands = (live.first.brands ?? []).slice(0, MAX_BRANDS)
+  for (const brand of total <= MAX_COLLECT ? brands : []) {
     if (seen.size >= total) break
     const scoped = `${live.source}%3A%3ABrand%3A${encodeURIComponent(brand.name)}`
     try {
