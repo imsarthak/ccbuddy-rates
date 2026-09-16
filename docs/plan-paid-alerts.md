@@ -193,3 +193,104 @@ regardless — WhatsApp and SMS cost money per alert.
 - `worker/src/copy.ts`, `worker/src/plans.ts` (new) — every string and every price in one place
 - `docs/termux-setup.md` — worker block; `README.md` — a "user data" section, since "no user data in this repo" stops being true for the Worker
 - Reference: app repo `docs/plan-otp-login.md` (Worker/D1/secrets conventions) and `src/data/blinkdeal.ts` (`isFresh` rule the watchdog mirrors)
+
+---
+
+# Decisions taken 2026-09-16
+
+These supersede the open questions in §H where they overlap.
+
+## Pricing: credits, not a subscription
+
+**Per-window credits in packs of 10 / 25 / 60**, larger packs cheaper per alert,
+**credits never expire**, **1 credit per window with all channels included**.
+
+Why credits beat a subscription here: we do not yet know how often windows
+happen. Two in two days is not a rate, and the ten historical sightings span
+months. A ₹149/month subscription is poor value if windows turn out to be
+twice a month, and generates refund arguments. Credits are robust to an unknown
+frequency and kill the refund problem outright — a quiet month costs the user
+nothing. Credits also suit manual UPI approval: one approval buys many alerts.
+
+Cost to serve one window to one subscriber on all three channels is about
+₹0.85, so any sane credit price is almost pure margin. Prices are Sarthak's;
+they live in `worker/src/plans.ts`.
+
+Implications for the data model: `subscribers` gains `credits` (int);
+`payments` records a pack rather than a plan; `subscriptions` becomes
+`credit_ledger` (id, subscriber_id, delta, reason, window_key?, payment_id?,
+at) so a balance is auditable and a wrongly-charged alert can be reversed.
+Entitlement at fan-out = `credits > 0`; decrement once per window, not per
+channel, inside the same transaction that inserts the deliveries.
+
+## Free tier: first 5 at full speed, then 10 minutes late forever
+
+`FREE_INSTANT_COUNT = 5` (lifetime, not yearly), `FREE_DELAY_MIN = 10`.
+Telegram only — WhatsApp and SMS cost money per alert. After the fifth, every
+alert still arrives, carrying "paid subscribers got this 10 minutes ago".
+No cliff, no reset, and the free list stays as an upsell audience.
+
+## WhatsApp: official Cloud API, direct messages, no groups
+
+Rejected: WhatsApp Channels (Meta's API cannot manage them; a public channel
+cannot be gated) and admin-only Groups/Communities (the API cannot manage those
+either, so it needs an unofficial web-protocol library with real ban risk —
+and **every member of a WhatsApp group can see every other member's phone
+number**, which is an unacceptable leak for a paid subscriber list).
+
+Paid WhatsApp is one approved template message per subscriber. Gating is
+inherent: we simply do not send to someone with no credits. Cost per recipient
+is the same as a group would have been, so the group bought nothing.
+
+Unofficial libraries stay away from anything paid. If a public WhatsApp channel
+is ever wanted for marketing, it runs on a throwaway number where a ban costs
+reach, not customers.
+
+## Affiliate links: a separate digest message
+
+The alert stays short and fast. A follow-up digest carries the top coins by
+₹/gram with affiliate links. Two prerequisites, both outstanding:
+
+- Myntra campaign at Cuelinks is `access_status: pending` (id 101, 7.5%).
+- The watcher's Cuelinks key deliberately lacks `write:links`. Create a
+  **second** key with `read:campaigns` + `write:links` for link generation and
+  keep the watcher key read-only. Store as `.cuelinks-links.env`, gitignored.
+
+Link generation: `POST /pub_api/v3/links/convert` per coin URL.
+
+## Branded short links: our own domain, not a look-alike
+
+Everyone in this market posts `myntr.in` / `myntr.cc` / `myntr.store` links.
+Those are **not Myntra's** — the TLS certificate on `myntr.in` also covers
+`fkrt.co` and `ajiio.co`, and the roots redirect to haulpack.com and
+extrape.com. They are third-party affiliate operators running brand
+look-alikes. We are not registering a Myntra look-alike: it is a trademark
+risk with no upside, under Sarthak's name on a public product.
+
+What they actually have is a branded short domain in front of an affiliate
+link, and that is worth copying. The alerts Worker gets a `/g/:code` route that
+302s to the stored affiliate URL:
+
+```
+<short-domain>/g/x7k2  →  clnk.in/…  →  myntra.com/gold-coin/…
+```
+
+A subdomain of ccbuddy.app costs nothing; a dedicated short domain is a few
+hundred rupees a year. This also gives click tracking, which the feed-only
+approach would not have. New table `links` (code PK, window_key, sku_id,
+target_url, created_at, clicks).
+
+## Payment: UPI now, approved in the bot
+
+As in §D. Razorpay slots in behind the same `PaymentProvider` interface once
+KYC is done, without touching fan-out or credits.
+
+## Still open
+
+- Credit pack prices and the pack sizes' per-alert taper.
+- Short domain: subdomain of ccbuddy.app, or buy one.
+- Business identity for Meta verification (WhatsApp) and DLT (SMS) — decides
+  whether those channels are weeks or months away. Telegram sells regardless.
+- Whether the free tier's 5 instant alerts are per person or per device — a
+  Telegram chat id is the identity and is cheap to re-create, so some abuse is
+  inevitable; recommend accepting it rather than adding friction at signup.
