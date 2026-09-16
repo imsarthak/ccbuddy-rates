@@ -282,17 +282,27 @@ hundred rupees a year.
 Cuelinks offers custom white-label domains as settled fact; that line came from
 INRDeals' marketing page, not Cuelinks'. What is actually verified:
 
-- Cuelinks issues  links, which 301 to . No network
-  hands out -style domains; those belong to HaulPack, earnly and Lehlah.
-- White-labelling is real at Cuelinks: DesiDime runs , the same
+- Cuelinks issues `clnk.in` links, which 301 to `linksredirect.com`. No network
+  hands out `myntr`-style domains; those belong to HaulPack, earnly and Lehlah.
+- White-labelling is real at Cuelinks: DesiDime runs `links.ddime.in`, the same
   redirect with the same parameter shape on their own domain. Whether it is
   offered to a NEW publisher, and at what cost, is unverified — ask the account
   manager, do not assume.
 - **Our Myntra links currently earn nothing.** Resolving our own tracking_url
-   lands on  with no
-  attribution at all, while DesiDime resolves to the same page carrying
-  . Cause: campaign 101 is still . Until approval, every generated link is just a link.
- This also gives click tracking, which the feed-only
+  `linksredirect.com/?cid=320548&...` lands on `https://www.myntra.com/` with no
+  attribution at all, while DesiDime's resolves to the same page carrying
+  `utm_medium=dms_cuelinks_rev`. Cause: campaign 101 is still `access_status:
+  pending`. Until approval, every link we generate is just a link.
+
+Ask the account manager, once approval lands:
+
+```
+1. My Myntra campaign (id 101) is still pending — what is needed to approve it?
+2. Do you offer a custom/white-label redirect domain for publishers, like
+   links.ddime.in? What are the requirements and cost?
+```
+
+The branded short link also gives click tracking, which the feed-only
 approach would not have. New table `links` (code PK, window_key, sku_id,
 target_url, created_at, clicks).
 
