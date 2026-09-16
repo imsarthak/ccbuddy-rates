@@ -47,7 +47,11 @@ const CODE_RE = /BLINK/i
 // The full-listing scan in detect() is what finds an id we have never seen;
 // these only make the quick path likely to hit without it.
 const SEED_IDS = ['123190', '129356', '132202']
-const HEARTBEAT_MS = 60 * 60 * 1000 // rewrite an unchanged file at most hourly
+// Rewrite an unchanged file this often, so `checkedAt` doubles as a liveness
+// signal. At an hour a healthy quiet watcher was indistinguishable from a dead
+// one, which is the failure nobody would notice. Twenty minutes costs ~72
+// commits a day and makes the distinction reliable.
+const HEARTBEAT_MS = 20 * 60 * 1000
 const PAGE_SIZE = 50 // what the server-rendered listing returns, always
 const EXTRA_SORTS = ['price_desc', 'price_asc', 'discount', 'new']
 const MAX_BRANDS = 25 // brand passes per window — a safety bound on proxy cost
@@ -331,7 +335,9 @@ export async function step(previous) {
   let next
   try {
     const d = await detect(previous)
-    next = { generated: now, checkedAt: now, ok: true, ...d }
+    // heartbeatMs makes the feed self-describing: a consumer knows how stale
+    // checkedAt can get while still healthy, instead of hardcoding a guess.
+    next = { generated: now, checkedAt: now, ok: true, heartbeatMs: HEARTBEAT_MS, ...d }
     if (d.live) {
       const from = previous.live && previous.code === d.code ? previous.lastLive?.from ?? now : now
       next.lastLive = { code: d.code, couponId: d.couponId, from, skuCount: d.skus.length }
