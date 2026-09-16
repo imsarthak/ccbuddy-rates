@@ -1,6 +1,6 @@
 {
- "generated": "2026-09-16T11:55:33.163Z",
- "checkedAt": "2026-09-16T11:55:33.163Z",
+ "generated": "2026-09-16T11:57:45.359Z",
+ "checkedAt": "2026-09-16T11:57:45.359Z",
  "ok": true,
  "heartbeatMs": 120000,
  "live": true,
@@ -1595,6 +1595,18 @@
    "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-24kt-999-purity-laxmi-gold-coin---5-g/40324080/buy"
   },
   {
+   "id": 40324070,
+   "name": "Malabar Gold & Diamonds 22KT 916 Purity Laxmi Gold Coin - 10 g",
+   "brand": "Malabar Gold & Diamonds",
+   "info": "22KT 916 Laxmi Gold Coin- 10 g",
+   "price": 150639,
+   "mrp": 159295,
+   "discount": 9039,
+   "bestPrice": 141600,
+   "code": "BLINKDEAL6",
+   "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-laxmi-gold-coin---10-g/40324070/buy"
+  },
+  {
    "id": 40324078,
    "name": "Malabar Gold & Diamonds 24KT 999 Purity Laxmi Gold Coin - 2 g",
    "brand": "Malabar Gold & Diamonds",
@@ -1677,18 +1689,6 @@
    "bestPrice": 28706,
    "code": "BLINKDEAL6",
    "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-rose-gold-coin---2-g/40324068/buy"
-  },
-  {
-   "id": 40324066,
-   "name": "Malabar Gold & Diamonds 22KT 916 Purity Laxmi Gold Coin - 5 g",
-   "brand": "Malabar Gold & Diamonds",
-   "info": "22KT 916 Laxmi Gold Coin - 5 g",
-   "price": 75579,
-   "mrp": 79916,
-   "discount": 4535,
-   "bestPrice": 71044,
-   "code": "BLINKDEAL6",
-   "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-laxmi-gold-coin---5-g/40324066/buy"
   },
   {
    "id": 40324084,
@@ -2399,18 +2399,6 @@
    "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-rose-gold-coin---10-g/40324071/buy"
   },
   {
-   "id": 40324070,
-   "name": "Malabar Gold & Diamonds 22KT 916 Purity Laxmi Gold Coin - 10 g",
-   "brand": "Malabar Gold & Diamonds",
-   "info": "22KT 916 Laxmi Gold Coin- 10 g",
-   "price": 150639,
-   "mrp": 159295,
-   "discount": 9039,
-   "bestPrice": 141600,
-   "code": "BLINKDEAL6",
-   "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-laxmi-gold-coin---10-g/40324070/buy"
-  },
-  {
    "id": 40324075,
    "name": "Malabar Gold & Diamonds 22KT 916 Purity Rose Gold Coin - 8 g",
    "brand": "Malabar Gold & Diamonds",
@@ -2493,6 +2481,18 @@
    "bestPrice": 71044,
    "code": "BLINKDEAL6",
    "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-rose-gold-coin---5-g/40324064/buy"
+  },
+  {
+   "id": 40324066,
+   "name": "Malabar Gold & Diamonds 22KT 916 Purity Laxmi Gold Coin - 5 g",
+   "brand": "Malabar Gold & Diamonds",
+   "info": "22KT 916 Laxmi Gold Coin - 5 g",
+   "price": 75579,
+   "mrp": 79916,
+   "discount": 4535,
+   "bestPrice": 71044,
+   "code": "BLINKDEAL6",
+   "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-laxmi-gold-coin---5-g/40324066/buy"
   },
   {
    "id": 40324074,
