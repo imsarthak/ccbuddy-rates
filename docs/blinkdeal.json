@@ -1,6 +1,6 @@
 {
- "generated": "2026-09-16T11:45:33.427Z",
- "checkedAt": "2026-09-16T11:45:33.427Z",
+ "generated": "2026-09-16T11:47:45.925Z",
+ "checkedAt": "2026-09-16T11:47:45.925Z",
  "ok": true,
  "heartbeatMs": 120000,
  "live": true,
@@ -8,7 +8,7 @@
  "couponId": "135733",
  "discountPct": null,
  "source": "https://www.myntra.com/gold-coins?f=Coupons:BLINKDEAL6_135733",
- "totalCount": 212,
+ "totalCount": 211,
  "skus": [
   {
    "id": 23250690,
@@ -1523,18 +1523,6 @@
    "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-rose-gold-coin---1-g/40324067/buy"
   },
   {
-   "id": 40324069,
-   "name": "Malabar Gold & Diamonds 24KT 999 Purity Rose Gold Bar - 5 g",
-   "brand": "Malabar Gold & Diamonds",
-   "info": "24 K 999 Gold Rose Bar- 5 g",
-   "price": 86462,
-   "mrp": 86462,
-   "discount": null,
-   "bestPrice": null,
-   "code": null,
-   "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-24kt-999-purity-rose-gold-bar---5-g/40324069/buy"
-  },
-  {
    "id": 40324065,
    "name": "Malabar Gold & Diamonds 24KT 999 Purity Rose Gold Bar - 2 g",
    "brand": "Malabar Gold & Diamonds",
@@ -1703,16 +1691,16 @@
    "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-laxmi-gold-coin---5-g/40324066/buy"
   },
   {
-   "id": 40324074,
-   "name": "Malabar Gold & Diamonds 22KT 916 Purity Laxmi Gold Coin - 2 g",
+   "id": 40324084,
+   "name": "Malabar Gold & Diamonds 24KT 999 Purity Rose Gold Coin - 8 g",
    "brand": "Malabar Gold & Diamonds",
-   "info": "22KT 916 Laxmi Gold Coin - 2 g",
-   "price": 30539,
-   "mrp": 32290,
-   "discount": 1833,
-   "bestPrice": 28706,
+   "info": "24KT 999 Rose Gold Coin - 8 g",
+   "price": 130499,
+   "mrp": 138035,
+   "discount": 7830,
+   "bestPrice": 122669,
    "code": "BLINKDEAL6",
-   "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-laxmi-gold-coin---2-g/40324074/buy"
+   "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-24kt-999-purity-rose-gold-coin---8-g/40324084/buy"
   },
   {
    "id": 30970319,
@@ -2423,18 +2411,6 @@
    "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-laxmi-gold-coin---10-g/40324070/buy"
   },
   {
-   "id": 40324084,
-   "name": "Malabar Gold & Diamonds 24KT 999 Purity Rose Gold Coin - 8 g",
-   "brand": "Malabar Gold & Diamonds",
-   "info": "24KT 999 Rose Gold Coin - 8 g",
-   "price": 130499,
-   "mrp": 138035,
-   "discount": 7830,
-   "bestPrice": 122669,
-   "code": "BLINKDEAL6",
-   "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-24kt-999-purity-rose-gold-coin---8-g/40324084/buy"
-  },
-  {
    "id": 40324075,
    "name": "Malabar Gold & Diamonds 22KT 916 Purity Rose Gold Coin - 8 g",
    "brand": "Malabar Gold & Diamonds",
@@ -2517,6 +2493,30 @@
    "bestPrice": 71044,
    "code": "BLINKDEAL6",
    "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-rose-gold-coin---5-g/40324064/buy"
+  },
+  {
+   "id": 40324069,
+   "name": "Malabar Gold & Diamonds 24KT 999 Purity Rose Gold Bar - 5 g",
+   "brand": "Malabar Gold & Diamonds",
+   "info": "24 K 999 Gold Rose Bar- 5 g",
+   "price": 86462,
+   "mrp": 86462,
+   "discount": null,
+   "bestPrice": null,
+   "code": null,
+   "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-24kt-999-purity-rose-gold-bar---5-g/40324069/buy"
+  },
+  {
+   "id": 40324074,
+   "name": "Malabar Gold & Diamonds 22KT 916 Purity Laxmi Gold Coin - 2 g",
+   "brand": "Malabar Gold & Diamonds",
+   "info": "22KT 916 Laxmi Gold Coin - 2 g",
+   "price": 30539,
+   "mrp": 32290,
+   "discount": 1833,
+   "bestPrice": 28706,
+   "code": "BLINKDEAL6",
+   "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-laxmi-gold-coin---2-g/40324074/buy"
   },
   {
    "id": 39888747,
