@@ -49,9 +49,13 @@ const CODE_RE = /BLINK/i
 const SEED_IDS = ['123190', '129356', '132202']
 // Rewrite an unchanged file this often, so `checkedAt` doubles as a liveness
 // signal. At an hour a healthy quiet watcher was indistinguishable from a dead
-// one, which is the failure nobody would notice. Twenty minutes costs ~72
-// commits a day and makes the distinction reliable.
+// one, which is the failure nobody would notice.
 const HEARTBEAT_MS = 20 * 60 * 1000
+// While a window is open the stakes invert: if the watcher dies mid-window the
+// feed keeps saying live, and a dead coupon shown as live is worse than
+// showing nothing at all. Publishing every couple of minutes bounds how long
+// that lie can survive, and lets the app demand tight freshness when it counts.
+const LIVE_HEARTBEAT_MS = 2 * 60 * 1000
 const PAGE_SIZE = 50 // what the server-rendered listing returns, always
 const EXTRA_SORTS = ['price_desc', 'price_asc', 'discount', 'new']
 const MAX_BRANDS = 25 // brand passes per window — a safety bound on proxy cost
@@ -370,7 +374,9 @@ export async function step(previous) {
   const material =
     !!previous.live !== !!next.live || previous.code !== next.code || !!previous.ok !== !!next.ok ||
     skuKey(previous) !== skuKey(next) || (next.knownIds ?? []).length !== (previous.knownIds ?? []).length
-  const heartbeatDue = !previous.checkedAt || Date.now() - Date.parse(previous.checkedAt) > HEARTBEAT_MS
+  const beat = next.live ? LIVE_HEARTBEAT_MS : HEARTBEAT_MS
+  next.heartbeatMs = beat
+  const heartbeatDue = !previous.checkedAt || Date.now() - Date.parse(previous.checkedAt) > beat
   return { next: material || heartbeatDue ? next : null, closedWindow }
 }
 
