@@ -1,6 +1,6 @@
 {
- "generated": "2026-09-16T12:00:06.658Z",
- "checkedAt": "2026-09-16T12:00:06.658Z",
+ "generated": "2026-09-16T12:01:45.395Z",
+ "checkedAt": "2026-09-16T12:01:45.395Z",
  "ok": true,
  "heartbeatMs": 120000,
  "live": true,
@@ -1539,11 +1539,11 @@
    "name": "Malabar Gold & Diamonds 24KT 999 Purity Rose Gold Coin - 5 g",
    "brand": "Malabar Gold & Diamonds",
    "info": "24KT 999 Rose Gold Coin - 5 g",
-   "price": 81739,
+   "price": 86462,
    "mrp": 86462,
-   "discount": 4905,
-   "bestPrice": 76834,
-   "code": "BLINKDEAL6",
+   "discount": null,
+   "bestPrice": null,
+   "code": null,
    "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-24kt-999-purity-rose-gold-coin---5-g/40324082/buy"
   },
   {
