@@ -1,7 +1,8 @@
 {
- "generated": "2026-09-16T03:59:20.558Z",
- "checkedAt": "2026-09-16T03:59:20.558Z",
+ "generated": "2026-09-16T04:19:48.840Z",
+ "checkedAt": "2026-09-16T04:19:48.840Z",
  "ok": true,
+ "heartbeatMs": 1200000,
  "live": false,
  "knownIds": [
   "123190",
