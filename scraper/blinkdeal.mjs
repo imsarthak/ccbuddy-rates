@@ -254,7 +254,11 @@ async function probe() {
   process.exitCode = bad ? 1 : 0
 }
 
-async function detect(previous) {
+// onLive fires the moment the plain listing shows a live code — before the
+// coupon's own filter fetch and the brand crawl. On the phone that crawl is
+// ~23 s over mobile data, and on 16 Sep it was the difference between seeing
+// the code at 17:00:43 and the alert leaving at 17:01:10.
+async function detect(previous, onLive = async () => {}) {
   const knownIds = [...new Set([...(previous.knownIds ?? []), ...SEED_IDS])]
   const override = flag('--url')
   let live = null // { code, couponId, source, first }
@@ -285,6 +289,8 @@ async function detect(previous) {
       // Scope to the coupon's own filter URL when we have an id, so the SKU
       // list is exactly what the code covers rather than the whole category.
       const url = id ? filterUrl(code, id) : LISTING
+      const early = plain.products.filter((p) => CODE_RE.test(p.couponData?.couponDescription?.couponCode ?? '')).map(toSku)
+      await onLive({ code, couponId: id, source: url, skus: early })
       live = { code, couponId: id, source: url, first: id ? await fetchListing(url) : plain }
     }
   }
@@ -357,7 +363,25 @@ export async function step(previous) {
   const now = new Date().toISOString()
   let next
   try {
-    const d = await detect(previous)
+    // Alert on the OPENING EDGE only — a window starting, or the code
+    // changing mid-window. Firing every tick would mean a text every twenty
+    // seconds for the life of the window. It goes out from inside detect,
+    // on the first page, with the discount inferred from the coins on it;
+    // the full SKU set is published afterwards.
+    let alerted = false
+    const d = await detect(previous, async (early) => {
+      if ((previous.live && previous.code === early.code) || NO_NOTIFY) return
+      const feed = { ...early, discountPct: inferDiscountPct(early.code, early.skus), partial: true }
+      try {
+        const res = await notify(composeAlert(feed))
+        const sent = Object.entries(res).map(([k, v]) => `${k}:${v}`).join(' ')
+        console.log(`ALERT ${sent || '(no channels configured)'} at ${new Date().toISOString()}`)
+        alerted = true
+      } catch (e) {
+        // A channel failing must never cost the window its crawl and publish.
+        console.error(`ALERT failed: ${e.message}`)
+      }
+    })
     // heartbeatMs makes the feed self-describing: a consumer knows how stale
     // checkedAt can get while still healthy, instead of hardcoding a guess.
     next = { generated: now, checkedAt: now, ok: true, heartbeatMs: HEARTBEAT_MS, ...d }
@@ -368,16 +392,7 @@ export async function step(previous) {
       next.lastLive = previous.lastLive.to ? previous.lastLive : { ...previous.lastLive, to: now }
     }
     console.log(d.live ? `LIVE  ${d.code} — ${d.skus.length}/${d.totalCount} SKUs` : 'quiet — no BLINK* coupon on gold coins')
-
-    // Alert on the OPENING EDGE only — a window starting, or the code
-    // changing mid-window. Firing every tick would mean a text every twenty
-    // seconds for the life of the window.
-    if (d.live && (!previous.live || previous.code !== d.code) && !NO_NOTIFY) {
-      const res = await notify(composeAlert(next))
-      const sent = Object.entries(res).map(([k, v]) => `${k}:${v}`).join(' ')
-      console.log(`ALERT ${sent || '(no channels configured)'}`)
-      next.alertedAt = now
-    }
+    if (alerted) next.alertedAt = now
   } catch (e) {
     // A failed read never ends a window: keep what we knew, mark it stale.
     next = { ...previous, generated: now, checkedAt: now, ok: false, stale: true, error: String(e.message ?? e) }

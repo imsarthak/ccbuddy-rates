@@ -134,7 +134,7 @@ export function composeAlert(feed) {
   }
   const lines = [
     `${feed.code} live on Myntra${feed.discountPct ? ` — ${feed.discountPct}% off` : ''}`,
-    `${skus.length} gold coins covered`,
+    `${skus.length}${feed.partial ? '+' : ''} gold coins covered`,
   ]
   if (best) lines.push(`Best: Rs ${best.pg.toLocaleString('en-IN')}/g (${best.brand} ${best.g}g)`)
   if (feed.source) lines.push(feed.source)
