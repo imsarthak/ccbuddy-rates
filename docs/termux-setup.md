@@ -219,6 +219,15 @@ posted. To poll hard around the clock:
 FAST=20 SLOW=20 FAST_FROM=0 FAST_TO=24 bash scraper/watch-termux.sh
 ```
 
+Around the top of every active hour — from thirty seconds before to two
+minutes after — it drops to five seconds and skips the git sync on those
+ticks, so the interval is really five seconds and not five plus a fetch over
+mobile data. The one exact window start we have is 17:00:43 IST, the other
+was about 18:00, and on 16 Sep the flip fell inside the ~25 s between two
+twenty-second ticks; the burst bounds that to about seven. It costs roughly
+thirty requests an hour on top of the hundred and eighty. `BURST=0` turns it
+off; `BURST_BEFORE` and `BURST_AFTER` are in seconds.
+
 Twenty seconds puts you roughly forty seconds ahead of every competitor we
 measured; the paid Telegram bot polls at ninety seconds and the tracker site
 rebuilds about once a minute.

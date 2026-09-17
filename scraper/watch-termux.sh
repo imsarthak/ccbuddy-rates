@@ -10,8 +10,10 @@
 # when quiet), and push docs/blinkdeal.json only when something changed.
 # GitHub Pages then serves it to the app exactly like rates.json.
 #
-#   bash scraper/watch-termux.sh              20s during the active hours
+#   bash scraper/watch-termux.sh              20s during the active hours,
+#                                             5s around the top of each
 #   FAST=10 bash scraper/watch-termux.sh      poll harder
+#   BURST=0 bash scraper/watch-termux.sh      no burst around the hour
 #   FAST=20 SLOW=20 FAST_FROM=0 FAST_TO=24 …  no quiet period at all
 #
 # Setup lives in docs/termux-setup.md.
@@ -28,6 +30,16 @@ FAST="${FAST:-20}"           # seconds, during the active hours
 SLOW="${SLOW:-300}"          # seconds, overnight
 FAST_FROM="${FAST_FROM:-11}" # IST hour, inclusive
 FAST_TO="${FAST_TO:-23}"     # IST hour, exclusive
+
+# Windows open on the hour: the one exact start we have is 17:00:43 IST and
+# the other, caught by hand, was about 18:00. On 16 Sep the flip fell inside
+# the ~25s between two twenty-second ticks. So for a short stretch either
+# side of every active hour boundary poll at BURST seconds instead, and skip
+# the git sync on those ticks so five seconds means five seconds and not five
+# plus a fetch over mobile data. About thirty extra requests an hour.
+BURST="${BURST:-5}"                 # seconds; 0 disables
+BURST_BEFORE="${BURST_BEFORE:-30}"  # seconds before the hour
+BURST_AFTER="${BURST_AFTER:-120}"   # seconds after it
 
 # If Myntra starts refusing this address, the worst possible response is to
 # keep hammering it. Losing the home IP loses the whole capability, because
@@ -59,35 +71,61 @@ command -v termux-wake-lock >/dev/null 2>&1 && termux-wake-lock
 trap 'command -v termux-wake-unlock >/dev/null 2>&1 && termux-wake-unlock; say "stopped"; exit 0' INT TERM
 
 ist_hour() { TZ='Asia/Kolkata' date +%-H; }
+ist_sec_of_hour() { TZ='Asia/Kolkata' date +'%-M %-S' | { read -r m s; echo $(( m * 60 + s )); }; }
+
+active_hour() { [ "$1" -ge "$FAST_FROM" ] && [ "$1" -lt "$FAST_TO" ]; }
+
+# Pure so it can be tested: hour and second-of-hour in, exit status out. The
+# hour a burst belongs to is the one being approached before :00 and the one
+# just passed after it, and only active hours get one.
+burst_at() {
+  h=$1; s=$2
+  [ "$BURST" -gt 0 ] || return 1
+  if [ "$s" -ge $(( 3600 - BURST_BEFORE )) ]; then
+    active_hour $(( (h + 1) % 24 ))
+  else
+    [ "$s" -lt "$BURST_AFTER" ] && active_hour "$h"
+  fi
+}
+bursting() { burst_at "$(ist_hour)" "$(ist_sec_of_hour)"; }
 
 interval_now() {
-  h=$(ist_hour)
-  if [ "$h" -ge "$FAST_FROM" ] && [ "$h" -lt "$FAST_TO" ]; then echo "$FAST"; else echo "$SLOW"; fi
+  if bursting; then echo "$BURST"
+  elif active_hour "$(ist_hour)"; then echo "$FAST"
+  else echo "$SLOW"; fi
 }
 
 # Spread requests out slightly. Landing on the same second of every minute is
-# a signature in itself.
-jitter() { echo $(( RANDOM % 5 )); }
+# a signature in itself. Less of it in a burst, where four seconds is most of
+# the interval.
+jitter() { if bursting; then echo $(( RANDOM % 2 )); else echo $(( RANDOM % 5 )); fi; }
 
-say "started — ${FAST}s during ${FAST_FROM}:00-${FAST_TO}:00 IST, ${SLOW}s otherwise"
+say "started — ${FAST}s during ${FAST_FROM}:00-${FAST_TO}:00 IST, ${SLOW}s otherwise, ${BURST}s around the hour"
 
+need_sync=1
 while true; do
   # Trim the log rather than let it grow without bound on a small device.
   if [ -f "$LOG" ] && [ "$(wc -c < "$LOG")" -gt 1000000 ]; then
     tail -n 2000 "$LOG" > "$LOG.tmp" && mv "$LOG.tmp" "$LOG"
   fi
 
-  if git fetch -q origin master 2>/dev/null; then
-    # Anything local that origin lacks is a push that failed last tick, so
-    # rebase keeps it. Only the feed files are ever discarded.
-    git checkout -q -- docs/blinkdeal.json docs/blinkdeal-history.json 2>/dev/null
-    if ! git rebase -q origin/master 2>/dev/null; then
-      git rebase --abort 2>/dev/null
-      git reset -q --hard origin/master
-      say "rebase failed, reset to origin/master"
+  # Burst ticks skip the sync; a failed push or fetch flags the next tick to
+  # do it regardless, so a window found mid-burst still gets published.
+  if [ "$need_sync" = 1 ] || ! bursting; then
+    if git fetch -q origin master 2>/dev/null; then
+      need_sync=0
+      # Anything local that origin lacks is a push that failed last tick, so
+      # rebase keeps it. Only the feed files are ever discarded.
+      git checkout -q -- docs/blinkdeal.json docs/blinkdeal-history.json 2>/dev/null
+      if ! git rebase -q origin/master 2>/dev/null; then
+        git rebase --abort 2>/dev/null
+        git reset -q --hard origin/master
+        say "rebase failed, reset to origin/master"
+      fi
+    else
+      need_sync=1
+      say "offline, skipping fetch"
     fi
-  else
-    say "offline, skipping fetch"
   fi
 
   OUT="$(node scraper/blinkdeal.mjs 2>&1)"
@@ -114,6 +152,7 @@ while true; do
       if git push -q origin HEAD:master 2>/dev/null; then
         say "pushed"
       else
+        need_sync=1
         say "push failed, kept for next tick"
       fi
     else
