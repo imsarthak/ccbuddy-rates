@@ -204,6 +204,64 @@ local notification on the phone itself.
 
 ---
 
+# Channel posts
+
+The alert above is private. The watcher also posts publicly, twice per
+window: when it opens (code, discount, how many coins it covers, the cheapest
+₹/g on the first page, the coupon page, the app link) and when it closes (how
+long it lasted, how many coins). Once each — a heartbeat rewrite, a failed
+read mid-window or a restart never repeats a post, because both edges are
+keyed on what the previous feed said.
+
+To see the exact wording without sending anything:
+
+```bash
+node scraper/notify.mjs --preview
+```
+
+## Telegram channel
+
+Same bot as the alert, one more key:
+
+1. Create the channel in Telegram (public, with a username, or private).
+2. Channel → Administrators → Add admin → your bot. It needs **Post messages**.
+3. Add `channelId` next to the bot token in `.notify.env`: the `@username`
+   of a public channel, or the numeric `-100…` id of a private one (forward
+   any post from it to @userinfobot, or read `channel_post.chat.id` from
+   `getUpdates` after posting once).
+
+```json
+{
+  "telegram": { "token": "123456:ABC...", "chatId": "987654321",
+                "channelId": "@ccbuddy_blinkdeal" }
+}
+```
+
+Environment variables work instead of the file: `BLINKDEAL_TELEGRAM_TOKEN`
+and `BLINKDEAL_TELEGRAM_CHANNEL`.
+
+**Test on a private test channel first**, never on the real one:
+
+```bash
+node scraper/notify.mjs --post-test
+```
+
+That sends the captured 2026-09-15 window's open and close posts to whatever
+`channelId` says. Read them, then switch `channelId` to the real channel.
+`telegram HTTP 403: bot is not a member` means step 2 was skipped;
+`400: chat not found` means the id is wrong or the bot was never added.
+
+To rehearse the whole watcher without a channel seeing anything:
+
+```bash
+node scraper/blinkdeal.mjs --dry-run
+```
+
+prints the alert and both posts to the log instead of sending them
+(`BLINKDEAL_DRY_RUN=1` does the same for the loop).
+
+---
+
 # Cadence
 
 Twenty seconds between 11:00 and 23:00 IST, five minutes overnight, plus a few
