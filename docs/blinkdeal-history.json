@@ -1,5 +1,14 @@
 {
+ "generated": "2026-09-21T10:45:00.000Z",
  "windows": [
+  {
+   "code": "BLINKDEAL6",
+   "couponId": "135733",
+   "from": "2026-09-15T12:30:00.000Z",
+   "skuCount": 0,
+   "to": "2026-09-15T13:03:00.000Z",
+   "approx": true
+  },
   {
    "code": "BLINKDEAL6",
    "couponId": "135733",
