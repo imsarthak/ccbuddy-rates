@@ -65,6 +65,22 @@ if [ -n "$dirty" ]; then
   exit 1
 fi
 
+# THIS SCRIPT PUBLISHES WHATEVER HEAD IS. Each tick rebases onto origin/master
+# and pushes `HEAD:master`, so from any other branch it puts that branch's
+# commits on master. On 2026-09-21 the clone was left on a feature branch while
+# its checklist was being worked through, and eleven minutes later the loop had
+# pushed the whole unreviewed feature to master by itself. Refuse, here and on
+# every tick, because a branch can also be switched under a running loop.
+on_master() { [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = "master" ]; }
+if ! on_master; then
+  echo "Refusing to start: this clone is on '$(git rev-parse --abbrev-ref HEAD 2>/dev/null)', not master."
+  echo "This loop pushes HEAD to master every tick, so it would publish that"
+  echo "branch. Put the clone back first:"
+  echo "  git checkout master && git fetch origin && git reset --hard origin/master"
+  echo "To test another branch, clone a second copy instead of moving this one."
+  exit 1
+fi
+
 # Keep the CPU awake. Without this Android's doze mode suspends the loop
 # within minutes of the screen going off, which is most of the time.
 command -v termux-wake-lock >/dev/null 2>&1 && termux-wake-lock
@@ -104,6 +120,14 @@ say "started — ${FAST}s during ${FAST_FROM}:00-${FAST_TO}:00 IST, ${SLOW}s oth
 
 need_sync=1
 while true; do
+  # Someone may have switched branches under the loop; stop loudly rather than
+  # rebase and publish a branch that was never meant to be master.
+  if ! on_master; then
+    say "STOPPING — clone is on '$(git rev-parse --abbrev-ref HEAD 2>/dev/null)', not master. Nothing was pushed."
+    command -v termux-wake-unlock >/dev/null 2>&1 && termux-wake-unlock
+    exit 1
+  fi
+
   # Trim the log rather than let it grow without bound on a small device.
   if [ -f "$LOG" ] && [ "$(wc -c < "$LOG")" -gt 1000000 ]; then
     tail -n 2000 "$LOG" > "$LOG.tmp" && mv "$LOG.tmp" "$LOG"
