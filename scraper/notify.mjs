@@ -7,17 +7,32 @@
 // Config lives in a gitignored `.notify.env` at the repo root, as JSON:
 //
 //   {
-//     "telegram": { "token": "123456:ABC...", "chatId": "987654321" },
+//     "telegram": { "token": "123456:ABC...", "chatId": "987654321",
+//                   "channelId": "@ccbuddy_blinkdeal" },
 //     "sms":      { "to": "+919876543210" },
 //     "whatsapp": { "phone": "+919876543210", "apikey": "123456" }
 //   }
 //
-//   node scraper/notify.mjs --test    send a test message on every channel
+// Environment variables override the file, for a host that would rather not
+// keep one: BLINKDEAL_TELEGRAM_TOKEN, BLINKDEAL_TELEGRAM_CHANNEL.
+//
+//   node scraper/notify.mjs --test       send a test message on every alert channel
+//   node scraper/notify.mjs --preview    print the open and close channel posts
+//                                        rendered from the captured window, send nothing
+//   node scraper/notify.mjs --post-test  send those two posts to telegram.channelId
+//                                        (point it at a private test channel first)
+//
+// Two different things go out of here. The ALERT is the private ping to
+// Sarthak the moment a window opens (telegram chatId, sms, whatsapp, local).
+// The POSTS are public: one when a window opens and one when it closes, to
+// the Telegram channel (telegram.channelId — the bot must be an admin of it).
 //
 // Channel notes:
 //   telegram  Free and instant, reaches any device. Make a bot with
 //             @BotFather; get chatId by messaging the bot then opening
 //             https://api.telegram.org/bot<token>/getUpdates
+//             channelId is the channel's @username, or its numeric id
+//             (-100…) for a private channel; the bot must be an admin.
 //   sms       Sent by the watcher phone itself through Termux, so it needs a
 //             SIM with credit and the Termux:API app with SMS permission.
 //             Costs whatever your plan charges. Works when data does not.
@@ -38,11 +53,24 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const TIMEOUT_MS = 15000
 
 async function loadConfig() {
+  let cfg = {}
   try {
-    return JSON.parse(await readFile(join(ROOT, '.notify.env'), 'utf8'))
+    cfg = JSON.parse(await readFile(join(ROOT, '.notify.env'), 'utf8'))
   } catch {
-    return {}
+    // no file: every channel is optional
   }
+  return applyEnv(cfg, process.env)
+}
+
+/** Environment overrides on top of the file. Exported so it can be tested. */
+export function applyEnv(cfg, env) {
+  const out = { ...cfg }
+  if (env.BLINKDEAL_TELEGRAM_TOKEN || env.BLINKDEAL_TELEGRAM_CHANNEL) {
+    out.telegram = { ...out.telegram }
+    if (env.BLINKDEAL_TELEGRAM_TOKEN) out.telegram.token = env.BLINKDEAL_TELEGRAM_TOKEN
+    if (env.BLINKDEAL_TELEGRAM_CHANNEL) out.telegram.channelId = env.BLINKDEAL_TELEGRAM_CHANNEL
+  }
+  return out
 }
 
 async function sendTelegram(cfg, text) {
@@ -53,7 +81,12 @@ async function sendTelegram(cfg, text) {
     body: JSON.stringify({ chat_id: cfg.chatId, text, disable_web_page_preview: true }),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   })
-  if (!res.ok) throw new Error(`telegram HTTP ${res.status}`)
+  if (!res.ok) {
+    // Telegram says why in the body ("bot is not a member of the channel
+    // chat", "chat not found"), and that is the whole diagnosis on a phone.
+    const why = await res.json().then((j) => j.description).catch(() => '')
+    throw new Error(`telegram HTTP ${res.status}${why ? `: ${why}` : ''}`)
+  }
   return 'sent'
 }
 
@@ -96,12 +129,15 @@ async function sendLocal(text) {
  */
 export async function notify(text) {
   const cfg = await loadConfig()
-  const jobs = [
+  return fanOut([
     ['telegram', () => sendTelegram(cfg.telegram, text)],
     ['sms', () => sendSms(cfg.sms, text)],
     ['whatsapp', () => sendWhatsapp(cfg.whatsapp, text)],
     ['local', () => sendLocal(text)],
-  ]
+  ])
+}
+
+async function fanOut(jobs) {
   const out = {}
   await Promise.all(
     jobs.map(async ([name, run]) => {
@@ -117,27 +153,109 @@ export async function notify(text) {
   return out
 }
 
-/** The alert itself. Short, because SMS charges by the segment. */
-export function composeAlert(feed) {
-  const skus = feed.skus ?? []
+/**
+ * The cheapest coin per gram in a SKU list, weight read from its name.
+ * Shared by the alert and the channel posts so the two can never disagree.
+ */
+export function cheapestPerGram(skus) {
   const parseG = (s) => {
     const m = /(\d+(?:\.\d+)?)\s*(?:grams?|gms?|g)\b/i.exec(`${s.name} ${s.info ?? ''}`)
     return m ? parseFloat(m[1]) : null
   }
   const after = (s) => s.bestPrice ?? (s.discount != null ? s.price - s.discount : s.price)
   let best = null
-  for (const s of skus) {
+  for (const s of skus ?? []) {
     const g = parseG(s)
     if (!g) continue
     const pg = Math.round(after(s) / g)
     if (!best || pg < best.pg) best = { pg, g, brand: s.brand, url: s.url }
   }
+  return best
+}
+
+/** The alert itself. Short, because SMS charges by the segment. */
+export function composeAlert(feed) {
+  const best = cheapestPerGram(feed.skus)
   const lines = [
     `${feed.code} live on Myntra${feed.discountPct ? ` — ${feed.discountPct}% off` : ''}`,
   ]
   if (best) lines.push(`Best: Rs ${best.pg.toLocaleString('en-IN')}/g (${best.brand} ${best.g}g)`)
   if (feed.source) lines.push(feed.source)
   return lines.join('\n')
+}
+
+// ---- Channel posts ---------------------------------------------------------
+//
+// Public, two per window: one when it opens, one when it closes. Every word a
+// follower reads is in TEMPLATES and nowhere else. The open post goes out
+// from the coupon's first page (see onFirstPage in blinkdeal.mjs), so it
+// knows the coverage count and has fifty real prices for the cheapest ₹/g.
+
+export const APP_LINK = 'https://ccbuddy.app/blinkdeal'
+
+export const TEMPLATES = {
+  open: ({ code, pct, count, best, source }) =>
+    [
+      `${code} live on Myntra${pct ? ` — ${pct}% off gold coins` : ''}`,
+      count ? `${count} coins covered` : null,
+      best ? `Best: ₹${best.pg.toLocaleString('en-IN')}/g (${best.brand} ${best.g}g)` : null,
+      source || null,
+      APP_LINK,
+    ]
+      .filter(Boolean)
+      .join('\n'),
+  close: ({ code, duration, count }) =>
+    [`${code} is over — lasted ${duration}${count ? `, ${count} coins` : ''}`, APP_LINK].join('\n'),
+}
+
+/** "36 min", "1 h 05 min". Windows have run 33-36 min; never show seconds. */
+export function formatDuration(ms) {
+  const m = Math.max(0, Math.round(ms / 60000))
+  return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`
+}
+
+/**
+ * Render one post from the window as the watcher knows it at that moment.
+ *   open   { code, discountPct, totalCount?, skus, source }
+ *   close  { code, from, to, maxSkus? | skuCount? }
+ */
+export function composePost(kind, w) {
+  if (kind === 'open') {
+    const skus = w.skus ?? []
+    return TEMPLATES.open({
+      code: w.code,
+      pct: w.discountPct,
+      count: w.totalCount ?? (skus.length || null),
+      best: cheapestPerGram(skus),
+      source: w.source,
+    })
+  }
+  if (kind === 'close') {
+    return TEMPLATES.close({
+      code: w.code,
+      duration: formatDuration(Date.parse(w.to) - Date.parse(w.from)),
+      count: w.maxSkus ?? w.skuCount ?? null,
+    })
+  }
+  throw new Error(`unknown post kind ${kind}`)
+}
+
+/**
+ * Publish one post on every configured public channel. Same contract as
+ * notify(): never throws, never blocks the watcher, returns a per-channel
+ * result for the log. `dryRun` prints the post and sends nothing — the way
+ * to exercise this anywhere without a real channel ever seeing it.
+ */
+export async function postWindow(kind, w, { dryRun = false } = {}) {
+  const text = composePost(kind, w)
+  if (dryRun) {
+    console.log(`DRY-RUN ${kind} post:\n${text}`)
+    return { dryRun: 'printed' }
+  }
+  const cfg = await loadConfig()
+  return fanOut([
+    ['telegramChannel', () => sendTelegram({ token: cfg.telegram?.token, chatId: cfg.telegram?.channelId }, text)],
+  ])
 }
 
 /**
@@ -185,6 +303,24 @@ if (process.argv[1] && process.argv[1].replace(/\\/g, '/').toLowerCase().endsWit
   if (process.argv.includes('--resolve-chat')) {
     await resolveChat()
     process.exit(process.exitCode ?? 0)
+  }
+  if (process.argv.includes('--preview') || process.argv.includes('--post-test')) {
+    // The captured 2026-09-15 window stands in for a live one. Its close is
+    // synthetic: the fixture predates the history file, so give it 36 min,
+    // the one exact duration measured (2026-09-16).
+    const fx = JSON.parse(await readFile(join(ROOT, 'scraper', 'fixtures', 'live-window-2026-09-15.json'), 'utf8'))
+    // The fixture predates discountPct; the digits in the code are the same
+    // fallback the watcher uses (blinkdeal.mjs imports this file, so it
+    // cannot be imported back from here).
+    const open = { ...fx, discountPct: fx.discountPct ?? (Number(/(\d+)\s*$/.exec(fx.code)?.[1]) || null) }
+    const from = fx.lastLive?.from ?? fx.generated
+    const close = { code: fx.code, from, to: new Date(Date.parse(from) + 36 * 60000).toISOString(), maxSkus: fx.totalCount }
+    const dryRun = !process.argv.includes('--post-test')
+    for (const [kind, w] of [['open', open], ['close', close]]) {
+      const res = await postWindow(kind, w, { dryRun })
+      if (!dryRun) console.log(`${kind}:`, JSON.stringify(res))
+    }
+    process.exit(0)
   }
   const cfg = await loadConfig()
   const configured = ['telegram', 'sms', 'whatsapp'].filter((k) => cfg[k])

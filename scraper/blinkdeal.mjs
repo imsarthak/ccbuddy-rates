@@ -10,11 +10,13 @@
 //   node scraper/blinkdeal.mjs --probe    fetch only, print what came back, write nothing
 //   --url <filterUrl>                     treat this filter URL as live (end-to-end test)
 //   --out <path>                          write somewhere else (tests)
+//   --dry-run                             print the alert and the channel posts
+//                                         instead of sending them (also BLINKDEAL_DRY_RUN=1)
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { notify, composeAlert } from './notify.mjs'
+import { notify, composeAlert, postWindow } from './notify.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const ARGS = process.argv.slice(2)
@@ -31,6 +33,11 @@ const QUICK = ARGS.includes('--quick')
 // scratch output file stays silent, so replaying a captured window cannot
 // text him at 3am.
 const NO_NOTIFY = ARGS.includes('--no-notify') || !!flag('--url') || !!flag('--out')
+// --dry-run prints every alert and post instead of sending it. It wins over
+// NO_NOTIFY: printing is safe anywhere, and it is how a replayed window shows
+// what it would have said.
+const DRY_RUN = ARGS.includes('--dry-run') || process.env.BLINKDEAL_DRY_RUN === '1'
+const SILENT = NO_NOTIFY && !DRY_RUN
 const OUT = flag('--out') ?? join(ROOT, 'docs', 'blinkdeal.json')
 const HISTORY = join(dirname(OUT), 'blinkdeal-history.json')
 
@@ -258,7 +265,11 @@ async function probe() {
 // coupon's own filter fetch and the brand crawl. On the phone that crawl is
 // ~23 s over mobile data, and on 16 Sep it was the difference between seeing
 // the code at 17:00:43 and the alert leaving at 17:01:10.
-async function detect(previous, onLive = async () => {}) {
+// onFirstPage fires one fetch later, from the coupon's own filter page: the
+// first read that knows how many coins the code covers (totalCount) and has
+// fifty real prices for a cheapest ₹/g. That is what the public post wants,
+// and it costs ~3 s on mobile data against ~25 s for the whole brand crawl.
+async function detect(previous, onLive = async () => {}, onFirstPage = async () => {}) {
   const knownIds = [...new Set([...(previous.knownIds ?? []), ...SEED_IDS])]
   const override = flag('--url')
   let live = null // { code, couponId, source, first }
@@ -292,6 +303,10 @@ async function detect(previous, onLive = async () => {}) {
       const early = plain.products.filter((p) => CODE_RE.test(p.couponData?.couponDescription?.couponCode ?? '')).map(toSku)
       await onLive({ code, couponId: id, source: url, skus: early })
       live = { code, couponId: id, source: url, first: id ? await fetchListing(url) : plain }
+      // Without an id the "first page" is the whole category, so its count
+      // is not the coupon's; pass only the coins that carry the code.
+      const onPage = live.first.products.filter((p) => CODE_RE.test(p.couponData?.couponDescription?.couponCode ?? ''))
+      await onFirstPage({ code, couponId: id, source: url, totalCount: id ? live.first.totalCount : null, skus: onPage.map(toSku) })
     }
   }
 
@@ -354,12 +369,18 @@ async function detect(previous, onLive = async () => {}) {
 
 const skuKey = (f) => (f.skus ?? []).map((s) => s.id).sort().join(',')
 
+const fmtResults = (res) => Object.entries(res).map(([k, v]) => `${k}:${v}`).join(' ') || '(no channels configured)'
+
 /**
  * One watcher step, host-agnostic: given the previous feed, return what to
  * publish now (null when nothing material changed and the hourly heartbeat
  * is not yet due) plus a closed window to append to the history, if any.
+ * `deps` lets a test stand in for the network: { detect, notify, post }.
  */
-export async function step(previous) {
+export async function step(previous, deps = {}) {
+  const detectFn = deps.detect ?? detect
+  const notifyFn = deps.notify ?? notify
+  const postFn = deps.post ?? postWindow
   const now = new Date().toISOString()
   let next
   try {
@@ -368,20 +389,40 @@ export async function step(previous) {
     // seconds for the life of the window. It goes out from inside detect,
     // on the first page, with the discount inferred from the coins on it;
     // the full SKU set is published afterwards.
+    //
+    // Both edges are keyed on what the PREVIOUS feed said, which is what
+    // makes them fire once per window: a heartbeat rewrite, a failed read
+    // mid-window and a restart all see `previous.live` already true.
+    const opening = (code) => !(previous.live && previous.code === code) && !SILENT
     let alerted = false
-    const d = await detect(previous, async (early) => {
-      if ((previous.live && previous.code === early.code) || NO_NOTIFY) return
-      const feed = { ...early, discountPct: inferDiscountPct(early.code, early.skus), partial: true }
-      try {
-        const res = await notify(composeAlert(feed))
-        const sent = Object.entries(res).map(([k, v]) => `${k}:${v}`).join(' ')
-        console.log(`ALERT ${sent || '(no channels configured)'} at ${new Date().toISOString()}`)
-        alerted = true
-      } catch (e) {
-        // A channel failing must never cost the window its crawl and publish.
-        console.error(`ALERT failed: ${e.message}`)
-      }
-    })
+    let posted = false
+    const d = await detectFn(
+      previous,
+      async (early) => {
+        if (!opening(early.code)) return
+        const feed = { ...early, discountPct: inferDiscountPct(early.code, early.skus), partial: true }
+        try {
+          const text = composeAlert(feed)
+          const res = DRY_RUN ? (console.log(`DRY-RUN alert:\n${text}`), { dryRun: 'printed' }) : await notifyFn(text)
+          console.log(`ALERT ${fmtResults(res)} at ${new Date().toISOString()}`)
+          alerted = true
+        } catch (e) {
+          // A channel failing must never cost the window its crawl and publish.
+          console.error(`ALERT failed: ${e.message}`)
+        }
+      },
+      async (page) => {
+        if (!opening(page.code)) return
+        const feed = { ...page, discountPct: inferDiscountPct(page.code, page.skus) }
+        try {
+          const res = await postFn('open', feed, { dryRun: DRY_RUN })
+          console.log(`POST open ${fmtResults(res)} at ${new Date().toISOString()}`)
+          posted = true
+        } catch (e) {
+          console.error(`POST open failed: ${e.message}`)
+        }
+      },
+    )
     // heartbeatMs makes the feed self-describing: a consumer knows how stale
     // checkedAt can get while still healthy, instead of hardcoding a guess.
     next = { generated: now, checkedAt: now, ok: true, heartbeatMs: HEARTBEAT_MS, ...d }
@@ -393,6 +434,7 @@ export async function step(previous) {
     }
     console.log(d.live ? `LIVE  ${d.code} — ${d.skus.length}/${d.totalCount} SKUs` : 'quiet — no BLINK* coupon on gold coins')
     if (alerted) next.alertedAt = now
+    if (posted) next.postedAt = now
   } catch (e) {
     // A failed read never ends a window: keep what we knew, mark it stale.
     next = { ...previous, generated: now, checkedAt: now, ok: false, stale: true, error: String(e.message ?? e) }
@@ -403,6 +445,16 @@ export async function step(previous) {
   if (previous.live && !next.live && next.ok) {
     const w = previous.lastLive ?? { code: previous.code, from: previous.checkedAt }
     closedWindow = { ...w, to: now, maxSkus: previous.skus?.length ?? 0 }
+    // The CLOSING EDGE: exactly one tick sees live→quiet, so this posts once.
+    if (!SILENT) {
+      try {
+        const res = await postFn('close', closedWindow, { dryRun: DRY_RUN })
+        console.log(`POST close ${fmtResults(res)} at ${new Date().toISOString()}`)
+        closedWindow.postedAt = now
+      } catch (e) {
+        console.error(`POST close failed: ${e.message}`)
+      }
+    }
   }
 
   const material =
