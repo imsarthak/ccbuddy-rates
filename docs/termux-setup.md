@@ -304,6 +304,13 @@ so point that at a test channel or leave it unset). The WhatsApp side is
 inert until you tap, and the link only opens the channel; nothing is sent
 until you press send.
 
+## WhatsApp Channel — unattended
+
+Optional, off by default, and it drives the WhatsApp app with a robot thumb
+(Tasker + AutoInput) as a spare admin number. `"autopost": true` next to the
+URL turns it on. Setup, the intent the watcher emits, the risks, and the
+checklist are in [whatsapp-tasker.md](whatsapp-tasker.md).
+
 ---
 
 # Cadence
