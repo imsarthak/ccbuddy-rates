@@ -8,7 +8,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
-import { dirname, join, delimiter } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkdtemp, writeFile, chmod } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -16,7 +16,7 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import {
   composePost, formatDuration, applyEnv, cheapestPerGram, buttonAction, intentArgs,
-  APP_LINK, TEMPLATES, INTENT_ACTION, TASKER_PACKAGE,
+  APP_LINK, TEMPLATES, INTENT_ACTION, TASKER_PACKAGE, TERMUX_BIN,
 } from './notify.mjs'
 import { step, inferDiscountPct } from './blinkdeal.mjs'
 
@@ -67,7 +67,8 @@ test('every follower-facing string is in TEMPLATES', () => {
 
 test('the button action sets PATH itself, pipes the text on stdin, then opens the channel', () => {
   const cmd = buttonAction("it's live\nline 2", 'https://whatsapp.com/channel/abc')
-  assert.ok(cmd.startsWith('export PATH=/data/data/com.termux/files/usr/bin:$PATH && '))
+  assert.equal(TERMUX_BIN, '/data/data/com.termux/files/usr/bin')
+  assert.ok(cmd.startsWith(`export PATH=${TERMUX_BIN}:$PATH && `), 'the phone default must be the Termux bin')
   assert.ok(cmd.includes("| termux-clipboard-set && termux-open-url 'https://whatsapp.com/channel/abc'"))
   assert.ok(cmd.includes(`'it'\\''s live\nline 2'`), 'single quotes inside the text are escaped for sh')
 })
@@ -75,29 +76,40 @@ test('the button action sets PATH itself, pipes the text on stdin, then opens th
 // Run the real command under a real sh with stub termux-* commands on PATH,
 // so the quoting is proven rather than eyeballed. The Termux bin dir does not
 // exist here, so PATH falls through to the stubs.
+// The stub bin is passed as binDir, NOT prepended to the environment's PATH:
+// the command exports its own PATH first, so an environment prefix loses to
+// it. On Termux that meant the REAL termux-clipboard-set ran — it overwrote
+// the phone's clipboard and opened the fake URL, and the stub file it was
+// asserting on never appeared (caught on Sarthak's phone, 2026-09-21).
 test('the button action delivers the post byte-for-byte to the clipboard and the URL to the opener', async (t) => {
   let sh
   try {
-    sh = (await run('sh', ['-c', 'echo ok'])).stdout.trim()
+    // Absolute path, because the stubs need a shebang that works here: on
+    // Termux there is no /bin/sh, and on Windows sh lives under the msys root.
+    sh = (await run('sh', ['-c', 'command -v sh'])).stdout.trim()
   } catch {
-    sh = null
+    sh = ''
   }
-  if (sh !== 'ok') return t.skip('no sh on this machine')
+  if (!sh) return t.skip('no sh on this machine')
+  // What sh sees: on Windows a `C:/…` path cannot go in a colon-separated
+  // PATH, so hand msys its own form. On the phone this is already a no-op.
+  const shPath = (p) => p.replace(/\\/g, '/').replace(/^([A-Za-z]):/, (_, d) => `/${d.toLowerCase()}`)
   const dir = await mkdtemp(join(tmpdir(), 'ccbuddy-btn-'))
-  const clip = join(dir, 'clip.txt').replace(/\\/g, '/')
-  const opened = join(dir, 'url.txt').replace(/\\/g, '/')
+  const clip = shPath(join(dir, 'clip.txt'))
+  const opened = shPath(join(dir, 'url.txt'))
   for (const [name, body] of [
-    ['termux-clipboard-set', `#!/bin/sh\ncat > '${clip}'\n`],
-    ['termux-open-url', `#!/bin/sh\nprintf '%s' "$1" > '${opened}'\n`],
+    ['termux-clipboard-set', `#!${sh}\ncat > '${clip}'\n`],
+    ['termux-open-url', `#!${sh}\nprintf '%s' "$1" > '${opened}'\n`],
   ]) {
     await writeFile(join(dir, name), body)
     await chmod(join(dir, name), 0o755)
   }
   const text = composePost('open', { ...fixture, discountPct: 6 }) + "\nit's ₹ & \"quotes\" $HOME `x`"
   const url = 'https://whatsapp.com/channel/0029VaTest'
-  await run('sh', ['-c', buttonAction(text, url)], { env: { ...process.env, PATH: `${dir}${delimiter}${process.env.PATH}` } })
-  assert.equal(await readFile(clip, 'utf8'), text)
-  assert.equal(await readFile(opened, 'utf8'), url)
+  const cmd = buttonAction(text, url, { binDir: shPath(dir) })
+  await run('sh', ['-c', cmd])
+  assert.equal(await readFile(join(dir, 'clip.txt'), 'utf8'), text)
+  assert.equal(await readFile(join(dir, 'url.txt'), 'utf8'), url)
 })
 
 test('environment overrides the config file without touching other channels', () => {
