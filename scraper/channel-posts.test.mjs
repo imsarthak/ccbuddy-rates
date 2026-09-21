@@ -8,13 +8,18 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
+import { dirname, join, delimiter } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { composePost, formatDuration, applyEnv, cheapestPerGram, APP_LINK, TEMPLATES } from './notify.mjs'
+import { mkdtemp, writeFile, chmod } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
+import { composePost, formatDuration, applyEnv, cheapestPerGram, buttonAction, APP_LINK, TEMPLATES } from './notify.mjs'
 import { step, inferDiscountPct } from './blinkdeal.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const fixture = JSON.parse(await readFile(join(HERE, 'fixtures', 'live-window-2026-09-15.json'), 'utf8'))
+const run = promisify(execFile)
 
 test('open post carries code, discount, count, cheapest ₹/g, coupon page and app link', () => {
   const text = composePost('open', { ...fixture, discountPct: inferDiscountPct(fixture.code, fixture.skus) })
@@ -52,8 +57,44 @@ test('formatDuration never shows seconds and rolls into hours', () => {
   assert.equal(formatDuration(-5000), '0 min')
 })
 
-test('every template is a function of its inputs and no other state', () => {
-  assert.deepEqual(Object.keys(TEMPLATES).sort(), ['close', 'open'])
+test('every follower-facing string is in TEMPLATES', () => {
+  assert.deepEqual(Object.keys(TEMPLATES).sort(), ['button', 'close', 'closeTitle', 'open', 'openTitle'])
+  assert.equal(TEMPLATES.button, 'Post to channel')
+})
+
+test('the button action sets PATH itself, pipes the text on stdin, then opens the channel', () => {
+  const cmd = buttonAction("it's live\nline 2", 'https://whatsapp.com/channel/abc')
+  assert.ok(cmd.startsWith('export PATH=/data/data/com.termux/files/usr/bin:$PATH && '))
+  assert.ok(cmd.includes("| termux-clipboard-set && termux-open-url 'https://whatsapp.com/channel/abc'"))
+  assert.ok(cmd.includes(`'it'\\''s live\nline 2'`), 'single quotes inside the text are escaped for sh')
+})
+
+// Run the real command under a real sh with stub termux-* commands on PATH,
+// so the quoting is proven rather than eyeballed. The Termux bin dir does not
+// exist here, so PATH falls through to the stubs.
+test('the button action delivers the post byte-for-byte to the clipboard and the URL to the opener', async (t) => {
+  let sh
+  try {
+    sh = (await run('sh', ['-c', 'echo ok'])).stdout.trim()
+  } catch {
+    sh = null
+  }
+  if (sh !== 'ok') return t.skip('no sh on this machine')
+  const dir = await mkdtemp(join(tmpdir(), 'ccbuddy-btn-'))
+  const clip = join(dir, 'clip.txt').replace(/\\/g, '/')
+  const opened = join(dir, 'url.txt').replace(/\\/g, '/')
+  for (const [name, body] of [
+    ['termux-clipboard-set', `#!/bin/sh\ncat > '${clip}'\n`],
+    ['termux-open-url', `#!/bin/sh\nprintf '%s' "$1" > '${opened}'\n`],
+  ]) {
+    await writeFile(join(dir, name), body)
+    await chmod(join(dir, name), 0o755)
+  }
+  const text = composePost('open', { ...fixture, discountPct: 6 }) + "\nit's ₹ & \"quotes\" $HOME `x`"
+  const url = 'https://whatsapp.com/channel/0029VaTest'
+  await run('sh', ['-c', buttonAction(text, url)], { env: { ...process.env, PATH: `${dir}${delimiter}${process.env.PATH}` } })
+  assert.equal(await readFile(clip, 'utf8'), text)
+  assert.equal(await readFile(opened, 'utf8'), url)
 })
 
 test('environment overrides the config file without touching other channels', () => {

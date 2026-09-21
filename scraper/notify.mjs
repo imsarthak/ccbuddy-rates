@@ -10,11 +10,13 @@
 //     "telegram": { "token": "123456:ABC...", "chatId": "987654321",
 //                   "channelId": "@ccbuddy_blinkdeal" },
 //     "sms":      { "to": "+919876543210" },
-//     "whatsapp": { "phone": "+919876543210", "apikey": "123456" }
+//     "whatsapp": { "phone": "+919876543210", "apikey": "123456" },
+//     "whatsappChannel": { "url": "https://whatsapp.com/channel/0029Va..." }
 //   }
 //
 // Environment variables override the file, for a host that would rather not
-// keep one: BLINKDEAL_TELEGRAM_TOKEN, BLINKDEAL_TELEGRAM_CHANNEL.
+// keep one: BLINKDEAL_TELEGRAM_TOKEN, BLINKDEAL_TELEGRAM_CHANNEL,
+// BLINKDEAL_WHATSAPP_CHANNEL_URL.
 //
 //   node scraper/notify.mjs --test       send a test message on every alert channel
 //   node scraper/notify.mjs --preview    print the open and close channel posts
@@ -25,7 +27,10 @@
 // Two different things go out of here. The ALERT is the private ping to
 // Sarthak the moment a window opens (telegram chatId, sms, whatsapp, local).
 // The POSTS are public: one when a window opens and one when it closes, to
-// the Telegram channel (telegram.channelId — the bot must be an admin of it).
+// the Telegram channel (telegram.channelId — the bot must be an admin of it)
+// and, one tap away, to the WhatsApp Channel: there is no API for those, so
+// the local notification carries a "Post to channel" button that copies the
+// post and opens the channel (whatsappChannel.url); an admin pastes and sends.
 //
 // Channel notes:
 //   telegram  Free and instant, reaches any device. Make a bot with
@@ -70,6 +75,9 @@ export function applyEnv(cfg, env) {
     if (env.BLINKDEAL_TELEGRAM_TOKEN) out.telegram.token = env.BLINKDEAL_TELEGRAM_TOKEN
     if (env.BLINKDEAL_TELEGRAM_CHANNEL) out.telegram.channelId = env.BLINKDEAL_TELEGRAM_CHANNEL
   }
+  if (env.BLINKDEAL_WHATSAPP_CHANNEL_URL) {
+    out.whatsappChannel = { ...out.whatsappChannel, url: env.BLINKDEAL_WHATSAPP_CHANNEL_URL }
+  }
   return out
 }
 
@@ -108,12 +116,19 @@ async function sendWhatsapp(cfg, text) {
   return 'sent'
 }
 
+// One notification slot for the whole window. The alert takes it first; the
+// open post replaces it a few seconds later with the same text plus the
+// button; the close post replaces that. `--id` is what makes termux-notification
+// overwrite instead of stack (termux-api-package 0.60.0 --help: "notification
+// id (will overwrite any previous notification with the same id)").
+const NOTIFICATION_ID = 'ccbuddy-blinkdeal'
+
 /** Android notification on the watcher phone itself. Free, no config needed. */
 async function sendLocal(text) {
   try {
     await execFileAsync(
       'termux-notification',
-      ['--title', 'BLINKDEAL is live', '--content', text, '--priority', 'max'],
+      ['--id', NOTIFICATION_ID, '--title', TEMPLATES.openTitle, '--content', text, '--priority', 'max'],
       { timeout: TIMEOUT_MS },
     )
     return 'sent'
@@ -206,6 +221,44 @@ export const TEMPLATES = {
       .join('\n'),
   close: ({ code, duration, count }) =>
     [`${code} is over — lasted ${duration}${count ? `, ${count} coins` : ''}`, APP_LINK].join('\n'),
+  // The phone's own notification: its title per edge, and the button.
+  openTitle: 'BLINKDEAL is live',
+  closeTitle: 'BLINKDEAL is over',
+  button: 'Post to channel',
+}
+
+/**
+ * The shell command behind the "Post to channel" button: copy the post, open
+ * the channel. termux-notification hands it to `sh -c` with the environment
+ * dropped ("most notably $PATH", per --help-actions), so PATH is set here and
+ * nothing else is assumed. The text goes to termux-clipboard-set on stdin,
+ * which is the one path that keeps its newlines. Pure, so the quoting can be
+ * tested by running it under a real sh with stub commands.
+ */
+export function buttonAction(text, url) {
+  const q = (s) => `'${String(s).replace(/'/g, `'\\''`)}'`
+  return [
+    'export PATH=/data/data/com.termux/files/usr/bin:$PATH',
+    `printf '%s' ${q(text)} | termux-clipboard-set`,
+    `termux-open-url ${q(url)}`,
+  ].join(' && ')
+}
+
+/**
+ * The notification with the button, on the watcher phone. Without a channel
+ * URL it is a plain notification carrying the post text.
+ */
+async function sendLocalPost(kind, text, cfg) {
+  const url = cfg.whatsappChannel?.url
+  const title = kind === 'close' ? TEMPLATES.closeTitle : TEMPLATES.openTitle
+  const args = ['--id', NOTIFICATION_ID, '--title', title, '--content', text, '--priority', 'max']
+  if (url) args.push('--button1', TEMPLATES.button, '--button1-action', buttonAction(text, url))
+  try {
+    await execFileAsync('termux-notification', args, { timeout: TIMEOUT_MS })
+    return url ? 'sent+button' : 'sent'
+  } catch {
+    return null // not on Termux
+  }
 }
 
 /** "36 min", "1 h 05 min". Windows have run 33-36 min; never show seconds. */
@@ -255,6 +308,7 @@ export async function postWindow(kind, w, { dryRun = false } = {}) {
   const cfg = await loadConfig()
   return fanOut([
     ['telegramChannel', () => sendTelegram({ token: cfg.telegram?.token, chatId: cfg.telegram?.channelId }, text)],
+    ['local', () => sendLocalPost(kind, text, cfg)],
   ])
 }
 
