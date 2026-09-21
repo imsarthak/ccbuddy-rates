@@ -260,6 +260,50 @@ node scraper/blinkdeal.mjs --dry-run
 prints the alert and both posts to the log instead of sending them
 (`BLINKDEAL_DRY_RUN=1` does the same for the loop).
 
+## WhatsApp Channel — one tap from the phone
+
+There is no API for posting to a WhatsApp Channel, and every "channels API"
+on the market is a linked-device session of your own number that WhatsApp's
+help pages say can get it banned. So the watcher does not post; it makes the
+post one tap away. On both edges the phone's own notification carries a
+**Post to channel** button. Tapping it copies the post to the clipboard and
+opens the channel; whoever holds the phone pastes and sends.
+
+Add the channel's invite link (Channel info → share icon, or the link under
+Channel info → Invite link):
+
+```json
+{
+  "whatsappChannel": { "url": "https://whatsapp.com/channel/0029Va..." }
+}
+```
+
+or `BLINKDEAL_WHATSAPP_CHANNEL_URL` in the environment. No URL, no button —
+the notification then just shows the post text.
+
+The button runs a shell command from a notification action. Termux drops the
+environment for those (no PATH), so the command sets its own; nothing else to
+configure. Three things to check once, on the phone:
+
+1. `termux-notification --help` lists `--button1`, `--button1-action` and
+   `--id`. It does on termux-api-package 0.60.0 (read from its source
+   2026-09-21); `pkg upgrade termux-api` if yours does not.
+2. Tapping the button opens WhatsApp on the channel. If it copies the text
+   but nothing opens, Android is refusing a background activity start:
+   Settings → Apps → Termux → **Display over other apps** → allow.
+3. Long-press the composer → Paste shows the whole post, newlines included.
+
+Rehearse without a window:
+
+```bash
+node scraper/notify.mjs --post-test
+```
+
+raises the notification with the button (and posts to `telegram.channelId`,
+so point that at a test channel or leave it unset). The WhatsApp side is
+inert until you tap, and the link only opens the channel; nothing is sent
+until you press send.
+
 ---
 
 # Cadence
