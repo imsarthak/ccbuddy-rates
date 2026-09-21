@@ -1,0 +1,772 @@
+{
+ "generated": "2026-09-21",
+ "benefits": [
+  {
+   "id": "select-debit-cab",
+   "tier": "Select",
+   "kinds": [
+    "debit"
+   ],
+   "category": "cab",
+   "text": "₹100 cab coupon",
+   "partners": [
+    "Uber"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "valueInr": 100,
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.tjsb.bank.in/pdf/Select-Offers-details.pdf",
+   "confidence": "verified",
+   "notes": "The sheet: \"1 Complementary INR 100 coupon for cab service every quarter\", merchant \"Uber\". NPCI's own debit page does not list the cab coupon; a bank's copy of NPCI's benefit sheet is the only document that states it, and the only place NPCI states a claimable rupee figure for any RuPay perk."
+  },
+  {
+   "id": "select-debit-golf",
+   "tier": "Select",
+   "kinds": [
+    "debit"
+   ],
+   "category": "golf",
+   "text": "Golf lesson or round",
+   "partners": [
+    "Golftripz"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.tjsb.bank.in/pdf/Select-Offers-details.pdf",
+   "confidence": "assumed",
+   "notes": "The sheet: \"1 Complementary Golf Lesson or Round every quarter\", merchant \"Golftripz\". NPCI's debit page: \"Enjoy access to over 20+ premium golf courses across top cities in India, with a complimentary golf game or lesson each year.\" Users on TechnoFino report \"Golf Booking never worked for me\".",
+   "assumption": "NPCI's benefit sheet says one lesson or round every quarter; NPCI's own page says one each year. Recorded as the sheet says until NPCI settles it."
+  },
+  {
+   "id": "select-debit-gym",
+   "tier": "Select",
+   "kinds": [
+    "debit"
+   ],
+   "category": "gym",
+   "text": "Gym membership, 90 days at home or 30 days in the gym",
+   "partners": [
+    "Cult.fit"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "redeem": "portal",
+   "condition": "Linked to the mobile number on the portal account",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.tjsb.bank.in/pdf/Select-Offers-details.pdf",
+   "confidence": "assumed",
+   "notes": "The sheet: \"1 Complementary Gym membership every quarter (90 days for Home Workouts or 30 days for the offline Workouts)\", merchants \"Cult.fit-Home Workouts\" and \"Cult.fit-Offline Workouts\". NPCI's debit page: \"a complimentary gym membership to keep you fit and healthy\", no period stated.",
+   "assumption": "The membership binding to the mobile number on the portal account is reported by a cardholder (@CardMintz on X, 21 Sep 2026, naming Cult Elite); neither the sheet nor NPCI states it. The quota itself is the sheet's."
+  },
+  {
+   "id": "select-debit-health-check",
+   "tier": "Select",
+   "kinds": [
+    "debit"
+   ],
+   "category": "health-check",
+   "text": "Health check-up package",
+   "partners": [
+    "Thyrocare",
+    "SRL Diagnostics"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.tjsb.bank.in/pdf/Select-Offers-details.pdf",
+   "confidence": "assumed",
+   "notes": "The sheet: \"1 Complementary health check-up package every quarter\", merchants \"Thyrocare\" and \"SRL Diagnostics\". NPCI's debit page: \"a complimentary preventive health checkup, available annually to support your wellness journey.\"",
+   "assumption": "NPCI's benefit sheet says one package every quarter; NPCI's own page says annually. Recorded as the sheet says until NPCI settles it."
+  },
+  {
+   "id": "select-debit-ott",
+   "tier": "Select",
+   "kinds": [
+    "debit"
+   ],
+   "category": "ott",
+   "text": "12 months of Amazon Prime, Hotstar or SonyLIV, one of the three",
+   "partners": [
+    "Amazon Prime",
+    "Hotstar",
+    "SonyLIV"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.tjsb.bank.in/pdf/Select-Offers-details.pdf",
+   "confidence": "verified",
+   "notes": "The sheet: \"1 Complementary 12 months Amazon Prime or Hotstar membership or Sony LIV membership every year.\" The portal guide agrees it is one choice per cycle: \"Cardholder may be eligible to redeem 1 OTT offer from a choice of Prime, SonyLiv, and Zee. If the user has already redeemed the Prime offer, he/she will not be able to redeem the other OTT offers until the benefits are refreshed\". NPCI's debit page does not list OTT."
+  },
+  {
+   "id": "select-debit-spa",
+   "tier": "Select",
+   "kinds": [
+    "debit"
+   ],
+   "category": "spa",
+   "text": "Spa session or salon service",
+   "partners": [
+    "The Four Fountains Spa",
+    "Tattva Spa",
+    "HR Wellness Spa",
+    "Kairali Ayurvedic Spa",
+    "Aroma Thai Day Spa",
+    "ODE Spa",
+    "Lakmé Salon e-gift card"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.tjsb.bank.in/pdf/Select-Offers-details.pdf",
+   "confidence": "verified",
+   "notes": "The sheet: \"1 Complementary SPA session or salon service every quarter\", merchants \"The Four Fountain SPA, Tattva SPA, HR Wellness SPA, Kairali Ayurvedik SPA, Aroma Thai Day SPA, ODE SPA, Lakme Salon E-Gift Card\". NPCI's debit page: \"a complimentary holistic spa session\", no period stated."
+  },
+  {
+   "id": "select-debit-insurance",
+   "tier": "Select",
+   "kinds": [
+    "debit"
+   ],
+   "category": "insurance",
+   "text": "Personal accident and permanent disability cover up to ₹10 lakh",
+   "insurance": {
+    "cover": "Personal accident, permanent disability",
+    "sumInr": 1000000
+   },
+   "redeem": "automatic",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.rupay.co.in/debit-cards",
+   "confidence": "verified",
+   "notes": "NPCI's debit page: \"Ensure peace of mind with Personal Accident Insurance and Permanent Disability Cover of up to Rs. 10 Lakhs for you and your family.\" A cover, not a claimable value. Secondary reports say a RuPay transaction within the 30 days before the event is the activation gate; the circular that states it is unread, so no condition is printed."
+  },
+  {
+   "id": "select-debit-concierge",
+   "tier": "Select",
+   "kinds": [
+    "debit"
+   ],
+   "category": "concierge",
+   "text": "24/7 concierge",
+   "redeem": "automatic",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.rupay.co.in/debit-cards",
+   "confidence": "verified",
+   "notes": "NPCI's debit page: \"Enjoy 24/7 concierge services, offering assistance from travel and hotel reservations to various consultancy services.\""
+  },
+  {
+   "id": "select-credit-insurance-accident",
+   "tier": "Select",
+   "kinds": [
+    "credit"
+   ],
+   "category": "insurance",
+   "text": "Personal accident cover up to ₹10 lakh",
+   "insurance": {
+    "cover": "Personal accident",
+    "sumInr": 1000000
+   },
+   "redeem": "automatic",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.rupay.co.in/select-credit-card",
+   "confidence": "verified",
+   "notes": "NPCI's Select Credit page: \"Accidental Insurance Coverage — Personal Insurance Coverage of up to ₹10 lakhs.\" Union states the same cover as \"Rs. 10.00 lakhs (Premium borne by NPCI)\" and Canara as \"RuPay Insurance Program ₹ 10.00 lacs cover for Death due to Personal Accident and Permanent Disability\"."
+  },
+  {
+   "id": "select-credit-insurance-air",
+   "tier": "Select",
+   "kinds": [
+    "credit"
+   ],
+   "category": "insurance",
+   "text": "Air accident cover up to ₹20 lakh",
+   "insurance": {
+    "cover": "Air accident",
+    "sumInr": 2000000
+   },
+   "redeem": "automatic",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.rupay.co.in/select-credit-card",
+   "confidence": "verified",
+   "notes": "NPCI's Select Credit page: \"Air Accident Insurance Coverage — Insurance Coverage of up to ₹20 lakhs.\""
+  },
+  {
+   "id": "select-credit-insurance-baggage",
+   "tier": "Select",
+   "kinds": [
+    "credit"
+   ],
+   "category": "insurance",
+   "text": "Baggage loss cover up to ₹20,000",
+   "insurance": {
+    "cover": "Baggage loss",
+    "sumInr": 20000
+   },
+   "redeem": "automatic",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.rupay.co.in/select-credit-card",
+   "confidence": "verified",
+   "notes": "NPCI's Select Credit page: \"Baggage Loss Coverage — Insurance Coverage of up to ₹20 thousand.\""
+  },
+  {
+   "id": "select-credit-concierge",
+   "tier": "Select",
+   "kinds": [
+    "credit"
+   ],
+   "category": "concierge",
+   "text": "24/7 concierge",
+   "redeem": "automatic",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.rupay.co.in/select-credit-card",
+   "confidence": "verified",
+   "notes": "NPCI's Select Credit page: \"RuPay Credit Card offer 24*7 concierge services to its beneficiaries.\""
+  },
+  {
+   "id": "select-credit-business",
+   "tier": "Select",
+   "kinds": [
+    "credit"
+   ],
+   "category": "business",
+   "text": "Business services for MSMEs",
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.rupay.co.in/select-credit-card",
+   "confidence": "verified",
+   "notes": "NPCI's Select Credit page: \"Services that will help the MSMEs in their businesses and also enhance their digital transformation journey. The combined benefit of the offers is over ₹1 Lac.\" A marketing figure, not a claimable value, so no valueInr. No quota is stated; informational."
+  },
+  {
+   "id": "select-credit-cab",
+   "tier": "Select",
+   "kinds": [
+    "credit"
+   ],
+   "category": "cab",
+   "text": "₹100 cab coupon",
+   "partners": [
+    "Uber"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://media.bobcard.co.in/media/hwpdfade/sop-rupay-select-platinum-benefit-program.pdf",
+   "confidence": "assumed",
+   "notes": "The debit sheet: \"1 Complementary INR 100 coupon for cab service every quarter\". TechnoFino members report redeeming \"Ola/Uber ₹100\" on the portal. No valueInr on this row: the ₹100 is stated for debit, and an assumed row never enters the sum.",
+   "assumption": "NPCI's Select Credit page lists no spa, gym, golf, health check-up, cab or OTT benefit. The portal guide is titled for \"Select Debit/Credit Card\" and cardholders report redeeming these on credit accounts, so the debit sheet's row is shown here as assumed, with the debit sheet's quota. Not read from NPCI for credit cards."
+  },
+  {
+   "id": "select-credit-golf",
+   "tier": "Select",
+   "kinds": [
+    "credit"
+   ],
+   "category": "golf",
+   "text": "Golf lesson or round",
+   "partners": [
+    "Golftripz"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://media.bobcard.co.in/media/hwpdfade/sop-rupay-select-platinum-benefit-program.pdf",
+   "confidence": "assumed",
+   "notes": "The debit sheet: \"1 Complementary Golf Lesson or Round every quarter\"; NPCI's debit page says \"each year\" (see select-debit-golf).",
+   "assumption": "NPCI's Select Credit page lists no spa, gym, golf, health check-up, cab or OTT benefit. The portal guide is titled for \"Select Debit/Credit Card\" and cardholders report redeeming these on credit accounts, so the debit sheet's row is shown here as assumed, with the debit sheet's quota. Not read from NPCI for credit cards."
+  },
+  {
+   "id": "select-credit-gym",
+   "tier": "Select",
+   "kinds": [
+    "credit"
+   ],
+   "category": "gym",
+   "text": "Gym membership, 90 days at home or 30 days in the gym",
+   "partners": [
+    "Cult.fit"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "redeem": "portal",
+   "condition": "Linked to the mobile number on the portal account",
+   "verifiedOn": "2026-09-21",
+   "source": "https://media.bobcard.co.in/media/hwpdfade/sop-rupay-select-platinum-benefit-program.pdf",
+   "confidence": "assumed",
+   "notes": "The debit sheet: \"1 Complementary Gym membership every quarter (90 days for Home Workouts or 30 days for the offline Workouts)\". The mobile-number binding is a cardholder's report (@CardMintz on X, 21 Sep 2026), not NPCI's.",
+   "assumption": "NPCI's Select Credit page lists no spa, gym, golf, health check-up, cab or OTT benefit. The portal guide is titled for \"Select Debit/Credit Card\" and cardholders report redeeming these on credit accounts, so the debit sheet's row is shown here as assumed, with the debit sheet's quota. Not read from NPCI for credit cards."
+  },
+  {
+   "id": "select-credit-health-check",
+   "tier": "Select",
+   "kinds": [
+    "credit"
+   ],
+   "category": "health-check",
+   "text": "Health check-up package",
+   "partners": [
+    "Thyrocare",
+    "SRL Diagnostics"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://media.bobcard.co.in/media/hwpdfade/sop-rupay-select-platinum-benefit-program.pdf",
+   "confidence": "assumed",
+   "notes": "The debit sheet: \"1 Complementary health check-up package every quarter\"; NPCI's debit page says \"annually\" (see select-debit-health-check). The YourCardJourney portal screenshots show a \"PNB-Credit\" account with a quarterly health-check deal.",
+   "assumption": "NPCI's Select Credit page lists no spa, gym, golf, health check-up, cab or OTT benefit. The portal guide is titled for \"Select Debit/Credit Card\" and cardholders report redeeming these on credit accounts, so the debit sheet's row is shown here as assumed, with the debit sheet's quota. Not read from NPCI for credit cards."
+  },
+  {
+   "id": "select-credit-ott",
+   "tier": "Select",
+   "kinds": [
+    "credit"
+   ],
+   "category": "ott",
+   "text": "12 months of Amazon Prime, Hotstar or SonyLIV, one of the three",
+   "partners": [
+    "Amazon Prime",
+    "Hotstar",
+    "SonyLIV"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://media.bobcard.co.in/media/hwpdfade/sop-rupay-select-platinum-benefit-program.pdf",
+   "confidence": "assumed",
+   "notes": "The debit sheet: \"1 Complementary 12 months Amazon Prime or Hotstar membership or Sony LIV membership every year.\" The portal guide's FAQ, written for both kinds: \"Cardholder may be eligible to redeem 1 OTT offer from a choice of Prime, SonyLiv, and Zee.\"",
+   "assumption": "NPCI's Select Credit page lists no spa, gym, golf, health check-up, cab or OTT benefit. The portal guide is titled for \"Select Debit/Credit Card\" and cardholders report redeeming these on credit accounts, so the debit sheet's row is shown here as assumed, with the debit sheet's quota. Not read from NPCI for credit cards."
+  },
+  {
+   "id": "select-credit-spa",
+   "tier": "Select",
+   "kinds": [
+    "credit"
+   ],
+   "category": "spa",
+   "text": "Spa session or salon service",
+   "partners": [
+    "The Four Fountains Spa",
+    "Tattva Spa",
+    "HR Wellness Spa",
+    "Kairali Ayurvedic Spa",
+    "Aroma Thai Day Spa",
+    "ODE Spa",
+    "Lakmé Salon e-gift card"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://media.bobcard.co.in/media/hwpdfade/sop-rupay-select-platinum-benefit-program.pdf",
+   "confidence": "assumed",
+   "notes": "The debit sheet: \"1 Complementary SPA session or salon service every quarter\".",
+   "assumption": "NPCI's Select Credit page lists no spa, gym, golf, health check-up, cab or OTT benefit. The portal guide is titled for \"Select Debit/Credit Card\" and cardholders report redeeming these on credit accounts, so the debit sheet's row is shown here as assumed, with the debit sheet's quota. Not read from NPCI for credit cards."
+  },
+  {
+   "id": "platinum-debit-insurance",
+   "tier": "Platinum",
+   "kinds": [
+    "debit"
+   ],
+   "category": "insurance",
+   "text": "Accidental death or permanent total disability cover up to ₹2 lakh",
+   "insurance": {
+    "cover": "Accidental death, permanent total disability",
+    "sumInr": 200000
+   },
+   "redeem": "automatic",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.bankofbaroda.bank.in/digital-products/cards/debit-cards/rupay-platinum-di-debit-card",
+   "confidence": "verified",
+   "notes": "Bank of Baroda: \"Personal Accident Insurance cover (Accidental Death or Permanent Total Disability) of upto Rs.2 Lakh\". The same page: \"The Complimentary Airport Lounge Access facility offered on your RuPay Platinum Debit Card will be discontinued w.e.f 01.04.2026.\" No spa, golf, gym, health check-up, OTT or concierge on the page. Read from an issuer because NPCI publishes no Platinum page; whether the ₹2 lakh is NPCI's programme figure or the bank's own is not stated."
+  },
+  {
+   "id": "ekaa-golf",
+   "tier": "Ekaa",
+   "kinds": [
+    "credit"
+   ],
+   "category": "golf",
+   "text": "Golf lesson or round",
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.unionbankofindia.bank.in/en/details/nexteria-credit-card",
+   "confidence": "assumed",
+   "notes": "Union: \"4 domestic complimentary golf lessons/rounds in a year (List is available in the RuPay Portal).\" The portal matrix shows two rows, \"golf course round 1 per quarter (4 a year)\" and \"golf lesson 1 per quarter (4 a year)\"; Union's four a year is the lower reading, so one lesson-or-round a quarter is what ships.",
+   "assumption": "Stated on Union Bank's Nexteria page and shown across five cards on a 12 Sep 2026 screenshot of the Ekaa portal's benefit matrix; NPCI itself publishes no Ekaa page, so whether this is NPCI's bundle or the bank's own is read from the matrix, not stated. The matrix reads as a round AND a lesson per quarter; Union says four lessons or rounds a year in total, and the lower reading is recorded."
+  },
+  {
+   "id": "ekaa-hotel-hotelux",
+   "tier": "Ekaa",
+   "kinds": [
+    "credit"
+   ],
+   "category": "hotel",
+   "text": "HoteLux membership, 12 months",
+   "partners": [
+    "HoteLux"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.unionbankofindia.bank.in/en/details/nexteria-credit-card",
+   "confidence": "assumed",
+   "notes": "Union: \"Hotel Luxe membership which provides benefits across 15 international hotel chains (Hyatt, Marriott, IHG, Hilton, Accor, Shangri-La, AMAN, Cheval Blanc, Four Seasons, Rosewood, The Peninsula Hotels, Virtuoso, Mandarin Oriental, Small Luxury Hotel of the World, The Leading Hotels of the World).\" The matrix: \"HoteLux 1 code per year, 12 months\".",
+   "assumption": "Stated on Union Bank's Nexteria page and shown across five cards on a 12 Sep 2026 screenshot of the Ekaa portal's benefit matrix; NPCI itself publishes no Ekaa page, so whether this is NPCI's bundle or the bank's own is read from the matrix, not stated. The one-code-a-year quota is the matrix's; Union states no count."
+  },
+  {
+   "id": "ekaa-hotel-itc-stay",
+   "tier": "Ekaa",
+   "kinds": [
+    "credit"
+   ],
+   "category": "hotel",
+   "text": "ITC Hotels: a third night free on a stay of three or more",
+   "partners": [
+    "ITC Hotels"
+   ],
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.unionbankofindia.bank.in/en/details/nexteria-credit-card",
+   "confidence": "assumed",
+   "notes": "Union: \"2+1 complimentary night ITC (Premium Hotels other than Fortune).\" The matrix: \"ITC Hotels 2+1 night (min 3 nights) unlimited\". No count, so nothing to tick.",
+   "assumption": "Stated on Union Bank's Nexteria page and shown across five cards on a 12 Sep 2026 screenshot of the Ekaa portal's benefit matrix; NPCI itself publishes no Ekaa page, so whether this is NPCI's bundle or the bank's own is read from the matrix, not stated."
+  },
+  {
+   "id": "ekaa-dining-itc",
+   "tier": "Ekaa",
+   "kinds": [
+    "credit"
+   ],
+   "category": "dining",
+   "text": "ITC signature restaurants: one set menu free with one paid",
+   "partners": [
+    "ITC Hotels"
+   ],
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.unionbankofindia.bank.in/en/details/nexteria-credit-card",
+   "confidence": "assumed",
+   "notes": "Union: \"1+1 Dinning (Set Menu) Set Menu at Signature ITC restaurants (Peshawari / Avartana / Kebabs & Kurries / Royal Vega / Dum Pukht / Yi Jing / Pan Asian / Ottimo Cucina Italiana).\" The matrix: \"1+1 dining (max one set menu per bill)\". No count, so nothing to tick.",
+   "assumption": "Stated on Union Bank's Nexteria page and shown across five cards on a 12 Sep 2026 screenshot of the Ekaa portal's benefit matrix; NPCI itself publishes no Ekaa page, so whether this is NPCI's bundle or the bank's own is read from the matrix, not stated."
+  },
+  {
+   "id": "ekaa-spa-itc",
+   "tier": "Ekaa",
+   "kinds": [
+    "credit"
+   ],
+   "category": "spa",
+   "text": "ITC Hotels spa: one session free with one paid, for resident guests",
+   "partners": [
+    "ITC Hotels"
+   ],
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://rupayekaa.truztee.com/",
+   "confidence": "assumed",
+   "notes": "The matrix: \"1+1 spa for resident guests\". Not on Union's page. No count, so nothing to tick.",
+   "assumption": "Read from a 12 Sep 2026 screenshot of the Ekaa portal's benefit matrix posted on X (image HSAPry5bwAAlzJC.jpg), not from the portal itself, which is login-walled; no NPCI or issuer page states it."
+  },
+  {
+   "id": "ekaa-hotel-postcard",
+   "tier": "Ekaa",
+   "kinds": [
+    "credit"
+   ],
+   "category": "hotel",
+   "text": "The Postcard Hotel: one night free per booking of two or more",
+   "partners": [
+    "The Postcard Hotel"
+   ],
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://rupayekaa.truztee.com/",
+   "confidence": "assumed",
+   "notes": "The matrix: \"Postcard Hotel 1 free night per booking (min 2)\". Not on Union's page. No count, so nothing to tick.",
+   "assumption": "Read from a 12 Sep 2026 screenshot of the Ekaa portal's benefit matrix posted on X (image HSAPry5bwAAlzJC.jpg), not from the portal itself, which is login-walled; no NPCI or issuer page states it."
+  },
+  {
+   "id": "ekaa-visa-lounge",
+   "tier": "Ekaa",
+   "kinds": [
+    "credit"
+   ],
+   "category": "visa",
+   "text": "OneVasco premium visa lounge, two visits",
+   "partners": [
+    "OneVasco"
+   ],
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://rupayekaa.truztee.com/",
+   "confidence": "assumed",
+   "notes": "The matrix: \"OneVasco premium visa lounge 2 visits per cardholder\" (Nexteria's column: 1). \"Per cardholder\" names no window, so no quota is recorded and nothing is ticked. A visa-application lounge, not an airport lounge.",
+   "assumption": "Read from a 12 Sep 2026 screenshot of the Ekaa portal's benefit matrix posted on X (image HSAPry5bwAAlzJC.jpg), not from the portal itself, which is login-walled; no NPCI or issuer page states it. The count differs by card on the matrix (two, or one on Nexteria) and no period is stated."
+  },
+  {
+   "id": "ekaa-visa-concierge",
+   "tier": "Ekaa",
+   "kinds": [
+    "credit"
+   ],
+   "category": "visa",
+   "text": "15% off OneVasco visa concierge and fast-track immigration",
+   "partners": [
+    "OneVasco"
+   ],
+   "redeem": "automatic",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.unionbankofindia.bank.in/en/details/nexteria-credit-card",
+   "confidence": "assumed",
+   "notes": "Union: \"15 % Discount on Fast track immigration\" and \"15% discount on Visa concierge services.\" The matrix: \"OneVasco visa concierge and fast-track immigration 15% off, unlimited\". A discount, not a claimable value.",
+   "assumption": "Stated on Union Bank's Nexteria page and shown across five cards on a 12 Sep 2026 screenshot of the Ekaa portal's benefit matrix; NPCI itself publishes no Ekaa page, so whether this is NPCI's bundle or the bank's own is read from the matrix, not stated."
+  },
+  {
+   "id": "ekaa-movie-bookmyshow",
+   "tier": "Ekaa",
+   "kinds": [
+    "credit"
+   ],
+   "category": "movie",
+   "text": "BookMyShow: one ticket free with one paid, up to ₹500",
+   "partners": [
+    "BookMyShow"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "month"
+    }
+   },
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://rupayekaa.truztee.com/",
+   "confidence": "assumed",
+   "notes": "The matrix: \"BookMyShow BOGO up to ₹500 once per calendar month\" (PNB Army Luxura's column: flat ₹250). \"Up to ₹500\" is a cap, not a value, so no valueInr.",
+   "assumption": "Read from a 12 Sep 2026 screenshot of the Ekaa portal's benefit matrix posted on X (image HSAPry5bwAAlzJC.jpg), not from the portal itself, which is login-walled; no NPCI or issuer page states it."
+  },
+  {
+   "id": "ekaa-dining-eazydiner",
+   "tier": "Ekaa",
+   "kinds": [
+    "credit"
+   ],
+   "category": "dining",
+   "text": "EazyDiner Prime, six months",
+   "partners": [
+    "EazyDiner"
+   ],
+   "quota": {
+    "count": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "redeem": "portal",
+   "verifiedOn": "2026-09-21",
+   "source": "https://rupayekaa.truztee.com/",
+   "confidence": "assumed",
+   "notes": "The matrix: \"EazyDiner Prime 6-month code, new code allowed each quarter\".",
+   "assumption": "Read from a 12 Sep 2026 screenshot of the Ekaa portal's benefit matrix posted on X (image HSAPry5bwAAlzJC.jpg), not from the portal itself, which is login-walled; no NPCI or issuer page states it."
+  },
+  {
+   "id": "ekaa-concierge",
+   "tier": "Ekaa",
+   "kinds": [
+    "credit"
+   ],
+   "category": "concierge",
+   "text": "24/7 concierge",
+   "redeem": "automatic",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.unionbankofindia.bank.in/en/details/nexteria-credit-card",
+   "confidence": "assumed",
+   "notes": "Union: \"24 by 7 Concierge\" covering \"Domestic: Golf Reservations, Car Rentals, and travel reservation assistance, etc.\"",
+   "assumption": "Stated on Union Bank's Nexteria page; NPCI publishes no Ekaa page, so whether concierge is NPCI's or the bank's is not stated."
+  }
+ ],
+ "enrolments": [
+  {
+   "id": "union-rupay-select-credit",
+   "tier": "Select",
+   "kind": "credit",
+   "bank": "Union Bank of India",
+   "cards": [
+    "RuPay Select"
+   ],
+   "portal": "select",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.unionbankofindia.bank.in/en/details/rupay-select-credit-card",
+   "confidence": "verified",
+   "notes": "Union states the NPCI programme on the product: \"Rs. 10.00 lakhs (Premium borne by NPCI)\" personal accident cover, and lounge access \"Domestic- 8 per Year (2 per Quarter)\", \"International- 2 per Year\"."
+  },
+  {
+   "id": "canara-rupay-select-credit",
+   "tier": "Select",
+   "kind": "credit",
+   "bank": "Canara Bank",
+   "cards": [
+    "RuPay Select"
+   ],
+   "portal": "select",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.canarabank.bank.in/pages/rupay-select-credit-card",
+   "confidence": "verified",
+   "notes": "Canara states the NPCI programme on the product: \"RuPay Insurance Program ₹ 10.00 lacs cover for Death due to Personal Accident and Permanent Disability\", and \"Domestic Airport Lounge Access 2 per Qtr for Self\", \"International Airport Lounge Access 2 per Year for Self\". RuPay Select Secured is not on this row: its page was not read."
+  },
+  {
+   "id": "pnb-rupay-select-credit",
+   "tier": "Select",
+   "kind": "credit",
+   "bank": "Punjab National Bank",
+   "cards": [
+    "RuPay Select",
+    "Patanjali RuPay Select"
+   ],
+   "portal": "select",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.rupay.co.in/select-credit-card",
+   "confidence": "assumed",
+   "notes": "NPCI's Select Credit page lists \"PNB Select RuPay Credit Card\" and \"PNB Patanjali select RuPay Credit Card\". The YourCardJourney portal screenshots show a \"PNB-Credit\" account redeeming quarterly and yearly deals. PNB's own pages 404.",
+   "assumption": "Named on NPCI's Select Credit page under \"Don't have a RuPay Select Credit Card?\", a list that also carries cards not enrolled in the wellness programme; the bank's own page has not been read."
+  },
+  {
+   "id": "sbi-apollo-select-credit",
+   "tier": "Select",
+   "kind": "credit",
+   "bank": "SBI Card",
+   "cards": [
+    "Apollo SBI SELECT"
+   ],
+   "portal": "select",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.rupay.co.in/select-credit-card",
+   "confidence": "assumed",
+   "notes": "NPCI's Select Credit page lists \"Apollo SBI Card Select RuPay Credit Card\".",
+   "assumption": "Named on NPCI's Select Credit page under \"Don't have a RuPay Select Credit Card?\", a list that also carries cards not enrolled in the wellness programme; the bank's own page has not been read."
+  },
+  {
+   "id": "union-nexteria-ekaa-credit",
+   "tier": "Ekaa",
+   "kind": "credit",
+   "bank": "Union Bank of India",
+   "cards": [
+    "Nexteria"
+   ],
+   "portal": "ekaa",
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.unionbankofindia.bank.in/en/details/nexteria-credit-card",
+   "confidence": "verified",
+   "notes": "Union: \"This card is built on the \"Ekaa\" variant of the RuPay network.\" Its column is on the Ekaa portal's benefit matrix (12 Sep 2026 screenshot)."
+  }
+ ],
+ "portals": [
+  {
+   "portal": "select",
+   "text": "One redemption per ID every 24 hours",
+   "source": "https://media.bobcard.co.in/media/hwpdfade/sop-rupay-select-platinum-benefit-program.pdf",
+   "confidence": "assumed",
+   "verifiedOn": "2026-09-21",
+   "assumption": "Reported by cardholders — TechnoFino members (\"use different number to make account\" for a second card), the YourCardJourney author (29 Aug 2026: \"Rupay won't allow you to redeem more than one voucher within two minutes\", with a 24-hour per-account cooldown built into their tool) and @CardMintz on X (21 Sep 2026) — and not stated in NPCI's portal guide, which is the primary document on how the portals work."
+  },
+  {
+   "portal": "platinum",
+   "text": "One redemption per ID every 24 hours",
+   "source": "https://media.bobcard.co.in/media/hwpdfade/sop-rupay-select-platinum-benefit-program.pdf",
+   "confidence": "assumed",
+   "verifiedOn": "2026-09-21",
+   "assumption": "Reported by cardholders — TechnoFino members (\"use different number to make account\" for a second card), the YourCardJourney author (29 Aug 2026: \"Rupay won't allow you to redeem more than one voucher within two minutes\", with a 24-hour per-account cooldown built into their tool) and @CardMintz on X (21 Sep 2026) — and not stated in NPCI's portal guide, which is the primary document on how the portals work. The reports are about the Select portal; the Platinum portal runs on the same guide and the same operator."
+  },
+  {
+   "portal": "ekaa",
+   "text": "One redemption per ID every 24 hours",
+   "source": "https://media.bobcard.co.in/media/hwpdfade/sop-rupay-select-platinum-benefit-program.pdf",
+   "confidence": "assumed",
+   "verifiedOn": "2026-09-21",
+   "assumption": "Reported by cardholders — TechnoFino members (\"use different number to make account\" for a second card), the YourCardJourney author (29 Aug 2026: \"Rupay won't allow you to redeem more than one voucher within two minutes\", with a 24-hour per-account cooldown built into their tool) and @CardMintz on X (21 Sep 2026) — and not stated in NPCI's portal guide, which is the primary document on how the portals work. The reports are about the Select portal; the Ekaa portal is a third instance of the same operator's site."
+  }
+ ]
+}
