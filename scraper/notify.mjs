@@ -243,10 +243,12 @@ export const TEMPLATES = {
  * which is the one path that keeps its newlines. Pure, so the quoting can be
  * tested by running it under a real sh with stub commands.
  */
-export function buttonAction(text, url) {
+export const TERMUX_BIN = '/data/data/com.termux/files/usr/bin'
+
+export function buttonAction(text, url, { binDir = TERMUX_BIN } = {}) {
   const q = (s) => `'${String(s).replace(/'/g, `'\\''`)}'`
   return [
-    'export PATH=/data/data/com.termux/files/usr/bin:$PATH',
+    `export PATH=${binDir}:$PATH`,
     `printf '%s' ${q(text)} | termux-clipboard-set`,
     `termux-open-url ${q(url)}`,
   ].join(' && ')
