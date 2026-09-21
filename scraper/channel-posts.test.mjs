@@ -14,7 +14,10 @@ import { mkdtemp, writeFile, chmod } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import { composePost, formatDuration, applyEnv, cheapestPerGram, buttonAction, APP_LINK, TEMPLATES } from './notify.mjs'
+import {
+  composePost, formatDuration, applyEnv, cheapestPerGram, buttonAction, intentArgs,
+  APP_LINK, TEMPLATES, INTENT_ACTION, TASKER_PACKAGE,
+} from './notify.mjs'
 import { step, inferDiscountPct } from './blinkdeal.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -104,6 +107,34 @@ test('environment overrides the config file without touching other channels', ()
   assert.deepEqual(out.sms, cfg.sms)
   assert.deepEqual(applyEnv(cfg, {}), cfg)
   assert.equal(applyEnv({}, { BLINKDEAL_TELEGRAM_TOKEN: 't' }).telegram.token, 't')
+  const wa = applyEnv({}, { BLINKDEAL_WHATSAPP_CHANNEL_URL: 'https://whatsapp.com/channel/x', BLINKDEAL_WHATSAPP_AUTOPOST: '1' })
+  assert.deepEqual(wa.whatsappChannel, { url: 'https://whatsapp.com/channel/x', autopost: true })
+  assert.equal(applyEnv({ whatsappChannel: { autopost: true } }, { BLINKDEAL_WHATSAPP_AUTOPOST: '0' }).whatsappChannel.autopost, false)
+})
+
+test('autopost is off unless the config says so', () => {
+  assert.notEqual(applyEnv({}, {}).whatsappChannel?.autopost, true)
+  assert.notEqual(applyEnv({ whatsappChannel: { url: 'x' } }, {}).whatsappChannel.autopost, true)
+})
+
+test('the Tasker intent is the documented action, package and extras, in that order', () => {
+  const args = intentArgs('open', { code: 'BLINKDEAL6', text: 'line 1\nline 2', url: 'https://whatsapp.com/channel/abc' }, { user: undefined })
+  assert.equal(INTENT_ACTION, 'app.ccbuddy.blinkdeal.POST')
+  assert.equal(TASKER_PACKAGE, 'net.dinglisch.android.taskerm')
+  assert.deepEqual(args, [
+    'broadcast', '--user', '0',
+    '-a', 'app.ccbuddy.blinkdeal.POST',
+    '-p', 'net.dinglisch.android.taskerm',
+    '--es', 'kind', 'open',
+    '--es', 'code', 'BLINKDEAL6',
+    '--es', 'text', 'line 1\nline 2',
+    '--es', 'url', 'https://whatsapp.com/channel/abc',
+  ])
+  // Every extra name is what Tasker will accept unchanged: lower-case, 3+ chars.
+  for (const name of ['kind', 'code', 'text', 'url']) assert.match(name, /^[a-z]{3,}$/)
+  assert.equal(intentArgs('close', { code: 'X', text: 't', url: 'u' }, { user: '10' })[2], '10')
+  assert.equal(intentArgs('close', { code: 'X', text: 't', url: 'u' }, { user: 'junk' })[2], '0')
+  assert.equal(intentArgs('close', { code: 'X', text: 't', url: 'u' }, { pkg: 'com.example' })[6], 'com.example')
 })
 
 // A fake detect that behaves like the real one: fires the two hooks when the

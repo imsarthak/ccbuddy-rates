@@ -11,12 +11,17 @@
 //                   "channelId": "@ccbuddy_blinkdeal" },
 //     "sms":      { "to": "+919876543210" },
 //     "whatsapp": { "phone": "+919876543210", "apikey": "123456" },
-//     "whatsappChannel": { "url": "https://whatsapp.com/channel/0029Va..." }
+//     "whatsappChannel": { "url": "https://whatsapp.com/channel/0029Va...",
+//                          "autopost": false }
 //   }
 //
 // Environment variables override the file, for a host that would rather not
 // keep one: BLINKDEAL_TELEGRAM_TOKEN, BLINKDEAL_TELEGRAM_CHANNEL,
-// BLINKDEAL_WHATSAPP_CHANNEL_URL.
+// BLINKDEAL_WHATSAPP_CHANNEL_URL, BLINKDEAL_WHATSAPP_AUTOPOST=1.
+//
+// whatsappChannel.autopost (off by default) additionally broadcasts an Android
+// intent on each edge for a Tasker profile on the phone to pick up and post
+// unattended, as a spare admin number. Setup and risks: docs/whatsapp-tasker.md.
 //
 //   node scraper/notify.mjs --test       send a test message on every alert channel
 //   node scraper/notify.mjs --preview    print the open and close channel posts
@@ -77,6 +82,9 @@ export function applyEnv(cfg, env) {
   }
   if (env.BLINKDEAL_WHATSAPP_CHANNEL_URL) {
     out.whatsappChannel = { ...out.whatsappChannel, url: env.BLINKDEAL_WHATSAPP_CHANNEL_URL }
+  }
+  if (env.BLINKDEAL_WHATSAPP_AUTOPOST != null) {
+    out.whatsappChannel = { ...out.whatsappChannel, autopost: env.BLINKDEAL_WHATSAPP_AUTOPOST === '1' }
   }
   return out
 }
@@ -261,6 +269,46 @@ async function sendLocalPost(kind, text, cfg) {
   }
 }
 
+// ---- Unattended WhatsApp via Tasker ------------------------------------------
+//
+// Behind whatsappChannel.autopost, off by default. The watcher broadcasts one
+// intent per edge; a Tasker profile on the phone (docs/whatsapp-tasker.md)
+// catches it, opens the channel, types the text and presses send as a spare
+// admin number. The broadcast is addressed to Tasker's package so Android 8+
+// delivers it (implicit broadcasts to other apps are dropped there).
+
+export const INTENT_ACTION = 'app.ccbuddy.blinkdeal.POST'
+export const TASKER_PACKAGE = 'net.dinglisch.android.taskerm'
+
+/**
+ * Arguments for Termux's `am` (TermuxAm, a termux-tools dependency, so it is
+ * always there). Extras are what Tasker turns into %kind %code %text %url —
+ * lower-case names of three letters or more, exactly as Tasker's variable
+ * rule wants them. Pure, exported, so the doc and the test share the truth.
+ */
+export function intentArgs(kind, { code, text, url }, { pkg = TASKER_PACKAGE, user = process.env.TERMUX__USER_ID } = {}) {
+  const u = /^[1-9]\d*$|^0$/.test(user ?? '') ? user : '0'
+  return [
+    'broadcast', '--user', u,
+    '-a', INTENT_ACTION,
+    '-p', pkg,
+    '--es', 'kind', kind,
+    '--es', 'code', String(code ?? ''),
+    '--es', 'text', text,
+    '--es', 'url', String(url ?? ''),
+  ]
+}
+
+async function sendTaskerIntent(kind, w, text, cfg) {
+  const wa = cfg.whatsappChannel
+  if (!wa?.autopost) return null
+  if (!wa.url) throw new Error('whatsappChannel.autopost is on but whatsappChannel.url is not set')
+  await execFileAsync('am', intentArgs(kind, { code: w.code, text, url: wa.url }, { pkg: wa.taskerPackage }), {
+    timeout: TIMEOUT_MS,
+  })
+  return 'broadcast'
+}
+
 /** "36 min", "1 h 05 min". Windows have run 33-36 min; never show seconds. */
 export function formatDuration(ms) {
   const m = Math.max(0, Math.round(ms / 60000))
@@ -309,6 +357,7 @@ export async function postWindow(kind, w, { dryRun = false } = {}) {
   return fanOut([
     ['telegramChannel', () => sendTelegram({ token: cfg.telegram?.token, chatId: cfg.telegram?.channelId }, text)],
     ['local', () => sendLocalPost(kind, text, cfg)],
+    ['tasker', () => sendTaskerIntent(kind, w, text, cfg)],
   ])
 }
 
