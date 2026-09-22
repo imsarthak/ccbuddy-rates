@@ -466,8 +466,23 @@ export async function step(previous, deps = {}) {
   return { next: material || heartbeatDue ? next : null, closedWindow }
 }
 
-export function appendWindow(history, w) {
-  return { windows: [...(history?.windows ?? []), w].slice(-100) }
+/**
+ * Add a closed window to the history file.
+ *
+ * `generated` is stamped on every write. The app ranks the copies of this
+ * file it can see — the snapshot bundled with the build, the one in
+ * localStorage, the one off the wire — by that field, and falls back to the
+ * last window's close when it is absent. The fallback works, but it makes a
+ * file's age a guess derived from its contents: two files written days apart
+ * carrying the same last window rank equal, and a hand-edited one (the 15 Sep
+ * backfill, 2026-09-21) can be beaten by an older file that happens to end
+ * later. Stamping it makes the ranking a fact instead of an inference.
+ *
+ * The time is a parameter rather than a call inside, so the function stays
+ * pure and a test can pin it.
+ */
+export function appendWindow(history, w, generated = new Date().toISOString()) {
+  return { generated, windows: [...(history?.windows ?? []), w].slice(-100) }
 }
 
 async function main() {
@@ -483,7 +498,8 @@ async function main() {
   const previous = await readJson(OUT, {})
   const { next, closedWindow } = await step(previous)
   if (closedWindow) {
-    await writeFile(HISTORY, JSON.stringify(appendWindow(await readJson(HISTORY, null), closedWindow), null, 1) + '\n')
+    const history = appendWindow(await readJson(HISTORY, null), closedWindow, new Date().toISOString())
+    await writeFile(HISTORY, JSON.stringify(history, null, 1) + '\n')
   }
   if (!next) {
     console.log('unchanged — not rewriting')
