@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-15",
+ "generated": "2026-09-23",
  "rules": [
   {
    "id": "hdfc-regalia-gold-quarter",
@@ -895,14 +895,15 @@
    "stacks": false,
    "counts": {
     "excludes": [
-     "cash"
+     "cash",
+     "balance-transfer"
     ],
     "note": "Spend ₹2,00,000 or more in a year, before your Credit Card renewal date and get your renewal fee waived off. Exclusions for Spends of ₹2,00,000 and above for eligibility of renewal year fee waiver are as follows: Cash on Call, Balance Transfer, Cash Withdrawal."
    },
    "verifiedOn": "2026-09-12",
    "source": "https://www.hdfc.bank.in/credit-cards/swiggy-blck-hdfc-bank-credit-card",
    "confidence": "assumed",
-   "assumption": "\"in a year, before your renewal date\" read as the card anniversary year. Balance Transfer has no SpendExclusion value; folded into cash."
+   "assumption": "\"in a year, before your renewal date\" read as the card anniversary year."
   },
   {
    "id": "hdfc-infinia-year-fee",
@@ -1242,8 +1243,8 @@
    "verifiedOn": "2026-09-12",
    "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/times-black-icici-credit-card",
    "confidence": "assumed",
-   "notes": "Product page: annual fee waiver for next year on ₹25 lakh annual spend (timesblack.com: \"annual fee of ₹20,000 can be waived with ₹25 lakhs in annual spending\"). The waiver clause is not in the card T&C PDF.",
-   "assumption": "\"Annual\" read as the card Anniversary Year (the T&C defines all periodic benefits on the Anniversary Year). Exclusions unstated; taken as the reward-point exclusions (fuel, rent, EMI)."
+   "notes": "Product page: annual fee waiver for next year on ₹25 lakh annual spend (timesblack.com: \"annual fee of ₹20,000 can be waived with ₹25 lakhs in annual spending\"). The waiver clause is not in the card T&C PDF. The period is no longer assumed: the T&C defines \"Anniversary Year means 12 months from the date of issue of a Credit Card\" and states \"Annual Benefits: Benefits are offered to the Cardholder as per the Customer Value Proposition (CVP) of the Credit Card on the payment of the annual fee + GST, applicable for the Anniversary Year.\" Read 2026-09-22 from the snapshotted T&C. What the T&C does not say is which transactions count towards the ₹25 lakh, which is the whole of the remaining assumption.",
+   "assumption": "ICICI never says which transactions count towards the fee-waiver spend. Taken as the card's reward-point exclusions: fuel, rent, and EMI-converted transactions."
   },
   {
    "id": "icici-emeralde-private-metal-year",
@@ -4079,6 +4080,9 @@
    "stacks": true,
    "counts": {
     "excludes": [],
+    "only": [
+     "online"
+    ],
     "note": "E-Vouchers worth Rs. 2,000 each on reaching annual online spends of 1 Lakh and 2 Lakhs respectively. E-Voucher Brands: Cleartrip, Yatra"
    },
    "verifiedOn": "2026-09-14",
@@ -4615,6 +4619,9 @@
    "stacks": true,
    "counts": {
     "excludes": [],
+    "only": [
+     "travel"
+    ],
     "note": "Earn 2,500 Reward points on annual travel spends of `50,000 or above. Earn 5,000 Reward Points on annual travel spends of `1,00,000 or above. Eligible Travel spends for milestone includes Visa/RuPay defined MCC category: Travel Agents, Railways. Product milestones and spend based waivers are calculated from account set up date for a period of 12 months."
    },
    "verifiedOn": "2026-09-14",
@@ -4695,6 +4702,9 @@
    "stacks": true,
    "counts": {
     "excludes": [],
+    "only": [
+     "reliance-retail"
+    ],
     "note": "Rs. 1500 worth Reliance Retail Voucher on annual spends of Rs. 75,000 at participating Reliance Retail Stores. Rs. 2250 worth Reliance Retail Voucher on annual spends of Rs. 1,50,000 at participating Reliance Retail Stores. Rs. 5,000 worth Reliance Retail Voucher on annual spends of Rs. 3,00,000 at participating Reliance Retail Stores"
    },
    "verifiedOn": "2026-09-14",
@@ -5379,8 +5389,8 @@
    "verifiedOn": "2026-09-14",
    "source": "https://www.hsbc.co.in/content/dam/hsbc/in/documents/help/forms/mitc-t1.pdf",
    "confidence": "assumed",
-   "notes": "Product page 404s; the combined MITC still tariffs \"Cashback/Live+\" together. Primary-card spends only.",
-   "assumption": "\"FY for which the annual fee is charged\" read as the card anniversary year, as the Live+ service guide spells out for the same clause."
+   "notes": "Product page 404s; the combined MITC still tariffs \"Cashback/Live+\" together. Primary-card spends only, per the MITC. Not promoted 2026-09-22, and the reason is worth keeping: the Live+ services guide states the identical ₹999 / ₹200,000 clause as \"The annual fee including applicable GST will be fully reversed if total eligible spend across the primary and add-on cards during the relevant previous anniversary year exceeds ₹200,000\" — which closes the period, but is the LIVE+ card's document, not Cashback's, and contradicts the MITC on add-on spends (MITC: \"spends on the primary card\"; guide: \"across the primary and add-on cards\"). Two cards tariffed on one line are still two cards. Resolving this needs HSBC's own Cashback document, which 404s.",
+   "assumption": "\"FY for which the annual fee is charged\" read as the card anniversary year. The sibling Live+ card's services guide words the same tariff as the anniversary year, which is suggestive but is a different card's document and disagrees with the MITC on whether add-on spends count."
   },
   {
    "id": "hsbc-rupay-platinum-welcome",
@@ -5438,7 +5448,7 @@
       "type": "cashback",
       "value": 250,
       "unit": "inr",
-      "text": "₹250 cashback (2 UPI-linked transactions of ₹250 or more)"
+      "text": "₹250 cashback (2 transactions of ₹250 or more)"
      }
     }
    ],
@@ -5447,6 +5457,9 @@
     "excludes": [
      "cash",
      "fees"
+    ],
+    "only": [
+     "upi"
     ],
     "note": "The HSBC RuPay Credit cardholder must complete their first two eligible credit-card linked UPI transactions within the first 30 days of card issuance. Complete 2 credit card linked UPI transactions of 250 or more and get 250 cashback. Eligible Transaction shall mean a set of two transactions/payments made by the HSBC RuPay Credit cardholder pursuant to linking their HSBC RuPay Credit Card to UPI within the first 30 days of card issuance, where each transaction amount is equal to or greater than 250."
    },
@@ -7764,7 +7777,7 @@
       "type": "points",
       "value": 400,
       "unit": "points",
-      "text": "400 Reward Points (Education, FASTag and Railway spends only)"
+      "text": "400 Reward Points"
      }
     },
     {
@@ -7774,13 +7787,16 @@
       "type": "points",
       "value": 800,
       "unit": "points",
-      "text": "800 Reward Points total (Education, FASTag and Railway spends only)"
+      "text": "800 Reward Points total"
      }
     }
    ],
    "stacks": false,
    "counts": {
     "excludes": [],
+    "only": [
+     "education-fastag-railway"
+    ],
     "note": "Only Education Spends, FASTag Recharges & Railway Spends count towards this milestone: \"400 Reward Points on minimum spends of ₹20,000 on Education Spends, FASTag Recharges & Railway Spends per billing cycle; 800 Total Reward Points on minimum spends of ₹40,000 on Education Spends, FASTag Recharges & Railway Spends per billing cycle\"."
    },
    "verifiedOn": "2026-09-14",
@@ -7944,13 +7960,16 @@
       "type": "points",
       "value": 100,
       "unit": "points",
-      "text": "100 Reward Points (UPI spends only; FIRST Digital linked to FIRST SWYP)"
+      "text": "100 Reward Points (FIRST Digital linked to FIRST SWYP)"
      }
     }
    ],
    "stacks": false,
    "counts": {
     "excludes": [],
+    "only": [
+     "upi"
+    ],
     "note": "100 Reward points on UPI spends of ₹5,000 or more every statement."
    },
    "verifiedOn": "2026-09-14",
@@ -9281,6 +9300,7 @@
      "utilities",
      "wallet",
      "fuel",
+     "gaming",
      "insurance",
      "government",
      "rent",
@@ -9386,7 +9406,8 @@
    },
    "source": "https://www.kotak.bank.in/en/personal-banking/cards/credit-cards/myntra-kotak-credit-card.html",
    "confidence": "unverified",
-   "notes": "Kotak product page → 404 (card discontinued 10 Jul 2025 per cardinsider). cardinsider: \"Get 2 complimentary PVR movie tickets, each worth Rs. 250, on spends of Rs. 50,000 or more in the calendar quarter\". Not read on Kotak."
+   "withdrawnOn": "2025-07-10",
+   "notes": "Withdrawn 2026-09-22: the card was discontinued 10 Jul 2025 and Kotak's product page is a hard 404, so no re-read can ever verify these figures — they exist only on cardinsider, which the source test rejects as a blog. Kept rather than deleted so the history survives. cardinsider: \"Get 2 complimentary PVR movie tickets, each worth Rs. 250, on spends of Rs. 50,000 or more in the calendar quarter\". Not read on Kotak."
   },
   {
    "id": "kotak-myntra-year-fee",
@@ -9413,7 +9434,8 @@
    },
    "source": "https://www.kotak.bank.in/en/personal-banking/cards/credit-cards/myntra-kotak-credit-card.html",
    "confidence": "unverified",
-   "notes": "cardinsider: \"Renewal fee waiver on spends of Rs. 2 Lakhs in the anniversary year\". Kotak page 404; not read on Kotak."
+   "withdrawnOn": "2025-07-10",
+   "notes": "Withdrawn 2026-09-22: card discontinued 10 Jul 2025, Kotak page is a hard 404. cardinsider: \"Renewal fee waiver on spends of Rs. 2 Lakhs in the anniversary year\". Not read on Kotak."
   },
   {
    "id": "kotak-myntra-welcome",
@@ -9444,7 +9466,8 @@
    },
    "source": "https://www.kotak.bank.in/en/personal-banking/cards/credit-cards/myntra-kotak-credit-card.html",
    "confidence": "unverified",
-   "notes": "cardinsider: ₹500 Myntra voucher on \"1 transaction above Rs. 500 within 30 days of getting the card\". Kotak page 404; not read on Kotak."
+   "withdrawnOn": "2025-07-10",
+   "notes": "Withdrawn 2026-09-22: card discontinued 10 Jul 2025, Kotak page is a hard 404. cardinsider: ₹500 Myntra voucher on \"1 transaction above Rs. 500 within 30 days of getting the card\". Not read on Kotak."
   },
   {
    "id": "kotak-811-dream-different-year",
