@@ -1,6 +1,6 @@
 {
- "generated": "2026-09-28T11:39:49.707Z",
- "checkedAt": "2026-09-28T11:39:49.707Z",
+ "generated": "2026-09-28T11:42:09.449Z",
+ "checkedAt": "2026-09-28T11:42:09.449Z",
  "ok": true,
  "heartbeatMs": 120000,
  "live": true,
@@ -8,7 +8,7 @@
  "couponId": "135733",
  "discountPct": 6,
  "source": "https://www.myntra.com/gold-coins?f=Coupons:BLINKDEAL6_135733",
- "totalCount": 212,
+ "totalCount": 202,
  "skus": [
   {
    "id": 23250690,
@@ -33,18 +33,6 @@
    "bestPrice": 7602,
    "code": "BLINKDEAL6",
    "url": "https://www.myntra.com/gold-coin/mia+by+tanishq/mia-by-tanishq-24kt-gold-lotus-coin---05-gm/30970331/buy"
-  },
-  {
-   "id": 40324067,
-   "name": "Malabar Gold & Diamonds 22KT 916 Purity Rose Gold Coin - 1 g",
-   "brand": "Malabar Gold & Diamonds",
-   "info": "22KT 916 Rose Gold Coin - 1 g",
-   "price": 16566,
-   "mrp": 16566,
-   "discount": null,
-   "bestPrice": null,
-   "code": null,
-   "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-rose-gold-coin---1-g/40324067/buy"
   },
   {
    "id": 30970339,
@@ -201,18 +189,6 @@
    "bestPrice": 14569,
    "code": "BLINKDEAL6",
    "url": "https://www.myntra.com/gold-coin/joyalukkas/joyalukkas-ganapathy-gold-coin-1-gm/29872323/buy"
-  },
-  {
-   "id": 40324073,
-   "name": "Malabar Gold & Diamonds 22KT 916 Purity Laxmi Gold Coin - 1 g",
-   "brand": "Malabar Gold & Diamonds",
-   "info": "22KT 916 Laxmi Gold Coin - 1 g",
-   "price": 16566,
-   "mrp": 16566,
-   "discount": null,
-   "bestPrice": null,
-   "code": null,
-   "url": "https://www.myntra.com/gold-coin/malabar+gold+%26+diamonds/malabar-gold--diamonds-22kt-916-purity-laxmi-gold-coin---1-g/40324073/buy"
   },
   {
    "id": 29872317,
@@ -609,6 +585,30 @@
    "bestPrice": 81908,
    "code": "BLINKDEAL6",
    "url": "https://www.myntra.com/gold-coin/kalyan+jewellers/kalyan-jewellers-24k-999-purity-lord-ganesh-gold-coin-5-gms/31416959/buy"
+  },
+  {
+   "id": 31416927,
+   "name": "Kalyan Jewellers 24K 999 Lord Purity Ganesh Gold Coin 10 g",
+   "brand": "Kalyan Jewellers",
+   "info": "24K Lord Ganesh Gold Coin 10 g",
+   "price": 173802,
+   "mrp": 173802,
+   "discount": 10429,
+   "bestPrice": 163373,
+   "code": "BLINKDEAL6",
+   "url": "https://www.myntra.com/gold-coin/kalyan+jewellers/kalyan-jewellers-24k-999-lord-purity-ganesh-gold-coin-10-g/31416927/buy"
+  },
+  {
+   "id": 31416921,
+   "name": "Kalyan Jewellers 24KT 999 Purity Lotus Gold Bar Coin - 2 g",
+   "brand": "Kalyan Jewellers",
+   "info": "24KT Purity Gold Bar Coin-2g",
+   "price": 35290,
+   "mrp": 35290,
+   "discount": 2118,
+   "bestPrice": 33172,
+   "code": "BLINKDEAL6",
+   "url": "https://www.myntra.com/gold-coin/kalyan+jewellers/kalyan-jewellers-24kt-999-purity-lotus-gold-bar-coin---2-g/31416921/buy"
   },
   {
    "id": 23250688,
@@ -1233,30 +1233,6 @@
    "bestPrice": 29202,
    "code": "BLINKDEAL6",
    "url": "https://www.myntra.com/gold-coin/joyalukkas/joyalukkas-hanuman-22kt-gold-coin-2gm/29745270/buy"
-  },
-  {
-   "id": 31416927,
-   "name": "Kalyan Jewellers 24K 999 Lord Purity Ganesh Gold Coin 10 g",
-   "brand": "Kalyan Jewellers",
-   "info": "24K Lord Ganesh Gold Coin 10 g",
-   "price": 173802,
-   "mrp": 173802,
-   "discount": 10429,
-   "bestPrice": 163373,
-   "code": "BLINKDEAL6",
-   "url": "https://www.myntra.com/gold-coin/kalyan+jewellers/kalyan-jewellers-24k-999-lord-purity-ganesh-gold-coin-10-g/31416927/buy"
-  },
-  {
-   "id": 31416921,
-   "name": "Kalyan Jewellers 24KT 999 Purity Lotus Gold Bar Coin - 2 g",
-   "brand": "Kalyan Jewellers",
-   "info": "24KT Purity Gold Bar Coin-2g",
-   "price": 35290,
-   "mrp": 35290,
-   "discount": 2118,
-   "bestPrice": 33172,
-   "code": "BLINKDEAL6",
-   "url": "https://www.myntra.com/gold-coin/kalyan+jewellers/kalyan-jewellers-24kt-999-purity-lotus-gold-bar-coin---2-g/31416921/buy"
   },
   {
    "id": 31416932,
@@ -2469,6 +2445,6 @@
   "code": "BLINKDEAL6",
   "couponId": "135733",
   "from": "2026-09-28T11:14:57.790Z",
-  "skuCount": 204
+  "skuCount": 202
  }
 }
