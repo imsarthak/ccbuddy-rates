@@ -1,7 +1,7 @@
 {
- "generated": "2026-10-01T11:44:02.575Z",
- "checkedAt": "2026-10-01T11:44:02.575Z",
- "ok": true,
+ "generated": "2026-10-01T11:48:40.062Z",
+ "checkedAt": "2026-10-01T11:48:40.062Z",
+ "ok": false,
  "heartbeatMs": 1200000,
  "live": false,
  "knownIds": [
@@ -16,5 +16,7 @@
   "from": "2026-09-28T11:14:57.790Z",
   "skuCount": 202,
   "to": "2026-09-28T11:50:36.696Z"
- }
+ },
+ "stale": true,
+ "error": "fetch failed"
 }
