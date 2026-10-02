@@ -1,0 +1,33 @@
+CCBuddy data licence
+
+These four files are compiled and maintained by CCBuddy (https://ccbuddy.app):
+
+  milestones.json   card spend milestones and fee waivers, with the issuer page and date read
+  lounges.json      airport lounge access by card, in each issuer's own words, with sources
+  portal-caps.json  card reward-portal caps
+  rupay-tiers.json  RuPay benefit tiers
+
+They are licensed under the Creative Commons Attribution 4.0 International
+licence (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/legalcode
+
+You may copy, share and adapt them, including commercially and including in
+apps, websites, plugins and AI tools, as long as you give credit. Credit means
+every place that shows the data (a screen, an answer, a plugin listing) names
+CCBuddy and links https://ccbuddy.app, for example:
+
+  Source: CCBuddy (ccbuddy.app)
+
+and says whether you changed the data. Using the data without that credit
+breaches the licence.
+
+Licensor: Neugen Cloud Services Pvt Ltd, publisher of CCBuddy.
+
+The facts themselves (what a bank offers) come from the banks; each entry
+names the issuer's page it was read from. This licence covers CCBuddy's
+compilation: the selection, structure, wording and dating of those facts.
+Banks change their terms without notice, so check the cited source before
+relying on any entry. The data is provided as is, without warranty.
+
+Not covered by this licence: rates.json, blinkdeal.json and
+blinkdeal-history.json, which record prices and coupon windows published by
+third parties. No rights in those are granted here.

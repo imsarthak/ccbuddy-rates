@@ -51,6 +51,17 @@ url }, category, earn: { slab, base, bonus }, beyondCap?, caps: [{ value,
 unit, counts, period }], verifiedOn?, source, confidence, notes?,
 assumption? }] }`.
 
+## Licence
+
+`milestones.json`, `lounges.json`, `portal-caps.json` and `rupay-tiers.json`
+are CCBuddy's compilations, licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): use them anywhere,
+commercially too, as long as every place that shows the data credits
+"CCBuddy (ccbuddy.app)" with a link. Full terms:
+[docs/LICENSE.txt](docs/LICENSE.txt), served at
+`https://imsarthak.github.io/ccbuddy-rates/LICENSE.txt`. `rates.json` and the
+Blinkdeal files record third-party prices and are not covered.
+
 ## Merchants investigated but currently blocked
 
 Tanishq, Bhima, and MMTC-PAMP hard-403 non-browser clients (bot protection
