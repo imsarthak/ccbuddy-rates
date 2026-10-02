@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-15",
+ "generated": "2026-10-02",
  "airports": [
   {
    "iata": "DEL",
@@ -80,9 +80,213 @@
     "T1",
     "T2"
    ]
+  },
+  {
+   "iata": "IXA",
+   "name": "Maharaja Bir Bikram Airport",
+   "city": "Agartala",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "ATQ",
+   "name": "Sri Guru Ram Das Jee International Airport",
+   "city": "Amritsar",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "IXB",
+   "name": "Bagdogra Airport",
+   "city": "Siliguri",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "BHO",
+   "name": "Raja Bhoj Airport",
+   "city": "Bhopal",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "BBI",
+   "name": "Biju Patnaik International Airport",
+   "city": "Bhubaneswar",
+   "country": "IN",
+   "terminals": [
+    "T1",
+    "T2"
+   ]
+  },
+  {
+   "iata": "IXC",
+   "name": "Shaheed Bhagat Singh International Airport",
+   "city": "Chandigarh",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "COK",
+   "name": "Cochin International Airport",
+   "city": "Kochi",
+   "country": "IN",
+   "terminals": [
+    "T1",
+    "T3"
+   ]
+  },
+  {
+   "iata": "CJB",
+   "name": "Coimbatore International Airport",
+   "city": "Coimbatore",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "GOX",
+   "name": "Manohar International Airport",
+   "city": "Goa (Mopa)",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "GAU",
+   "name": "Lokpriya Gopinath Bordoloi International Airport",
+   "city": "Guwahati",
+   "country": "IN",
+   "terminals": [
+    "T1",
+    "T2"
+   ]
+  },
+  {
+   "iata": "JAI",
+   "name": "Jaipur International Airport",
+   "city": "Jaipur",
+   "country": "IN",
+   "terminals": [
+    "T1",
+    "T2"
+   ]
+  },
+  {
+   "iata": "IXJ",
+   "name": "Jammu Airport",
+   "city": "Jammu",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "CNN",
+   "name": "Kannur International Airport",
+   "city": "Kannur",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "IXM",
+   "name": "Madurai International Airport",
+   "city": "Madurai",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "NAG",
+   "name": "Dr. Babasaheb Ambedkar International Airport",
+   "city": "Nagpur",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "PAT",
+   "name": "Jay Prakash Narayan International Airport",
+   "city": "Patna",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "PNQ",
+   "name": "Pune International Airport",
+   "city": "Pune",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "BDQ",
+   "name": "Vadodara Airport",
+   "city": "Vadodara",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "VNS",
+   "name": "Lal Bahadur Shastri International Airport",
+   "city": "Varanasi",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
+  },
+  {
+   "iata": "VTZ",
+   "name": "Visakhapatnam Airport",
+   "city": "Visakhapatnam",
+   "country": "IN",
+   "terminals": [
+    "T1"
+   ]
   }
  ],
  "lounges": [
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "id": "npci-del-rupay-exclusive-t3",
+   "airport": "DEL",
+   "name": "RuPay Exclusive Lounge",
+   "terminal": "T3",
+   "zone": "domestic",
+   "side": "departure",
+   "limits": [
+    "Only for RuPay Credit Cards",
+    "Please reach out to your bank to check your eligibility"
+   ],
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=new-delhi&type=Domestic&locale=en",
+   "notes": "NPCI lists it as \"RuPay Exclusive lounge (Only for RuPay Credit Cards)* *Please reach out to your bank to check your eligibility\", terminal 3, New Delhi Indira Gandhi Intl, Domestic. Union Bank names the same thing on its Nexteria page as \"RuPay Delhi Exclusive Lounge (Available till run exclusively for RuPay)\". No hours, no wayfinding and no amenities anywhere in NPCI's row, so none are invented."
+  },
   {
    "accepts": [
     "priority-pass",
@@ -122,7 +326,9 @@
   {
    "accepts": [
     "priority-pass",
-    "dragonpass"
+    "dragonpass",
+    "rupay",
+    "issuer-direct"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -136,12 +342,13 @@
    "where": "Airside, domestic departures, Security Hold Area, Food Court Level",
    "hours": "24 hours",
    "source": "https://www.prioritypass.com/en-GB/lounges/india/indira-gandhi-international/del19-encalm-lounge-delhi-domestic-t3",
-   "notes": "Also on DragonPass as \"Encalm Lounge (T3 D49)\" (https://www.dragonpass.com/explore/lounge/A10043/N03662) — the only Encalm T3 domestic row, so the match is unambiguous."
+   "notes": "Also on DragonPass as \"Encalm Lounge (T3 D49)\" (https://www.dragonpass.com/explore/lounge/A10043/N03662) — the only Encalm T3 domestic row, so the match is unambiguous. Axis Bank names this lounge in its own \"Axis Bank Credit Cards Domestic Airport Lounge Access Program\" (Set B participating lounges, domestic departure), read 2026-09-22 from axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf. Set B is the list its premium cards swipe into, so this desk accepts the card itself rather than a pass — hence issuer-direct. Axis lists it as \"New Delhi / Encalm Lounge / T3\"."
   },
   {
    "accepts": [
     "priority-pass",
-    "dragonpass"
+    "dragonpass",
+    "rupay"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -160,7 +367,8 @@
   {
    "accepts": [
     "priority-pass",
-    "dragonpass"
+    "dragonpass",
+    "issuer-direct"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -174,12 +382,14 @@
    "where": "Departures, after security, Food Court Level",
    "hours": "24 hours",
    "source": "https://www.prioritypass.com/en-GB/lounges/india/indira-gandhi-international/del18-encalm-lounge-delhi-domestic-t2",
-   "notes": "Also on DragonPass as \"Encalm Lounge (T2 Domestic)\" (https://www.dragonpass.com/explore/lounge/A10043/N03746)."
+   "notes": "Also on DragonPass as \"Encalm Lounge (T2 Domestic)\" (https://www.dragonpass.com/explore/lounge/A10043/N03746). Axis Bank names this lounge in its own \"Axis Bank Credit Cards Domestic Airport Lounge Access Program\" (Set B participating lounges, domestic departure), read 2026-09-22 from axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf. Set B is the list its premium cards swipe into, so this desk accepts the card itself rather than a pass — hence issuer-direct. Axis lists it as \"New Delhi / Encalm Lounge / T2\"."
   },
   {
    "accepts": [
     "priority-pass",
-    "dragonpass"
+    "dragonpass",
+    "rupay",
+    "issuer-direct"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -193,7 +403,7 @@
    "where": "Departures, after security, via Level 4 and Level 5",
    "hours": "24 hours",
    "source": "https://www.prioritypass.com/en-GB/lounges/india/indira-gandhi-international/del12-encalm-lounge",
-   "notes": "Also on DragonPass as \"Encalm Lounge (Domestic T1D)\" (https://www.dragonpass.com/explore/lounge/A10043/N03092). Priority Pass prints the terminal as \"Terminal 1D\" (the domestic wing); recorded as T1, the boarding-pass form."
+   "notes": "Also on DragonPass as \"Encalm Lounge (Domestic T1D)\" (https://www.dragonpass.com/explore/lounge/A10043/N03092). Priority Pass prints the terminal as \"Terminal 1D\" (the domestic wing); recorded as T1, the boarding-pass form. Axis Bank names this lounge in its own \"Axis Bank Credit Cards Domestic Airport Lounge Access Program\" (Set B participating lounges, domestic departure), read 2026-09-22 from axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf. Set B is the list its premium cards swipe into, so this desk accepts the card itself rather than a pass — hence issuer-direct. Axis lists it as \"New Delhi / Encalm Lounge / T1\"."
   },
   {
    "accepts": [
@@ -214,7 +424,8 @@
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -266,7 +477,8 @@
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -301,7 +513,8 @@
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -389,7 +602,8 @@
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -406,7 +620,8 @@
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -425,7 +640,8 @@
   {
    "accepts": [
     "priority-pass",
-    "dreamfolks"
+    "dreamfolks",
+    "rupay"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -461,7 +677,9 @@
   {
    "accepts": [
     "priority-pass",
-    "dreamfolks"
+    "dreamfolks",
+    "rupay",
+    "issuer-direct"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -475,11 +693,13 @@
    "where": "Departures, after security, Level 4",
    "hours": "24 hours",
    "source": "https://www.prioritypass.com/en-GB/lounges/india/kempegowda-international/blr9-080-lounge-domestic-t2",
-   "notes": "Also on DreamFolks as \"080 Domestic T2 Departure\" (Terminal 2, Domestic, Operational), listed under Axis Atlas, Diners Club Privilege, Flipkart Axis and HDFC Debit — four card programmes independently, and the only 080 domestic row at T2, so the match is unambiguous. Read 2026-09-15 via info.dreamfolks.com; see docs/research/lounges-dreamfolks.md."
+   "notes": "Also on DreamFolks as \"080 Domestic T2 Departure\" (Terminal 2, Domestic, Operational), listed under Axis Atlas, Diners Club Privilege, Flipkart Axis and HDFC Debit — four card programmes independently, and the only 080 domestic row at T2, so the match is unambiguous. Read 2026-09-15 via info.dreamfolks.com; see docs/research/lounges-dreamfolks.md. Axis Bank names this lounge in its own \"Axis Bank Credit Cards Domestic Airport Lounge Access Program\" (Set B participating lounges, domestic departure), read 2026-09-22 from axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf. Set B is the list its premium cards swipe into, so this desk accepts the card itself rather than a pass — hence issuer-direct. Axis lists it as \"Bengaluru / 080 Domestic Lounge / T2\"."
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay",
+    "issuer-direct"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -493,11 +713,12 @@
    "where": "Airside, domestic departures, after security, opposite Domestic Transfers, Level E",
    "hours": "24 hours",
    "source": "https://www.prioritypass.com/en-GB/lounges/india/rajiv-gandhi-international/hyd8-encalm-lounge",
-   "notes": "Priority Pass prints the terminal as the bare word \"Terminal\" — HYD is a single integrated terminal, recorded as T1."
+   "notes": "Priority Pass prints the terminal as the bare word \"Terminal\" — HYD is a single integrated terminal, recorded as T1. Axis Bank names this lounge in its own \"Axis Bank Credit Cards Domestic Airport Lounge Access Program\" (Set B participating lounges, domestic departure), read 2026-09-22 from axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf. Set B is the list its premium cards swipe into, so this desk accepts the card itself rather than a pass — hence issuer-direct. Axis lists it as \"Hyderabad / Encalm Lounge / T1\"."
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -515,7 +736,9 @@
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay",
+    "issuer-direct"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -528,11 +751,13 @@
    "side": "departure",
    "where": "Airside, domestic departures, inside the Security Hold Area, opposite Gate 17",
    "hours": "24 hours",
-   "source": "https://www.prioritypass.com/en-GB/lounges/india/chennai-international/maa12-travel-club"
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chennai-international/maa12-travel-club",
+   "notes": "Axis Bank names this lounge in its own \"Axis Bank Credit Cards Domestic Airport Lounge Access Program\" (Set B participating lounges, domestic departure), read 2026-09-22 from axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf. Set B is the list its premium cards swipe into, so this desk accepts the card itself rather than a pass — hence issuer-direct. Axis lists it as \"Chennai / Travel Club Lounge / T4\"."
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -549,7 +774,9 @@
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay",
+    "issuer-direct"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -562,11 +789,14 @@
    "side": "departure",
    "where": "Departures, inside the Security Hold Area, opposite Gate 5, 3rd Floor via lift",
    "hours": "24 hours",
-   "source": "https://www.prioritypass.com/en-GB/lounges/india/chennai-international/maa6-travel-club"
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/chennai-international/maa6-travel-club",
+   "notes": "Axis Bank names this lounge in its own \"Axis Bank Credit Cards Domestic Airport Lounge Access Program\" (Set B participating lounges, domestic departure), read 2026-09-22 from axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf. Set B is the list its premium cards swipe into, so this desk accepts the card itself rather than a pass — hence issuer-direct. Axis lists it as \"Chennai / Travel Club Lounge A/B / T1\"."
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay",
+    "issuer-direct"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -580,11 +810,12 @@
    "where": "Airside, domestic departures, after security turn right towards Gate 1, 3rd Floor",
    "hours": "24 hours",
    "source": "https://www.prioritypass.com/en-GB/lounges/india/chennai-international/maa10-travel-club",
-   "notes": "All four MAA lounges are printed \"Travel Club\"; two of them are on T1 and are separated only by their location lines."
+   "notes": "All four MAA lounges are printed \"Travel Club\"; two of them are on T1 and are separated only by their location lines. Axis Bank names this lounge in its own \"Axis Bank Credit Cards Domestic Airport Lounge Access Program\" (Set B participating lounges, domestic departure), read 2026-09-22 from axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf. Set B is the list its premium cards swipe into, so this desk accepts the card itself rather than a pass — hence issuer-direct. Axis lists it as \"Chennai / Travel Club Lounge A/B / T1\"."
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -601,7 +832,9 @@
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay",
+    "issuer-direct"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -614,11 +847,13 @@
    "side": "departure",
    "where": "Airside, domestic departures, Mezzanine Level — after security, turn left inside the Security Area",
    "hours": "04:00 - 00:00",
-   "source": "https://www.prioritypass.com/en-GB/lounges/india/kolkata-netaji-subhash-chandra-bose-intl/ccu6-travel-club"
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/kolkata-netaji-subhash-chandra-bose-intl/ccu6-travel-club",
+   "notes": "Axis Bank names this lounge in its own \"Axis Bank Credit Cards Domestic Airport Lounge Access Program\" (Set B participating lounges, domestic departure), read 2026-09-22 from axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf. Set B is the list its premium cards swipe into, so this desk accepts the card itself rather than a pass — hence issuer-direct. Axis lists it as \"Kolkata / Travel Club Lounge / T1\"."
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -635,7 +870,8 @@
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -728,7 +964,8 @@
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -745,7 +982,9 @@
   },
   {
    "accepts": [
-    "priority-pass"
+    "priority-pass",
+    "rupay",
+    "issuer-direct"
    ],
    "amenities": [],
    "verifiedOn": "2026-09-15",
@@ -758,7 +997,467 @@
    "side": "departure",
    "where": "Airside, domestic departures, after security, 1st Floor past the Food Court",
    "hours": "24 hours",
-   "source": "https://www.prioritypass.com/en-GB/lounges/india/sardar-vallabhbhai-patel-international/amd8-the-lounge"
+   "source": "https://www.prioritypass.com/en-GB/lounges/india/sardar-vallabhbhai-patel-international/amd8-the-lounge",
+   "notes": "Axis Bank names this lounge in its own \"Axis Bank Credit Cards Domestic Airport Lounge Access Program\" (Set B participating lounges, domestic departure), read 2026-09-22 from axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf. Set B is the list its premium cards swipe into, so this desk accepts the card itself rather than a pass — hence issuer-direct. Axis lists it as \"Ahmedabad / The Lounge / T1\"."
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3059-primus-lounge",
+   "airport": "IXA",
+   "name": "Primus Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=agartala&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3063-costa-coffee",
+   "airport": "ATQ",
+   "name": "Costa Coffee",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=amritsar&type=Domestic&locale=en",
+   "notes": "NPCI returns two domestic Costa Coffee rows here, ids 3063 and 3064, identical in every field it publishes. Either there are two counters or one is listed twice, and nothing in the feed says which, so both are carried rather than one being dropped on a guess."
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3064-costa-coffee",
+   "airport": "ATQ",
+   "name": "Costa Coffee",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=amritsar&type=Domestic&locale=en",
+   "notes": "The second of NPCI's two identical domestic Costa Coffee rows; see 3063."
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3066-primus-lounge",
+   "airport": "ATQ",
+   "name": "Primus Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=amritsar&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3065-costa-coffee",
+   "airport": "ATQ",
+   "name": "Costa Coffee",
+   "terminal": "T1",
+   "zone": "international",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=amritsar&type=International&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3067-the-airr-lounge",
+   "airport": "ATQ",
+   "name": "The Airr Lounge",
+   "terminal": "T1",
+   "zone": "international",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=amritsar&type=International&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3068-take-off-bar",
+   "airport": "IXB",
+   "name": "Take Off Bar",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=bagdogra&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3075-primus-lounge",
+   "airport": "BHO",
+   "name": "Primus Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=bhopal&type=Domestic&locale=en",
+   "notes": "AAI's own airport page names only a VIP and protocol lounge here. NPCI lists this one as taking RuPay, and NPCI's finder is the evidence this dataset takes for a programme; the absence from a thin AAI page is not evidence against it."
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3076-bird-lounge",
+   "airport": "BBI",
+   "name": "Bird Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=bhubaneswar&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3077-primus-lounge",
+   "airport": "IXC",
+   "name": "Primus Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=chandigarh&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3078-primus-lounge",
+   "airport": "IXC",
+   "name": "Primus Lounge",
+   "terminal": "T1",
+   "zone": "international",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=chandigarh&type=International&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3084-earth-lounge",
+   "airport": "COK",
+   "name": "Earth Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=cochin&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3083-earth-lounge",
+   "airport": "COK",
+   "name": "Earth Lounge",
+   "terminal": "T3",
+   "zone": "international",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=cochin&type=International&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3085-blackberry-restaurant-and-bar",
+   "airport": "CJB",
+   "name": "BlackBerry Restaurant & Bar",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=coimbatore&type=Domestic&locale=en",
+   "notes": "A restaurant and bar serving as the lounge, which is how NPCI lists it."
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3088-good-times-bar",
+   "airport": "GOI",
+   "name": "Good Times Bar",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=goa&type=Domestic&locale=en",
+   "notes": "The only Dabolim lounge NPCI carries, and the reason Goa is no longer a RuPay blank. Priority Pass does not list it, so this row's only source is NPCI."
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3089-encalm-lounge",
+   "airport": "GOX",
+   "name": "Encalm Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=goa&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3090-encalm-lounge",
+   "airport": "GOX",
+   "name": "Encalm Lounge",
+   "terminal": "T1",
+   "zone": "international",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=goa&type=International&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3091-adani-silver-domestic-lounge",
+   "airport": "GAU",
+   "name": "Adani Silver Domestic Lounge",
+   "terminal": "T2",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=guwahati&type=Domestic&locale=en",
+   "notes": "The one row where NPCI prints a full address rather than a bare terminal: \"Domestic Departures, Terminal 2, Mezzanine Floor (Post Security Hold Area)\". That is what places it at T2 while no primary page states which Guwahati terminal is which."
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3095-adani-lounge",
+   "airport": "JAI",
+   "name": "Adani Lounge",
+   "terminal": "T2",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=jaipur&type=Domestic&locale=en",
+   "notes": "T2 is Jaipur's domestic terminal, which matches NPCI printing terminal 2 on a domestic row."
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3096-paahun-the-executive-lounge-and-re",
+   "airport": "IXJ",
+   "name": "Paahun - The Executive Lounge and Restaurant",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=jammu&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3097-pearl-lounge-domestic",
+   "airport": "CNN",
+   "name": "Pearl Lounge Domestic",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=kannur&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3098-pearl-lounge-international",
+   "airport": "CNN",
+   "name": "Pearl Lounge International",
+   "terminal": "T1",
+   "zone": "international",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=kannur&type=International&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3105-primus-lounge",
+   "airport": "IXM",
+   "name": "Primus Lounge",
+   "terminal": "T1",
+   "zone": "international",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=madurai&type=International&locale=en",
+   "notes": "NPCI carries no domestic lounge at Madurai, only this international one."
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3113-mandarin-lounge",
+   "airport": "NAG",
+   "name": "Mandarin Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=nagpur&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3114-the-airr-lounge",
+   "airport": "NAG",
+   "name": "The Airr Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=nagpur&type=Domestic&locale=en",
+   "notes": "NPCI prints \"terminal 2\" for this row. Nagpur has one terminal, so it sits at T1 with the rest; the disagreement is recorded rather than resolved in NPCI's favour."
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3120-zesto-executive-lounge",
+   "airport": "PAT",
+   "name": "Zesto Executive Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=patna&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3121-elysian-lounge",
+   "airport": "PNQ",
+   "name": "Elysian Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=pune&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3125-premium-lounge",
+   "airport": "BDQ",
+   "name": "Premium Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=vadodara&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3126-take-off-bar-and-lounge",
+   "airport": "VNS",
+   "name": "Take Off Bar and Lounge",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=varanasi&type=Domestic&locale=en"
+  },
+  {
+   "accepts": [
+    "rupay"
+   ],
+   "amenities": [],
+   "verifiedOn": "2026-09-22",
+   "confidence": "verified",
+   "side": "departure",
+   "id": "npci3127-the-airr-lounge-and-bar",
+   "airport": "VTZ",
+   "name": "The Airr Lounge and Bar",
+   "terminal": "T1",
+   "zone": "domestic",
+   "source": "https://www.rupay.co.in/api/airport-lounges?country=india&city=vishakhapatnam&type=Domestic&locale=en"
   }
  ],
  "entitlements": [
@@ -771,7 +1470,8 @@
    ],
    "programme": "dreamfolks",
    "scope": [
-    "domestic"
+    "domestic",
+    "international"
    ],
    "region": "india",
    "quota": {
@@ -786,12 +1486,55 @@
     "countsAgainstQuota": false
    },
    "conditions": [
-    "Same-day departing boarding pass"
+    "Swipe the Infinia card at the lounge desk (₹2 a visit on Visa)"
    ],
-   "verifiedOn": "2026-09-15",
-   "source": "https://www.hdfc.bank.in/credit-cards/infinia-credit-card",
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "DEL T3 international Encalm Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T1 domestic Travel Club",
+    "BOM T2 domestic Adani Lounge",
+    "BOM T2 international Adani East Lounge",
+    "BLR T1 domestic 080 Domestic Lounge East",
+    "BLR T1 domestic 080 Domestic Lounge West PH1",
+    "BLR T1 domestic 080 Domestic Lounge West PH2",
+    "BLR T2 domestic 080 Lounge",
+    "BLR T2 international 080 International Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "HYD T1 international Encalm Lounge",
+    "MAA T1 domestic Travel Club",
+    "MAA T2 international Travel Club",
+    "MAA T4 domestic Travel Club",
+    "CCU T1 domestic Travel Club",
+    "CCU T2 international Travel Club",
+    "GOI T1 domestic Travel Club",
+    "AMD T1 domestic The Lounge",
+    "AMD T2 domestic Adani Silver Lounge",
+    "ATQ T1 domestic Primus Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "IXC T1 domestic Primus Lounge",
+    "IXC T1 international Primus Lounge",
+    "COK T1 domestic Earth Lounge",
+    "COK T3 international Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "GOX T1 international Encalm Lounge",
+    "GAU T1 domestic The Lounge GF",
+    "GAU T1 domestic The Lounge FF",
+    "JAI T2 domestic Adani Lounge",
+    "NAG T1 domestic Airr Lounge",
+    "NAG T1 domestic Mandarin Lounge",
+    "PNQ T1 domestic Elysian Lounge",
+    "BDQ T1 domestic Premium Lounge",
+    "VNS T1 domestic Take off Bar and Lounge"
+   ],
+   "listSource": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/infinia-credit-card/airport-lounge-access-program-30sep2025.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/infinia-credit-card/airport-lounge-access-program-30sep2025.pdf",
    "confidence": "partial",
-   "notes": "Quota verified: \"Unlimited complimentary Domestic airport lounge access in India with your HDFC Bank Infinia Credit Card (Primary & Add-on).\" The PROGRAMME is not named, and HDFC’s own linked eligible-lounge list (lms.hoi.in/lounge-list/hdfc-infinia, backed by loungepass.hoi.in) returns an empty result set. Hidden until a source names the programme."
+   "notes": "Quota verified: \"Unlimited complimentary Domestic airport lounge access in India with your HDFC Bank Infinia Credit Card (Primary & Add-on).\" Re-read 2026-10-01. The page’s \"Click here to know more\" links HDFC’s lounge PDF (https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/infinia-credit-card/airport-lounge-access-program-30sep2025.pdf), which names the programme: \"Infinia Primary and Add on Cardholders can avail unlimited complimentary lounge access through Infinia Credit Card Lounge Access Program. Please swipe your Infinia Credit card to avail the complimentary lounge access.\" with \"A transaction fee of Rs. 2 … per visit for Visa cardholders\". So the way in is HDFC’s own card swipe, NOT DreamFolks — `programme` above is the old guess, kept only because nothing reads it while the row is partial (see the header). The list HDFC links (lms.hoi.in/lounge-list/hdfc-infinia) is hosted by a third party; its API (loungepass.hoi.in) still returns an empty set, but the page script carries 49 lounges, all in India, Delhi being Encalm Domestic Departure T1, T2 and T3 and Encalm International Departure T3. Where that list puts a desk is now `listedAt`; which lounge in this directory each desk is, is not matched, so the row still opens nothing. Settled 2026-10-02: the PDF heads the benefit \"Lounge Access Program within India\" and gives it \"For Lounge visits within India\", and the list includes international-terminal lounges, while the page says \"Domestic\"; the programme’s terms are taken over the page, so `scope` is both zones within India and `source` is the PDF."
   },
   {
    "id": "hdfc-infinia-priority-pass-outside-india",
@@ -845,10 +1588,61 @@
     "allowed": false,
     "countsAgainstQuota": false
    },
-   "verifiedOn": "2026-09-15",
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "DEL T3 international Encalm Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BOM T2 international Adani East Lounge",
+    "BLR T1 domestic 080 Domestic Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "BLR T2 international 080 International Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "HYD T1 international Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A",
+    "MAA T1 domestic Travel Club Lounge B",
+    "MAA T2 international Travel Club Lounge",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "CCU T2 international Travel Club Lounge",
+    "GOI T1 domestic Travel Club Lounge",
+    "GOI T1 international Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "AMD T2 domestic Adani Silver Lounge",
+    "AMD T2 international The Lounge",
+    "IXA T1 domestic Primus Lounge",
+    "ATQ T1 domestic Primus Lounge",
+    "ATQ T1 international Airr Lounge",
+    "IXB T1 domestic Take Off Bar And Lounge",
+    "BHO T1 domestic Primus Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "IXC T1 domestic Primus Lounge",
+    "IXC T1 international Primus Lounge",
+    "COK T1 domestic Earth Lounge",
+    "COK T3 international Earth Lounge",
+    "COK T3 international Earth Business Class Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "GOX T1 international Encalm Lounge",
+    "GAU T1 domestic The Lounge",
+    "JAI T2 domestic The Lounge",
+    "IXJ T1 domestic Paahun The Executive Lounge",
+    "CNN T1 domestic Pearl Lounge",
+    "CNN T1 international Pearl Lounge",
+    "IXM T1 domestic Primus Lounge",
+    "PNQ T1 domestic Elysian Lounge GF",
+    "BDQ T1 domestic Premium Lounge",
+    "VNS T1 domestic Take Off Bar",
+    "VTZ T1 domestic Airr Lounge"
+   ],
+   "listSource": "https://www.hdfc.bank.in/credit-cards/diners-club-black-metal-edition-credit-card",
+   "verifiedOn": "2026-10-01",
    "source": "https://www.hdfc.bank.in/credit-cards/diners-club-black-metal-edition-credit-card",
    "confidence": "partial",
-   "notes": "HDFC states unlimited lounge access \"India and worldwide\" — the one card whose own wording covers both zones and both geographies. No programme is named beyond the Diners Club travel tool app, and no lounge in this directory is yet shown to accept a Diners-branded programme, so the row is hidden rather than matched on a guess."
+   "notes": "HDFC states unlimited lounge access \"India and worldwide\" — the one card whose own wording covers both zones and both geographies. Re-read 2026-10-01: the page now reads \"Unlimited lounge access to 1,300+ lounges in India and abroad\" for primary and add-on cards, and its \"For Domestic lounge list, click here\" goes to lms.hoi.in/lounge-list/hdfc-diners (third-party hosted; the page script carries 59 lounges, Delhi being Encalm Domestic T1 and T3 and International T3). The international list is in the Diners Travel Tool App. HDFC’s lounge terms (https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/diners-club-black-credit-card/pdfs/lounge-tnc.pdf, dated 08.12.2025, footer naming Diners Club Privilege) say cardholders \"should present their respective cards\" and \"Access is not allowed to guest member.\" So the domestic way in is the card itself, not a Diners programme; `programme` fits only the international side. Where the domestic list puts a desk is now `listedAt`; no desk is matched to a lounge here, so the row opens nothing."
   },
   {
    "id": "hdfc-regalia-gold-dreamfolks-domestic",
@@ -859,7 +1653,8 @@
    ],
    "programme": "dreamfolks",
    "scope": [
-    "domestic"
+    "domestic",
+    "international"
    ],
    "region": "india",
    "quota": {
@@ -876,15 +1671,56 @@
    },
    "spendGate": {
     "milestoneRuleId": "hdfc-regalia-gold-quarter-lounge",
-    "summary": "if you spent ₹60,000 in the previous quarter"
+    "summary": "if you spent ₹60,000 in the previous quarter; a card opened in that quarter’s last month may be exempt"
    },
    "conditions": [
-    "Same-day departing boarding pass"
+    "Swipe the Regalia Gold card at the lounge desk (₹2, reversed)"
    ],
-   "verifiedOn": "2026-09-15",
-   "source": "https://www.hdfc.bank.in/credit-cards/regalia-gold-credit-card",
-   "confidence": "verified",
-   "notes": "One of only two places any issuer names DreamFolks in a sentence (the other is Axis Atlas). 3 domestic visits per calendar quarter, gated on ₹60,000 spend in the preceding quarter — the gate itself lives in the milestones dataset and is referenced, not copied. HDFC’s marketing tile separately says \"6 Complimentary domestic lounge visits outside India\", which is self-contradicting; the terms were taken over the tile."
+   "listedAt": [
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "DEL T3 international Encalm Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T1 domestic Travel Club",
+    "BOM T2 domestic Adani Lounge",
+    "BOM T2 international Adani East Lounge",
+    "BLR T1 domestic 080 Domestic Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Lounge",
+    "BLR T2 international 080 International Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "HYD T1 international Encalm Lounge",
+    "MAA T1 domestic Travel Club",
+    "MAA T2 international Travel Club",
+    "MAA T4 domestic Travel Club",
+    "CCU T1 domestic Travel Club",
+    "CCU T2 international Travel Club",
+    "GOI T1 domestic Travel Club",
+    "AMD T1 domestic The Lounge",
+    "AMD T2 domestic Adani Silver Lounge",
+    "ATQ T1 domestic Primus Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "IXC T1 domestic Plaza Premium Lounge",
+    "IXC T1 international Plaza Premium Lounge",
+    "COK T1 domestic Travel Club Lounge",
+    "COK T3 international Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "GOX T1 international Encalm Lounge",
+    "GAU T1 domestic The Lounge GF",
+    "GAU T1 domestic The Lounge FF",
+    "JAI T2 domestic Adani Lounge",
+    "NAG T1 domestic Airr Lounge",
+    "NAG T1 domestic Mandarin Lounge",
+    "PNQ T1 domestic Elysian Lounge",
+    "BDQ T1 domestic Premium Lounge",
+    "VNS T1 domestic Take off Bar and Lounge"
+   ],
+   "listSource": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/regalia-gold-credit-card/pdfs/lounge-t-and-cs-and-list-Regalia-Gold.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/regalia-gold-credit-card/pdfs/lounge-t-and-cs-and-list-Regalia-Gold.pdf",
+   "confidence": "partial",
+   "notes": "Was `verified` \"via DreamFolks\", read 2026-09-15, and the one row in this dataset that called DreamFolks the way in. Re-read 2026-10-01 against the page and the lounge PDF it links (cited above, \"Domestic Airport Lounge Access Program for Regalia Gold Credit Cards\", whose own \"CLICK HERE for list of lounges within India\" goes to lms.hoi.in/lounge-list/hdfc-regalia-gold): \"There will be no Lounge Vouchers issue to customers. Eligible customers need to swipe their Regalia Gold credit card at listed lounge for access\", validated by \"a transaction of a nominal charge. Rs.2 … will be reversed\". DreamFolks is named nowhere in the PDF, and on the page only as \"Support: DreamFolks 24x7 team\" under the Boarding Edge Program (spa, buffet, upgrades, transfers) — a different benefit, the same confusion the Atlas row had. So the way in is HDFC’s own card swipe and the row is partial like Infinia’s: it no longer opens Bengaluru T2’s 080 Lounge \"via DreamFolks\", and is stated in HDFC’s name wherever HDFC’s list puts a desk. The quota and gate are unchanged and are the PDF’s own: \"Customer needs to achieve spends of 60,000 in current calendar quarter to avail lounge access on credit card in next calendar quarter\", 3 a quarter, w.e.f. 01-07-2026 — the gate lives in the milestones dataset and is referenced, not copied. Cards opened in a quarter’s last month \"may be exempted\" from the gate for the next quarter, and the line says \"may\". HDFC’s marketing tile separately says \"6 Complimentary domestic lounge visits outside India\", which is self-contradicting; the terms were taken over the tile."
   },
   {
    "id": "hdfc-regalia-gold-priority-pass-outside-india",
@@ -968,15 +1804,66 @@
      "kind": "calendar-year"
     }
    },
-   "holderScope": "primary",
+   "holderScope": "primary-and-addon",
    "guests": {
     "allowed": false,
     "countsAgainstQuota": false
    },
-   "verifiedOn": "2026-09-15",
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "DEL T3 international Encalm Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BOM T2 international Adani East Lounge",
+    "BLR T1 domestic 080 Domestic Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "BLR T2 international 080 International Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "HYD T1 international Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A",
+    "MAA T1 domestic Travel Club Lounge B",
+    "MAA T2 international Travel Club Lounge",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "CCU T2 international Travel Club Lounge",
+    "GOI T1 domestic Travel Club Lounge",
+    "GOI T1 international Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "AMD T2 domestic Adani Silver Lounge",
+    "AMD T2 international The Lounge",
+    "IXA T1 domestic Primus Lounge",
+    "ATQ T1 domestic Primus Lounge",
+    "ATQ T1 international Airr Lounge",
+    "IXB T1 domestic Take Off Bar And Lounge",
+    "BHO T1 domestic Primus Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "IXC T1 domestic Primus Lounge",
+    "IXC T1 international Primus Lounge",
+    "COK T1 domestic Earth Lounge",
+    "COK T3 international Earth Lounge",
+    "COK T3 international Earth Business Class Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "GOX T1 international Encalm Lounge",
+    "GAU T1 domestic The Lounge",
+    "JAI T2 domestic The Lounge",
+    "IXJ T1 domestic Paahun The Executive Lounge",
+    "CNN T1 domestic Pearl Lounge",
+    "CNN T1 international Pearl Lounge",
+    "IXM T1 domestic Primus Lounge",
+    "PNQ T1 domestic Elysian Lounge GF",
+    "BDQ T1 domestic Premium Lounge",
+    "VNS T1 domestic Take Off Bar",
+    "VTZ T1 domestic Airr Lounge"
+   ],
+   "listSource": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/marriott-bonvoy-credit/lounge-terms-and-condition.pdf",
+   "verifiedOn": "2026-10-01",
    "source": "https://www.hdfc.bank.in/credit-cards/marriott-bonvoy-credit-card",
    "confidence": "partial",
-   "notes": "HDFC: \"12 Complimentary access within India (both at domestic and international terminals)\" — twelve visits total across both zones, not twelve of each, which is what `scope` being a list exists for. The programme is named only as the Diners Club travel tool app, and no lounge here is yet shown to accept it, so the row stays hidden. HDFC’s Marriott lounge FAQ PDF could not be read (Firecrawl failed on all engines, WebFetch timed out); nothing is cited from it. The international count is stated only as \"Complimentary access outside India every year\" with no number — a \"12 international\" figure circulates on blogs and was deliberately not recorded."
+   "notes": "HDFC: \"12 Complimentary access within India (both at domestic and international terminals)\" — twelve visits total across both zones, not twelve of each, which is what `scope` being a list exists for. Re-read 2026-10-01, when HDFC’s Marriott lounge PDF could finally be read (https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/marriott-bonvoy-credit/lounge-terms-and-condition.pdf, \"Published on 06.10.2025\"): \"24 Airport lounge access to all the Diners Lounges in India and worldwide for primary and add-on card members. 12 Complimentary access within India (both at domestic and international terminals) 12 Complimentary access outside India\". The card is validated by \"swiping a transaction of a nominal charge\", and a swipe over the quota is declined. So the 12-within-India figure stands, add-on cards are included (holderScope corrected), and HDFC now does print an international number — 12 outside India — which is NOT yet a row here. Whether the year is calendar or card year is not stated. The domestic list link is the same lms.hoi.in/lounge-list/hdfc-diners list as Diners Club Black Metal (its desks are `listedAt`); the international one is the Diners app. No desk is matched to a lounge here, so the row opens nothing."
   },
   {
    "id": "axis-reserve-priority-pass-international",
@@ -1003,7 +1890,7 @@
     "perVisit": 1
    },
    "verifiedOn": "2026-09-15",
-   "source": "https://www.axis.bank.in/cards/credit-card/axis-bank-reserve-credit-card",
+   "source": "https://www.axis.bank.in/cards/credit-card/reserve-credit-card",
    "confidence": "verified",
    "notes": "Axis: \"Eligible airport lounges at Indian international terminals after immigration are considered international lounges and can be accessed using your Priority Pass.\" Unlike HDFC, whose Priority Pass is complimentary only outside India. Reserve: unlimited international visits plus 12 complimentary guest visits a year. Guests are recorded as not counting against the cardholder's own visits because the guest allowance is stated separately."
   },
@@ -1036,13 +1923,13 @@
    "notes": "Axis: \"Eligible airport lounges at Indian international terminals after immigration are considered international lounges and can be accessed using your Priority Pass.\" Unlike HDFC, whose Priority Pass is complimentary only outside India. Olympus: unlimited international visits plus 10 complimentary guest visits an anniversary year. Its terms exist only as a PDF — no live Axis product page for Olympus was found, and two plausible slugs 404."
   },
   {
-   "id": "axis-atlas-dreamfolks-domestic",
+   "id": "axis-atlas-domestic",
    "grant": "card",
    "bank": "Axis Bank",
    "cards": [
     "Atlas"
    ],
-   "programme": "dreamfolks",
+   "programme": "issuer-direct",
    "scope": [
     "domestic"
    ],
@@ -1050,19 +1937,53 @@
    "quota": {
     "visits": 8,
     "period": {
-     "kind": "calendar-year"
+     "kind": "anniversary-year"
     }
+   },
+   "tiers": {
+    "visits": [
+     8,
+     12,
+     18
+    ],
+    "source": "https://www.axis.bank.in/cards/credit-card/axis-bank-atlas-credit-card"
    },
    "holderScope": "primary",
    "guests": {
-    "allowed": false,
-    "countsAgainstQuota": false
+    "allowed": true,
+    "countsAgainstQuota": true
    },
-   "verifiedOn": "2026-09-15",
-   "source": "https://www.axis.bank.in/cards/credit-card/atlas-credit-card",
+   "conditions": [
+    "Swipe the Atlas card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-09-22",
+   "source": "https://www.axis.bank.in/cards/credit-card/axis-bank-atlas-credit-card/privileges",
    "confidence": "assumed",
-   "notes": "Axis names DreamFolks for Atlas domestic access in its T&C — one of only two places any issuer names DreamFolks in a sentence. Tier quotas are 8 / 12 / 18 domestic visits at ₹3L / ₹7.5L / ₹15L annual spend.",
-   "assumption": "Axis states the tier quotas with NO period attached. The base tier of 8 is shown over a calendar year, which is the usual reading, but Axis does not say so. The higher tiers are not modelled at all, because doing so would need the spend tier tracked and the period guessed twice over."
+   "notes": "Re-read 2026-09-22. The old note claimed \"Axis names DreamFolks for Atlas domestic access in its T&C\". It does not: the T&C linked from that very page has zero occurrences of the word. The DreamFolks sentence that does exist sits on an undated marketing page and is an F&B clause about what you receive once inside — \"lounge access, food & beverages as applicable under the agreement between dreamfolks and the lounge\" — directly beneath the actual mechanism, \"You can visit applicable lounges directly & swipe your credit card for access\". The page's other DreamFolks mentions are the concierge benefit, a different thing, which is the likely origin of the original error. Practical risk of the old row: telling an Atlas holder to expect a DreamFolks desk flow invites them to skip the swipe, and the swipe is the one step Axis makes entry conditional on. Quotas are 8 / 12 / 18 by annual spend tier (₹3L / ₹7.5L / ₹15L). The ₹50,000 spend gate does NOT apply — Axis names ATLAS on its waiver list. Note Atlas is the one Set B entry whose quota is left blank in the programme PDF; the tiers come from the card T&C. No terms-and-conditions-atlas.pdf exists in the 28-08-2026 revision run that produced one for Magnus and Reserve. Evidence pointing the other way, recorded rather than buried: DreamFolks's OWN site still listed Atlas among the card programmes for BLR 080 Domestic T2 when it was read on 2026-09-15 (see india.ts and docs/research/lounges-dreamfolks.md). That is a DreamFolks-side claim about a desk, not an Axis instruction about a door, and the two can both be true if DreamFolks fulfils behind the counter — which no primary source establishes either way. Axis's own document governs what we tell someone to DO at the desk, so the programme here follows Axis; the BLR row keeps its dreamfolks claim on DreamFolks's own evidence.",
+   "assumption": "Only the base tier of 8 is modelled. The higher tiers need the annual spend tier tracked, which this app deliberately does not do."
   },
   {
    "id": "axis-magnus-domestic",
@@ -1071,7 +1992,7 @@
    "cards": [
     "Magnus"
    ],
-   "programme": "dreamfolks",
+   "programme": "issuer-direct",
    "scope": [
     "domestic"
    ],
@@ -1087,10 +2008,1233 @@
     "allowed": false,
     "countsAgainstQuota": false
    },
-   "verifiedOn": "2026-09-15",
-   "source": "https://www.axis.bank.in/cards/credit-card/magnus-credit-card",
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the Magnus card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
    "confidence": "partial",
-   "notes": "Quota read from Axis (unlimited domestic, gated on ₹50,000 spend in the previous 3 months). The PROGRAMME is not named, so which desks honour it is unread and the row stays hidden. Note also that the Magnus page still advertises domestic Priority Pass use, which the 28-08-2026 change appears to have ended — a second reason not to ship this row yet. Beware axisbank.com/retail/cards/credit-card/magnus-credit-card: it does not 404, it silently serves the Axis sitemap page."
+   "notes": "Re-read 2026-10-01. The Magnus T&C PDF (https://campaign.axis.bank.in/generic/terms-and-conditions-magnus.pdf, cited here until 2026-10-01) still says \"please present only your MAGNUS Credit Card along with your boarding pass\" and \"Effective 28-08-2026, the Priority Pass card will not be valid for accessing domestic airport lounges in India\", and now also carries a 15-11-2026 item on renewing memberships. The product page moved to https://www.axis.bank.in/cards/credit-card/axis-bank-magnus-credit-card (\"Enjoy unlimited visits to select airport lounges in India.\"). Axis’s programme PDF (https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf) lists Magnus in Set B as \"Unlimited complimentary lounge access\" with 20 domestic-departure desks, Delhi being Encalm T1, T2 and T3 — so the eligible-lounge list IS readable now, and 10 of its desks are in this directory accepting issuer-direct (the \"0 of 40\" below is out of date). What still keeps the row partial: the ₹50,000-in-the-previous-3-months gate (Magnus is not on the waiver list) has no milestone rule to point at, and each quarter carries a limit \"determined by Axis Bank\". Earlier: re-read 2026-09-22 against Axis's own documents, correcting three errors. (1) The programme is Axis's own card-swipe scheme, not DreamFolks — you present the Magnus card, not a pass. (2) The 28-08-2026 revision was a CREDENTIAL change, not a withdrawal: \"Effective 28-08-2026, the Priority Pass card will not be valid for accessing domestic airport lounges in India\" / \"please present only your MAGNUS Credit Card\". Domestic access is alive. (3) Guests are 4 a calendar year, not none — superseded 2026-10-01: those 4 are Priority Pass guests, and the domestic programme is cardholder-only. The gate binds Magnus specifically: Axis waives it for Burgundy Private, RESERVE, Olympus, Primus, Horizon and ATLAS, and Magnus is absent from that list. \"Unlimited\" is Axis's marketing word and its own terms contradict it — access is \"subject to access limits/quota every quarter … determined by Axis Bank in its absolute discretion\", undisclosed. Axis also contradicts itself in public: the travel-stay page still tells you to use Priority Pass domestically, undated, against a dated card-specific revision saying the opposite. STILL HIDDEN, for two reasons that are not about the card: no lounge in this directory records accepting issuer-direct (0 of 40), so a corrected row would match no desk until Axis's eligible-lounge list is read into the directory; and the ₹50,000 gate has no rule in the milestones dataset to reference, which is where a gate must live. The quota is carried as \"unlimited\" because that is the word Axis prints in its eligible-card list, while its own rules reserve an undisclosed quarterly cap — neither figure can be shown as fact."
+  },
+  {
+   "id": "axis-reserve-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Reserve"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "conditions": [
+    "Swipe the Reserve card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), the same document as Magnus’s row: Set B lists \"Axis Bank Reserve Credit Card (Unlimited complimentary lounge access)\", and section 2 says \"The spend based criteria is waived for Burgundy Private Credit Card, RESERVE Credit Card, Olympus Credit Card, Primus Credit Card, Horizon Credit Card, and ATLAS Credit Card\". Entry is by swiping the card, as on every Set B card. Partial, like Magnus, for what the PDF itself reserves: usage \"is subject to access limits/quota every quarter that will be determined by Axis Bank in its absolute discretion\", which Axis does not publish, so \"Unlimited\" is stated as Axis’s word and never counted against. Reserve’s own card page and terms were not re-read for domestic access in this pass. Until this row, Reserve held only its Priority Pass row and was told nothing at any Set B airport, while Atlas, on the same list and the same waiver, was named."
+  },
+  {
+   "id": "axis-olympus-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Olympus"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "conditions": [
+    "Swipe the Olympus card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic 080 Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`): Set B lists \"Axis Bank Olympus Credit Card (Unlimited complimentary lounge access)\", section 2 waives the spend gate for \"Olympus Credit Card\", and a footnote moves Olympus from the BLR Domestic Lounge to the 080 Domestic Lounge at Bengaluru T1. This file’s header used to say Olympus’s domestic access ran on the Adani Lounge Program; the PDF names no such programme for it. Partial for the same reason as Reserve and Magnus — Axis reserves an undisclosed quarterly limit on every Set B card — and because Olympus’s terms exist only as a PDF that was not re-read for domestic access in this pass."
+  },
+  {
+   "id": "axis-primus-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Primus"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "conditions": [
+    "Swipe the Primus card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic 080 Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.2: Set B, with its figure as printed, and its desks (`listedAt`). \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Axis Bank Primus Credit Card (Unlimited complimentary lounge access)\"; the gate is waived for \"Primus Credit Card\"; the footnote that moves Olympus to the 080 Domestic Lounge at Bengaluru T1 moves Primus too."
+  },
+  {
+   "id": "axis-burgundy-private-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Burgundy Private"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "conditions": [
+    "Swipe the Burgundy Private card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.2: Set B, with its figure as printed, and its desks (`listedAt`). \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Axis Bank Burgundy Private Credit Card (Unlimited complimentary lounge access)\"; the gate is waived for \"Burgundy Private Credit Card\"."
+  },
+  {
+   "id": "axis-horizon-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Horizon"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 6,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "tiers": {
+    "visits": [
+     6,
+     8
+    ],
+    "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+    "by": "network"
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "conditions": [
+    "Swipe the Horizon card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic 080 Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.2: Set B, with its figure as printed, and its desks (`listedAt`). \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Axis Bank Horizon Credit Card (6 complimentary access per calendar quarter for Mastercard World Cardmembers and 8 complimentary visits per calendar quarter for Visa Signature Cardmembers)\": the base, 6, is the quota, and the line states both. The gate is waived for \"Horizon Credit Card\", and the footnote moves Horizon to the 080 Domestic Lounge at Bengaluru T1."
+  },
+  {
+   "id": "axis-select-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Select"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the Select card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.2: Set B, with its figure as printed, and its desks (`listedAt`). \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Axis Bank Select Credit Card (2 complimentary lounge access per quarter)\", gated: Select is not on section 2’s waiver list."
+  },
+  {
+   "id": "axis-vistara-signature-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Vistara Signature"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the Vistara Signature card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.2: Set B, with its figure as printed, and its desks (`listedAt`). \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Axis Bank Vistara Signature Credit Card (2 complimentary lounge access per quarter)\", gated."
+  },
+  {
+   "id": "axis-vistara-infinite-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Vistara Infinite"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the Vistara Infinite card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.2: Set B, with its figure as printed, and its desks (`listedAt`). \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Axis Bank Vistara Infinite Credit Card (2 complimentary lounge access per quarter)\", gated."
+  },
+  {
+   "id": "axis-indianoil-premium-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "IndianOil Axis Premium"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the IndianOil Axis Premium card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.2: Set B, with its figure as printed, and its desks (`listedAt`). \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Axis Bank Indian Oil Premium Credit Card (2 complimentary lounge access per quarter)\", gated."
+  },
+  {
+   "id": "axis-spicejet-voyage-black-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "SpiceJet Voyage Black"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the SpiceJet Voyage Black card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.2: Set B, with its figure as printed, and its desks (`listedAt`). \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"SpiceJet Axis Bank Voyage Black Credit Cards (2 complimentary lounge access per quarter)\", gated."
+  },
+  {
+   "id": "axis-samsung-infinite-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Samsung Axis Infinite"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 8,
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the Samsung Axis Infinite card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.2: Set B, with its figure as printed, and its desks (`listedAt`). \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Samsung Axis Bank Infinite Credit Card (8 complimentary lounge access per year)\", gated."
+  },
+  {
+   "id": "axis-indigo-premium-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "IndiGo Axis Premium"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the IndiGo Axis Premium card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "COK T1 domestic Earth Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "BDQ T1 domestic Premium Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.2: Set B, with its figure as printed, and its desks (`listedAt`). \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"IndiGo Axis Bank Premium Credit Card (2 complimentary lounge access per quarter)\", gated."
+  },
+  {
+   "id": "axis-my-zone-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "My Zone"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the My Zone card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.1: Set A, with its figure as printed, and its eleven desks (`listedAt`). Section 2’s ₹50,000 gate applies: no Set A card is on the waiver list. \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Axis Bank My Zone Credit Card (1 complimentary lounge access per quarter)\"."
+  },
+  {
+   "id": "axis-pride-signature-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Pride Signature"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the Pride Signature card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.1: Set A, with its figure as printed, and its eleven desks (`listedAt`). Section 2’s ₹50,000 gate applies: no Set A card is on the waiver list. \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Axis Bank Pride Signature Credit Card (2 complimentary lounge access per quarter)\"."
+  },
+  {
+   "id": "axis-my-wings-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "My Wings"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the My Wings card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.1: Set A, with its figure as printed, and its eleven desks (`listedAt`). Section 2’s ₹50,000 gate applies: no Set A card is on the waiver list. \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Axis Bank My Wings Credit Card (1 complimentary lounge access per quarter)\"."
+  },
+  {
+   "id": "axis-ace-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Ace"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 4,
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the Ace card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.1: Set A, with its figure as printed, and its eleven desks (`listedAt`). Section 2’s ₹50,000 gate applies: no Set A card is on the waiver list. \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Axis Bank ACE Credit Card (4 complimentary lounge access per year)\"."
+  },
+  {
+   "id": "axis-spicejet-voyage-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "SpiceJet Voyage"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the SpiceJet Voyage card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.1: Set A, with its figure as printed, and its eleven desks (`listedAt`). Section 2’s ₹50,000 gate applies: no Set A card is on the waiver list. \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"SpiceJet Axis Bank Voyage Credit Card (1 complimentary lounge access per quarter)\"."
+  },
+  {
+   "id": "axis-samsung-signature-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Samsung Axis Signature"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 4,
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the Samsung Axis Signature card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.1: Set A, with its figure as printed, and its eleven desks (`listedAt`). Section 2’s ₹50,000 gate applies: no Set A card is on the waiver list. \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Samsung Axis Bank Signature Credit Card (4 complimentary lounge access per year)\"."
+  },
+  {
+   "id": "axis-privilege-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Privilege"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the Privilege card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.1: Set A, with its figure as printed, and its eleven desks (`listedAt`). Section 2’s ₹50,000 gate applies: no Set A card is on the waiver list. \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Axis Bank Privilege Credit Card (2 complimentary access per quarter)\"."
+  },
+  {
+   "id": "axis-vistara-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Vistara"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the Vistara card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.1: Set A, with its figure as printed, and its eleven desks (`listedAt`). Section 2’s ₹50,000 gate applies: no Set A card is on the waiver list. \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Axis Bank Vistara Platinum Credit Card (2 complimentary lounge access per quarter)\", which is the catalogue’s \"Vistara\": its Vistara Signature and Vistara Infinite are the other two, both in Set B."
+  },
+  {
+   "id": "axis-rewards-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Rewards"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the Rewards card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.1: Set A, with its figure as printed, and its eleven desks (`listedAt`). Section 2’s ₹50,000 gate applies: no Set A card is on the waiver list. \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Rewards Credit Card (2 complimentary lounge access per quarter)\"."
+  },
+  {
+   "id": "axis-fibe-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "Fibe Axis"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the Fibe Axis card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.1: Set A, with its figure as printed, and its eleven desks (`listedAt`). Section 2’s ₹50,000 gate applies: no Set A card is on the waiver list. \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Fibe Axis Bank Credit Card (1 complimentary lounge access per quarter)\"."
+  },
+  {
+   "id": "axis-indigo-domestic",
+   "grant": "card",
+   "bank": "Axis Bank",
+   "cards": [
+    "IndiGo Axis"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 1,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "untrackedGate": "if you spent ₹50,000 in the previous 3 calendar months, or the card is new (not an upgrade) and in its first 4 calendar months",
+   "conditions": [
+    "Swipe the IndiGo Axis card at the lounge desk (₹2 Visa/RuPay, ₹25 Mastercard)",
+    "Entry is refused if that swipe fails to authenticate"
+   ],
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "BOM T1 domestic Travel Club Lounge",
+    "BOM T2 domestic Adani Lounge",
+    "BLR T1 domestic BLR Domestic Lounge",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A/B",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge"
+   ],
+   "listSource": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.axis.bank.in/docs/default-source/default-document-library/axis-bank-airport-lounge-access-program.pdf",
+   "confidence": "partial",
+   "notes": "Read 2026-10-01 from Axis’s programme PDF (`source`), section 1.1: Set A, with its figure as printed, and its eleven desks (`listedAt`). Section 2’s ₹50,000 gate applies: no Set A card is on the waiver list. \"Per quarter\" is read as the calendar quarter and \"per year\" as the calendar year; neither is counted while the row is partial. \"Indigo Axis Bank Credit Card (1 complimentary lounge access per quarter)\"."
   },
   {
    "id": "icici-emeralde-priority-pass-international",
@@ -1147,7 +3291,7 @@
    "verifiedOn": "2026-09-15",
    "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/sapphiro-card",
    "confidence": "assumed",
-   "notes": "ICICI: 2 international visits a year via Priority Pass. Its domestic figure is stated inconsistently — 4 per calendar quarter in one place, \"2 per quarter for each variant\" in another — so no domestic row ships for this card. Beware the slug: /sapphiro-credit-card serves the card LISTING page rather than a 404.",
+   "notes": "ICICI: 2 international visits a year via Priority Pass. Its domestic figure looked inconsistent — 4 a quarter in one place, \"2 per quarter for each variant\" in another — and is not: the dual card gives 2 on each of its two cards, 4 in all (see icici-sapphiro-domestic). Beware the slug: /sapphiro-credit-card serves the card LISTING page rather than a 404.",
    "assumption": "Whether the Priority Pass works at Indian international terminals is not stated; recorded as worldwide and shown as assumed, the same reading as Emeralde."
   },
   {
@@ -1174,10 +3318,430 @@
     "allowed": false,
     "countsAgainstQuota": false
    },
-   "verifiedOn": "2026-09-15",
+   "spendGate": {
+    "milestoneRuleId": "icici-coral-quarter",
+    "summary": "if you spent ₹75,000 in the previous quarter"
+   },
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "DEL T3 international Encalm Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T1 domestic Good Times Bar",
+    "BOM T2 domestic Adani Lounge",
+    "BOM T2 international Adani Silver International Lounge",
+    "BLR T1 domestic 080 Lounge - West PH 1",
+    "BLR T1 domestic 080 Lounge - West PH 2",
+    "BLR T1 domestic 080 Lounge - East",
+    "BLR T2 domestic 080 Lounge",
+    "BLR T2 international 080 Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "HYD T1 international Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A",
+    "MAA T1 domestic Travel Club Lounge B",
+    "MAA T2 international Travel Club Lounge",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "CCU T2 international Travel Club Lounge",
+    "GOI T1 domestic Travel Club Lounge",
+    "GOI T1 international Travel Club Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "GOX T1 international Encalm Lounge",
+    "AMD T1 domestic The Lounge",
+    "AMD T1 domestic Adani Lounge - Premium Loyalty",
+    "AMD T2 domestic Adani Lounge",
+    "AMD T2 international Adani Silver Lounge",
+    "IXA T1 domestic Primus Lounge",
+    "ATQ T1 domestic Primus Lounge",
+    "ATQ T1 international Airr Lounge",
+    "IXB T1 domestic Take Off Bar and Lounge",
+    "BHO T1 domestic Primus Lounge",
+    "BBI T1 domestic O'Vetra Lounge",
+    "IXC T1 domestic Primus Lounge",
+    "IXC T1 international Primus Lounge",
+    "COK T1 domestic Earth Lounge",
+    "COK T3 international Earth Lounge",
+    "COK T3 international Earth Business Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GAU T1 domestic The Lounge",
+    "JAI T2 domestic The Lounge",
+    "IXJ T1 domestic Paahun The Executive Lounge",
+    "CNN T1 domestic Pearl Lounge",
+    "CNN T1 international Pearl Lounge",
+    "IXM T1 domestic Primus Lounge",
+    "NAG T1 domestic Mandarin Lounge",
+    "NAG T1 domestic The Airr Lounge and Bar",
+    "PAT T1 domestic Uttham Lounge",
+    "PNQ T1 domestic Elysian Lounge",
+    "PNQ T1 international Elysian Lounge",
+    "PNQ T1 international Earth Lounge",
+    "VNS T1 domestic Take Off Bar"
+   ],
+   "listSource": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/revamp-page-images/docs/pdf/domestic_consolidated_lounge_list-1.pdf",
+   "verifiedOn": "2026-10-01",
    "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/coral-credit-card",
    "confidence": "partial",
-   "notes": "ICICI: 1 domestic visit a calendar quarter, gated on ₹75,000 spend in the preceding calendar quarter. No international access at all. The programme is NOT named in any sentence — the page carries a DreamFolks logo asset only, which is suggestive and not a source — so the row stays hidden. Coral also grants 4 railway lounge visits a year, which this dataset does not model."
+   "notes": "ICICI: 1 domestic visit a calendar quarter, gated on ₹75,000 spend in the preceding calendar quarter. No international access at all. Re-read 2026-10-01: \"Get 1 Domestic Airport Lounge access for primary cardholders on eligible spends of ₹75,000\". ICICI publishes its own list (https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/revamp-page-images/docs/pdf/domestic_consolidated_lounge_list-1.pdf, \"Last updated on September, 2026\"), with Coral in its Annexure and Delhi being Encalm Domestic T1, T2 and T3 and International T3. The way in is the card itself: \"Eligible cardholders must present their valid, unexpired eligible cards\", with a Rs. 2 authorisation (Re 1 on Amex variants), and \"Guest visits shall be chargeable\". DreamFolks is still named in no sentence — the page shows only a dreamfolks.png logo — so `programme` is a guess ICICI does not support, kept only because a partial row’s programme is never read. Where the list puts a desk is now `listedAt`; no desk is matched to a lounge here, so the row opens nothing. Settled the same day: read in the PDF’s table layout (the plain text run had shifted the Annexure’s figures a row), every Coral variant reads 1 a quarter — Coral, Coral Contactless, LTN, NRI, Secured Coral Visa, Intermiles Coral Visa, Coral RuPay and Coral AmEx — so the one figure here covers them all. Coral also grants 4 railway lounge visits a year, which this dataset does not model."
+  },
+  {
+   "id": "icici-emeralde-private-metal-domestic",
+   "grant": "card",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Emeralde Private Metal"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic",
+    "international"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary-and-addon",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "DEL T3 international Encalm Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T1 domestic Good Times Bar",
+    "BOM T2 domestic Adani Lounge",
+    "BOM T2 international Adani Silver International Lounge",
+    "BLR T1 domestic 080 Lounge - West PH 1",
+    "BLR T1 domestic 080 Lounge - West PH 2",
+    "BLR T1 domestic 080 Lounge - East",
+    "BLR T2 domestic 080 Lounge",
+    "BLR T2 international 080 Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "HYD T1 international Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A",
+    "MAA T1 domestic Travel Club Lounge B",
+    "MAA T2 international Travel Club Lounge",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "CCU T2 international Travel Club Lounge",
+    "GOI T1 domestic Travel Club Lounge",
+    "GOI T1 international Travel Club Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "GOX T1 international Encalm Lounge",
+    "AMD T1 domestic The Lounge",
+    "AMD T1 domestic Adani Lounge - Premium Loyalty",
+    "AMD T2 domestic Adani Lounge",
+    "AMD T2 international Adani Silver Lounge",
+    "IXA T1 domestic Primus Lounge",
+    "ATQ T1 domestic Primus Lounge",
+    "ATQ T1 international Airr Lounge",
+    "IXB T1 domestic Take Off Bar and Lounge",
+    "BHO T1 domestic Primus Lounge",
+    "BBI T1 domestic O'Vetra Lounge",
+    "IXC T1 domestic Primus Lounge",
+    "IXC T1 international Primus Lounge",
+    "COK T1 domestic Earth Lounge",
+    "COK T3 international Earth Lounge",
+    "COK T3 international Earth Business Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GAU T1 domestic The Lounge",
+    "JAI T2 domestic The Lounge",
+    "IXJ T1 domestic Paahun The Executive Lounge",
+    "CNN T1 domestic Pearl Lounge",
+    "CNN T1 international Pearl Lounge",
+    "IXM T1 domestic Primus Lounge",
+    "NAG T1 domestic Mandarin Lounge",
+    "NAG T1 domestic The Airr Lounge and Bar",
+    "PAT T1 domestic Uttham Lounge",
+    "PNQ T1 domestic Elysian Lounge",
+    "PNQ T1 international Elysian Lounge",
+    "PNQ T1 international Earth Lounge",
+    "VNS T1 domestic Take Off Bar",
+    "BLR T1 domestic 080 VIP Lounge",
+    "BLR T2 domestic 080 VIP Lounge",
+    "BLR T2 international 080 VIP Lounge",
+    "HYD T1 international Prive Lounge",
+    "DEL T2 domestic Prive Lounge"
+   ],
+   "listSource": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/revamp-page-images/docs/pdf/domestic_consolidated_lounge_list-1.pdf",
+   "verifiedOn": "2026-10-02",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/emeralde-private-metal-credit-card",
+   "confidence": "partial",
+   "notes": "Read 2026-10-02 on the card page (`source`): \"Unlimited Domestic airport lounge access for both Primary and Plus Card members\", and in its FAQ, \"For lounge visits within India, Primary and Add-on Cardholders can avail unlimited complimentary lounge access through ICICI Bank Emeralde Private Metal Credit Card. Please swipe the ICICI Bank Emeralde Private Metal Credit Card\". No spend condition is stated for lounges (the page’s spend conditions are for vouchers and the fee). The page links ICICI’s consolidated list (`listSource`), whose Annexure 1 prints \"Unlimited\" for both Emeralde Private Metal variants, whose starred desks are \"eligible only for Diamant, Emerald Private Metal and Times Black\", and which says \"Complimentary benefit will be applicable for Primary cardholders only except for Diamant, Emerald Private Metal and Times Black\". Partial: the way in is the card swipe at a listed desk, and no desk in this directory is matched to it. \"Within India\" on the FAQ settles `scope` as both zones, as for HDFC Infinia."
+  },
+  {
+   "id": "icici-emeralde-domestic",
+   "grant": "card",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Emeralde"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic",
+    "international"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "DEL T3 international Encalm Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T1 domestic Good Times Bar",
+    "BOM T2 domestic Adani Lounge",
+    "BOM T2 international Adani Silver International Lounge",
+    "BLR T1 domestic 080 Lounge - West PH 1",
+    "BLR T1 domestic 080 Lounge - West PH 2",
+    "BLR T1 domestic 080 Lounge - East",
+    "BLR T2 domestic 080 Lounge",
+    "BLR T2 international 080 Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "HYD T1 international Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A",
+    "MAA T1 domestic Travel Club Lounge B",
+    "MAA T2 international Travel Club Lounge",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "CCU T2 international Travel Club Lounge",
+    "GOI T1 domestic Travel Club Lounge",
+    "GOI T1 international Travel Club Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "GOX T1 international Encalm Lounge",
+    "AMD T1 domestic The Lounge",
+    "AMD T1 domestic Adani Lounge - Premium Loyalty",
+    "AMD T2 domestic Adani Lounge",
+    "AMD T2 international Adani Silver Lounge",
+    "IXA T1 domestic Primus Lounge",
+    "ATQ T1 domestic Primus Lounge",
+    "ATQ T1 international Airr Lounge",
+    "IXB T1 domestic Take Off Bar and Lounge",
+    "BHO T1 domestic Primus Lounge",
+    "BBI T1 domestic O'Vetra Lounge",
+    "IXC T1 domestic Primus Lounge",
+    "IXC T1 international Primus Lounge",
+    "COK T1 domestic Earth Lounge",
+    "COK T3 international Earth Lounge",
+    "COK T3 international Earth Business Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GAU T1 domestic The Lounge",
+    "JAI T2 domestic The Lounge",
+    "IXJ T1 domestic Paahun The Executive Lounge",
+    "CNN T1 domestic Pearl Lounge",
+    "CNN T1 international Pearl Lounge",
+    "IXM T1 domestic Primus Lounge",
+    "NAG T1 domestic Mandarin Lounge",
+    "NAG T1 domestic The Airr Lounge and Bar",
+    "PAT T1 domestic Uttham Lounge",
+    "PNQ T1 domestic Elysian Lounge",
+    "PNQ T1 international Elysian Lounge",
+    "PNQ T1 international Earth Lounge",
+    "VNS T1 domestic Take Off Bar"
+   ],
+   "listSource": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/revamp-page-images/docs/pdf/domestic_consolidated_lounge_list-1.pdf",
+   "verifiedOn": "2026-10-02",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/emeralde-credit-card",
+   "confidence": "partial",
+   "notes": "Read 2026-10-02 on the card page (`source`): \"Unlimited international and domestic airport lounge access\", and in its FAQ, \"For lounge visits within India, the primary Cardholder can avail unlimited complimentary lounge access using their ICICI Bank Emeralde Credit Card. Please swipe the ICICI Bank Emeralde Credit Card\". No spend condition is stated for lounges. ICICI’s Annexure 1 prints \"Unlimited\" for every Emeralde variant; the starred desks are not this card’s. Partial for the same reason as Emeralde Private Metal."
+  },
+  {
+   "id": "icici-sapphiro-domestic",
+   "grant": "card",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Sapphiro"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 4,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "dualCardEach": 2,
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "spendGate": {
+    "milestoneRuleId": "icici-sapphiro-quarter",
+    "summary": "if you spent ₹75,000 in the previous quarter"
+   },
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "DEL T3 international Encalm Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T1 domestic Good Times Bar",
+    "BOM T2 domestic Adani Lounge",
+    "BOM T2 international Adani Silver International Lounge",
+    "BLR T1 domestic 080 Lounge - West PH 1",
+    "BLR T1 domestic 080 Lounge - West PH 2",
+    "BLR T1 domestic 080 Lounge - East",
+    "BLR T2 domestic 080 Lounge",
+    "BLR T2 international 080 Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "HYD T1 international Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A",
+    "MAA T1 domestic Travel Club Lounge B",
+    "MAA T2 international Travel Club Lounge",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "CCU T2 international Travel Club Lounge",
+    "GOI T1 domestic Travel Club Lounge",
+    "GOI T1 international Travel Club Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "GOX T1 international Encalm Lounge",
+    "AMD T1 domestic The Lounge",
+    "AMD T1 domestic Adani Lounge - Premium Loyalty",
+    "AMD T2 domestic Adani Lounge",
+    "AMD T2 international Adani Silver Lounge",
+    "IXA T1 domestic Primus Lounge",
+    "ATQ T1 domestic Primus Lounge",
+    "ATQ T1 international Airr Lounge",
+    "IXB T1 domestic Take Off Bar and Lounge",
+    "BHO T1 domestic Primus Lounge",
+    "BBI T1 domestic O'Vetra Lounge",
+    "IXC T1 domestic Primus Lounge",
+    "IXC T1 international Primus Lounge",
+    "COK T1 domestic Earth Lounge",
+    "COK T3 international Earth Lounge",
+    "COK T3 international Earth Business Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GAU T1 domestic The Lounge",
+    "JAI T2 domestic The Lounge",
+    "IXJ T1 domestic Paahun The Executive Lounge",
+    "CNN T1 domestic Pearl Lounge",
+    "CNN T1 international Pearl Lounge",
+    "IXM T1 domestic Primus Lounge",
+    "NAG T1 domestic Mandarin Lounge",
+    "NAG T1 domestic The Airr Lounge and Bar",
+    "PAT T1 domestic Uttham Lounge",
+    "PNQ T1 domestic Elysian Lounge",
+    "PNQ T1 international Elysian Lounge",
+    "PNQ T1 international Earth Lounge",
+    "VNS T1 domestic Take Off Bar"
+   ],
+   "listSource": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/revamp-page-images/docs/pdf/domestic_consolidated_lounge_list-1.pdf",
+   "verifiedOn": "2026-10-02",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/sapphiro-card",
+   "confidence": "partial",
+   "notes": "Read 2026-10-02 on the card page (`source`): \"Get 4 Domestic Airport Lounge access for primary cardholders on eligible spends of ₹75,000 or more in the preceding spends quarter\", and in its FAQ, \"you must spend ₹75,000 or more on your Sapphiro Credit Card in a calendar quarter. This entitles you to avail the lounge access benefit in the following calendar quarter\" — the gate the milestones dataset already holds. \"For customers with dual Credit Card variants (MasterCard and Amex), the entitlement includes 2 domestic lounge visits per quarter for each variant\": 4 in all, which is what Annexure 1 prints (\"Sapphiro Master Credit Card - Dual card - 2 each - 4\", and the same for the Visa and RuPay pair), but no more than 2 on either card of the pair; single Sapphiro cards (Visa, NRI, LTN) print 4. A row cannot tell a card of a pair from a single card, so `dualCardEach` carries the 2 and the line says both: \"4 a quarter domestic, 2 on each card of a dual pair\". Until 2026-10-02 it said only 4, which under each card of a vaulted pair read as 8. Partial: no desk in this directory is matched to it."
+  },
+  {
+   "id": "icici-rubyx-domestic",
+   "grant": "card",
+   "bank": "ICICI Bank",
+   "cards": [
+    "Rubyx"
+   ],
+   "programme": "issuer-direct",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "dualCardEach": 1,
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "spendGate": {
+    "milestoneRuleId": "icici-rubyx-quarter",
+    "summary": "if you spent ₹75,000 in the previous quarter"
+   },
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T2 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "DEL T3 international Encalm Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T1 domestic Good Times Bar",
+    "BOM T2 domestic Adani Lounge",
+    "BOM T2 international Adani Silver International Lounge",
+    "BLR T1 domestic 080 Lounge - West PH 1",
+    "BLR T1 domestic 080 Lounge - West PH 2",
+    "BLR T1 domestic 080 Lounge - East",
+    "BLR T2 domestic 080 Lounge",
+    "BLR T2 international 080 Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "HYD T1 international Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge A",
+    "MAA T1 domestic Travel Club Lounge B",
+    "MAA T2 international Travel Club Lounge",
+    "MAA T4 domestic Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "CCU T2 international Travel Club Lounge",
+    "GOI T1 domestic Travel Club Lounge",
+    "GOI T1 international Travel Club Lounge",
+    "GOX T1 domestic Encalm Lounge",
+    "GOX T1 international Encalm Lounge",
+    "AMD T1 domestic The Lounge",
+    "AMD T1 domestic Adani Lounge - Premium Loyalty",
+    "AMD T2 domestic Adani Lounge",
+    "AMD T2 international Adani Silver Lounge",
+    "IXA T1 domestic Primus Lounge",
+    "ATQ T1 domestic Primus Lounge",
+    "ATQ T1 international Airr Lounge",
+    "IXB T1 domestic Take Off Bar and Lounge",
+    "BHO T1 domestic Primus Lounge",
+    "BBI T1 domestic O'Vetra Lounge",
+    "IXC T1 domestic Primus Lounge",
+    "IXC T1 international Primus Lounge",
+    "COK T1 domestic Earth Lounge",
+    "COK T3 international Earth Lounge",
+    "COK T3 international Earth Business Lounge",
+    "CJB T1 domestic Blackberry Lounge",
+    "GAU T1 domestic The Lounge",
+    "JAI T2 domestic The Lounge",
+    "IXJ T1 domestic Paahun The Executive Lounge",
+    "CNN T1 domestic Pearl Lounge",
+    "CNN T1 international Pearl Lounge",
+    "IXM T1 domestic Primus Lounge",
+    "NAG T1 domestic Mandarin Lounge",
+    "NAG T1 domestic The Airr Lounge and Bar",
+    "PAT T1 domestic Uttham Lounge",
+    "PNQ T1 domestic Elysian Lounge",
+    "PNQ T1 international Elysian Lounge",
+    "PNQ T1 international Earth Lounge",
+    "VNS T1 domestic Take Off Bar"
+   ],
+   "listSource": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/revamp-page-images/docs/pdf/domestic_consolidated_lounge_list-1.pdf",
+   "verifiedOn": "2026-10-02",
+   "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/rubyx-credit-card",
+   "confidence": "partial",
+   "notes": "Read 2026-10-02 on the card page (`source`): \"Get 2 Domestic Airport Lounge access for primary cardholders on eligible spends of ₹75,000 or more in the preceding spends quarter\", the gate the milestones dataset already holds; \"For the customers with dual Credit Card variants (Mastercard & Amex | Visa & RuPay), the entitlement includes 1 domestic lounge visits per quarter for each variant\" — 2 in all, as Annexure 1 prints (\"Dual card 1 each\" against both pairs; 2 on every single Rubyx), at most 1 on either card of the pair, which `dualCardEach` carries: \"2 a quarter domestic, 1 on each card of a dual pair\". Rubyx’s 8 railway lounge visits are not modelled. Partial: no desk in this directory is matched to it."
   },
   {
    "id": "sbi-elite-priority-pass-outside-india",
@@ -1209,10 +3773,10 @@
     "allowed": false,
     "countsAgainstQuota": false
    },
-   "verifiedOn": "2026-09-15",
-   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-elite.page",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/sbi-card-elite.html",
    "confidence": "verified",
-   "notes": "SBI: 6 international visits a calendar year, at most 2 a quarter, via Priority Pass. SBI’s own charges table has three columns — domestic within India, international within India, international outside India — and only the last is complimentary, so this opens nothing at an Indian terminal."
+   "notes": "SBI: 6 international visits a calendar year, at most 2 a quarter, via Priority Pass. SBI’s own charges table has three columns — domestic within India, international within India, international outside India — and only the last is complimentary, so this opens nothing at an Indian terminal. Re-read 2026-10-01 on the card’s new page: \"6 complimentary airport lounge visits per calendar year, outside India (max. 2 visits per quarter)\"."
   },
   {
    "id": "sbi-elite-domestic",
@@ -1238,10 +3802,10 @@
     "allowed": false,
     "countsAgainstQuota": false
    },
-   "verifiedOn": "2026-09-15",
-   "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-elite.page",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/sbi-card-elite.html",
    "confidence": "partial",
-   "notes": "SBI: 2 domestic visits a quarter, fulfilled through the card NETWORKS (Visa / Mastercard / RuPay / American Express) rather than an aggregator — so the programme depends on which network the holder’s card carries, which one row cannot express. Hidden until the dataset can key a row to the card’s own network. SBI’s published domestic lounge lists also contain International T2/T3 rows, so its \"domestic\" entitlement may reach international terminals; unresolved."
+   "notes": "SBI: 2 domestic visits a quarter, fulfilled through the card NETWORKS (Visa / Mastercard / RuPay / American Express) rather than an aggregator — so the programme depends on which network the holder’s card carries, which one row cannot express. Hidden until the dataset can key a row to the card’s own network. SBI’s published domestic lounge lists also contain International T2/T3 rows, so its \"domestic\" entitlement may reach international terminals; unresolved. Re-read 2026-10-01: \"2 complimentary domestic airport lounge visits every quarter\". Elite is in neither Set A nor Set B on SBI’s lounge page (https://www.sbicard.com/en/personal/benefits/airport-lounge-access.page); it falls under \"all other products\", which points to the Mastercard, RuPay and Visa lists — so the network reading above still stands. The way in: present the SBI card, which must authorise on the lounge’s POS terminal. No `listedAt`: the list is whichever network the holder’s card is on, so the airport screen says nothing for this row and the card sheet states it."
   },
   {
    "id": "sbi-prime-priority-pass-outside-india",
@@ -1273,10 +3837,10 @@
     "allowed": false,
     "countsAgainstQuota": false
    },
-   "verifiedOn": "2026-09-15",
-   "source": "https://www.sbicard.com/en/personal/credit-cards/rewards/sbi-card-prime.page",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/sbi-card-prime.html",
    "confidence": "verified",
-   "notes": "SBI: 4 international visits a calendar year, at most 2 a quarter, outside India, via Priority Pass. PRIME is filed under /rewards/, not /lifestyle/ — the latter 404s."
+   "notes": "SBI: 4 international visits a calendar year, at most 2 a quarter, outside India, via Priority Pass. Re-read 2026-10-01: \"4 complimentary International Priority Pass Lounge visits per calendar year, outside India (max. 2 visits per quarter)\". The old /rewards/sbi-card-prime.page now redirects to the .html page cited."
   },
   {
    "id": "sbi-prime-domestic",
@@ -1308,10 +3872,41 @@
     "allowed": false,
     "countsAgainstQuota": false
    },
-   "verifiedOn": "2026-09-15",
-   "source": "https://www.sbicard.com/en/personal/credit-cards/rewards/sbi-card-prime.page",
+   "listedAt": [
+    "DEL T1 domestic Encalm Lounge",
+    "DEL T3 domestic Encalm Lounge",
+    "DEL T3 international Encalm Lounge",
+    "BOM T1 domestic Adani Lounge",
+    "BOM T2 domestic Travel Club",
+    "BOM T2 international Adani East Lounge",
+    "BLR T1 domestic 080 Domestic Lounge - West PH 2",
+    "BLR T2 domestic 080 Domestic Lounge",
+    "BLR T2 international 080 International Lounge",
+    "HYD T1 domestic Encalm Lounge",
+    "HYD T1 international Encalm Lounge",
+    "MAA T1 domestic Travel Club Lounge B",
+    "MAA T2 international Travel Club Lounge",
+    "CCU T1 domestic Travel Club Lounge",
+    "CCU T2 international Travel Club Lounge",
+    "AMD T1 domestic The Lounge",
+    "AMD T2 international Adani Silver Lounge",
+    "BBI T1 domestic Bird Lounge",
+    "IXC T1 domestic Primus Lounge",
+    "IXC T1 international Primus Lounge",
+    "COK T1 domestic Earth Lounge",
+    "COK T3 international Earth Lounge",
+    "CJB T1 domestic BlackBerry Restaurant & Bar",
+    "GOX T1 domestic Encalm Lounge",
+    "JAI T2 domestic The Lounge",
+    "PNQ T1 domestic Elysian Lounge",
+    "BDQ T1 domestic Premium Lounge",
+    "VTZ T1 domestic The Airr Lounge"
+   ],
+   "listSource": "https://www.sbicard.com/en/personal/benefits/airport-lounge-access.page",
+   "verifiedOn": "2026-10-01",
+   "source": "https://www.sbicard.com/en/personal/credit-cards/sbi-card-prime.html",
    "confidence": "partial",
-   "notes": "SBI: 8 domestic visits a year, at most 2 a quarter, through the card networks rather than an aggregator. Hidden for the same reason as ELITE’s domestic row — the programme depends on the holder’s network."
+   "notes": "SBI: 8 domestic visits a year, at most 2 a quarter, through the card networks rather than an aggregator. Hidden for the same reason as ELITE’s domestic row — the programme depends on the holder’s network. Re-read 2026-10-01, and that reason is now out of date: the card page still says \"8 complimentary domestic airport lounge visits (max. 2 visits per quarter)\" and still links the network lists, but SBI’s lounge page (https://www.sbicard.com/en/personal/benefits/airport-lounge-access.page) puts \"SBI Card PRIME\" in Set B, with SBI’s own list of 30 domestic lounges \"w.e.f. 10 Jan’26\" (Delhi: Encalm Domestic T1 and T3, International T3), entered by presenting the card, which must authorise on the lounge’s POS terminal. SBI contradicts itself between the two pages; the dated Set B list is the more specific. Where that list puts a desk is now `listedAt`; no desk is matched to a lounge here, so `programme` stays the old placeholder (never read while partial) and the row opens nothing. The quarterly ceiling still stands: the card page’s expanded lounge benefit, rendered 2026-10-01, reads \"8 complimentary domestic airport lounge visits (max. 2 visits per quarter)\"."
   },
   {
    "id": "amex-platinum-priority-pass-outside-india",
@@ -1340,6 +3935,227 @@
    "source": "https://www.americanexpress.com/in/charge-cards/platinum-card/",
    "confidence": "verified",
    "notes": "Unlimited Priority Pass access outside India; inside India the same pass is chargeable at US$35 a visit, which is not complimentary access and is therefore not modelled as opening anything. Amex also grants its own Centurion, Delta Sky Club, Plaza Premium and Lufthansa lounges — none of those programmes is yet provable against a lounge in this directory. The card is a CHARGE card on a different URL path; /in/credit-cards/platinum-card.html is an Amex error page."
+  },
+  {
+   "id": "union-rupay-select-rupay-domestic",
+   "grant": "card",
+   "bank": "Union Bank of India",
+   "cards": [
+    "RuPay Select"
+   ],
+   "programme": "rupay",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 8,
+    "period": {
+     "kind": "calendar-year"
+    },
+    "subCap": {
+     "visits": 2,
+     "period": {
+      "kind": "quarter",
+      "quarterBasis": "calendar"
+     }
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.unionbankofindia.bank.in/en/details/rupay-select-credit-card",
+   "confidence": "verified",
+   "notes": "Union: \"Domestic- 8 per Year (2 per Quarter)\". Both ceilings are the bank's own words, hence the sub-cap. The page names no programme beyond RuPay and states no spend condition; add-on cards are offered (\"Maximum 3 (three) add-on cards\") without saying they share the lounge quota, so the row is primary-only."
+  },
+  {
+   "id": "union-rupay-select-rupay-international",
+   "grant": "card",
+   "bank": "Union Bank of India",
+   "cards": [
+    "RuPay Select"
+   ],
+   "programme": "rupay",
+   "scope": [
+    "international"
+   ],
+   "region": "worldwide",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.unionbankofindia.bank.in/en/details/rupay-select-credit-card",
+   "confidence": "assumed",
+   "notes": "Union: \"International- 2 per Year\".",
+   "assumption": "Union does not say whether the two international visits work at Indian international terminals, abroad, or both. Canara describes the same NPCI programme as \"500+ Lounges across 300+ cities worldwide\", so the row is recorded as worldwide and shown as assumed."
+  },
+  {
+   "id": "canara-rupay-select-rupay-domestic",
+   "grant": "card",
+   "bank": "Canara Bank",
+   "cards": [
+    "RuPay Select"
+   ],
+   "programme": "rupay",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "quarter",
+     "quarterBasis": "calendar"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.canarabank.bank.in/pages/rupay-select-credit-card",
+   "confidence": "verified",
+   "notes": "Canara: \"Domestic Airport Lounge Access 2 per Qtr for Self\" and \"Two Free Access per quarter. Covers 30 Lounges across 11 cities in India\". Canara's credit-card variants table puts a \"cap of 4 per annum\" on the Platinum RuPay card only; the Select column reads \"Rupay: 2 per Qtr for Self\", so no annual cap is recorded."
+  },
+  {
+   "id": "canara-rupay-select-rupay-international",
+   "grant": "card",
+   "bank": "Canara Bank",
+   "cards": [
+    "RuPay Select"
+   ],
+   "programme": "rupay",
+   "scope": [
+    "international"
+   ],
+   "region": "worldwide",
+   "quota": {
+    "visits": 2,
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-21",
+   "source": "https://www.canarabank.bank.in/pages/rupay-select-credit-card",
+   "confidence": "verified",
+   "notes": "Canara: \"International Airport Lounge Access 2 per Year for Self\" and \"Two Free Access per year - covers 500+ Lounges across 300+ cities worldwide\". \"Worldwide\" is the bank's own word, hence the region."
+  },
+  {
+   "id": "union-nexteria-rupay-domestic",
+   "grant": "card",
+   "bank": "Union Bank of India",
+   "cards": [
+    "Nexteria"
+   ],
+   "programme": "rupay",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": true,
+    "countsAgainstQuota": false,
+    "perVisit": 3
+   },
+   "conditions": [
+    "Two Family Visit allow per Quarter 1+3"
+   ],
+   "verifiedOn": "2026-09-22",
+   "source": "https://www.unionbankofindia.bank.in/en/details/nexteria-credit-card",
+   "confidence": "verified",
+   "notes": "Union: \"Unlimited Lounge with family (Bank Curated offer with NPCI)\" and \"Two Family Visit allow per Quarter 1+3 & Unlimited visit for individuals (Domestic & International).\" Unlimited for the cardholder, so there is nothing to count and nothing to spend; guests are three a visit, the \"+3\" of \"1+3\", and cannot eat a quota that has no floor. The page states no add-on sharing, so the row is primary-only."
+  },
+  {
+   "id": "union-nexteria-rupay-international",
+   "grant": "card",
+   "bank": "Union Bank of India",
+   "cards": [
+    "Nexteria"
+   ],
+   "programme": "rupay",
+   "scope": [
+    "international"
+   ],
+   "region": "worldwide",
+   "quota": {
+    "visits": "unlimited",
+    "period": {
+     "kind": "calendar-year"
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": true,
+    "countsAgainstQuota": false,
+    "perVisit": 3
+   },
+   "conditions": [
+    "Two Family Visit allow per Quarter 1+3"
+   ],
+   "verifiedOn": "2026-09-22",
+   "source": "https://www.unionbankofindia.bank.in/en/details/nexteria-credit-card",
+   "confidence": "assumed",
+   "notes": "The international half of the same sentence: \"Unlimited visit for individuals (Domestic & International).\"",
+   "assumption": "Union writes the zone and not the geography, so whether this works only at India's international terminals or abroad as well is not stated. Recorded worldwide, which is the reading this file already gives Union's RuPay Select international row on Canara's description of the network's own programme as \"500+ Lounges across 300+ cities worldwide\". One bank's identical silence must not be read two ways in one file."
+  },
+  {
+   "id": "canara-rupay-platinum-rupay-domestic",
+   "grant": "card",
+   "bank": "Canara Bank",
+   "cards": [
+    "RuPay Platinum"
+   ],
+   "programme": "rupay",
+   "scope": [
+    "domestic"
+   ],
+   "region": "india",
+   "quota": {
+    "visits": 4,
+    "period": {
+     "kind": "calendar-year"
+    },
+    "subCap": {
+     "visits": 2,
+     "period": {
+      "kind": "quarter",
+      "quarterBasis": "calendar"
+     }
+    }
+   },
+   "holderScope": "primary",
+   "guests": {
+    "allowed": false,
+    "countsAgainstQuota": false
+   },
+   "verifiedOn": "2026-09-22",
+   "source": "https://www.canarabank.bank.in/rupay-platinum-credit-card",
+   "confidence": "verified",
+   "notes": "Canara: \"Domestic Airport Lounge Access (2 per quarter and max of 4 per year)\" and \"Lounge Access: Available at Selected Lounges\". The bank's two ceilings disagree with each other - two a quarter would be eight a year - and both are recorded as written, so the annual four is what binds and the quarterly two caps any single quarter. The same page states \"International Airport Lounge Access (NIL)\", an explicit no rather than a silence, so there is no international row and none should be added later."
   }
  ]
 }
