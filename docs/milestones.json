@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-23",
+ "generated": "2026-10-02",
  "rules": [
   {
    "id": "hdfc-regalia-gold-quarter",
@@ -214,7 +214,7 @@
      "kind": "reward",
      "benefit": {
       "type": "membership",
-      "text": "Club Marriott + Amazon Prime + Swiggy One annual memberships"
+      "text": "Club Marriott (primary cardholders only) + Amazon Prime + Swiggy One annual memberships"
      }
     }
    ],
@@ -225,7 +225,8 @@
    },
    "verifiedOn": "2026-09-12",
    "source": "https://www.hdfc.bank.in/credit-cards/diners-club-black-metal-edition-credit-card",
-   "confidence": "verified"
+   "confidence": "verified",
+   "notes": "The welcome T&C the page links (https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/diners-club-black-metal-edition-credit-card/diners-club-metal-tandc.pdf, dated 1 June 2026, read 2026-10-02), on Club Marriott: \"Membership can be availed only by Primary card holders on providing a valid Email and Mobile number registered on your HDFC Bank Diners Club Black Credit Card.\" It says no such thing of Amazon Prime or Swiggy One."
   },
   {
    "id": "hdfc-dcb-metal-year-fee",
@@ -431,7 +432,7 @@
      "kind": "fee-waiver",
      "benefit": {
       "type": "fee-waiver",
-      "text": "first-year joining fee waived"
+      "text": "first-year joining fee waived (fresh issuance only)"
      }
     }
    ],
@@ -779,9 +780,14 @@
     "excludes": [],
     "note": "Get 1,499 NeuCoins on Tata Neu App (as reversal of 1st Year Membership Fees), applicable on 1st Transaction done within 30 days of card issuance and will be available to claim inside Tata Neu App within 60 days of such transaction."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-12",
    "source": "https://www.hdfc.bank.in/credit-cards/tata-neu-infinity-hdfc-bank-credit-card",
-   "confidence": "verified"
+   "confidence": "verified",
+   "notes": "Page, read 2026-10-02: \"Welcome Benefit is not applicable on Lifetime Free and First Year Free Cards.\""
   },
   {
    "id": "hdfc-marriott-bonvoy-year",
@@ -929,11 +935,43 @@
     "excludes": [],
     "note": "Renewal fee waiver - Spend 10 lakhs or more in the preceding 12 months and get renewal membership fee waived off for next year."
    },
+   "issuedFrom": "2021-10-18",
    "verifiedOn": "2026-09-12",
    "source": "https://www.hdfc.bank.in/credit-cards/infinia-credit-card",
    "confidence": "assumed",
-   "notes": "Page also carries a stray \"Spend ₹8 lakh or more in a year\" line (legacy plastic Infinia); ₹10 lakh is stated three times and taken. Club Marriott + 12,500 points are on fee realisation, not spend.",
+   "notes": "Fees section: \"For INFINIA Cards sourced after October 18, 2021: ... Fee Waiver: Spend ₹10 lakh or more in a year before the renewal date to get the renewal fee waived.\" Cards sourced before then have their own ₹8 lakh waiver (hdfc-infinia-pre-2021-year-fee); 18 Oct itself is taken as after. Club Marriott + 12,500 points are on fee realisation, not spend.",
    "assumption": "\"preceding 12 months\" read as the card anniversary year. Excluded spends not stated."
+  },
+  {
+   "id": "hdfc-infinia-pre-2021-year-fee",
+   "bank": "HDFC Bank",
+   "cards": [
+    "Infinia"
+   ],
+   "period": {
+    "kind": "anniversary-year"
+   },
+   "tiers": [
+    {
+     "threshold": 800000,
+     "kind": "fee-waiver",
+     "benefit": {
+      "type": "fee-waiver",
+      "text": "renewal fee waived (cards sourced before 18 Oct 2021)"
+     }
+    }
+   ],
+   "stacks": false,
+   "counts": {
+    "excludes": [],
+    "note": "For INFINIA Cards sourced before October 18, 2021: Joining Fee: ₹10,000 plus Applicable Taxes. Renewal Fee: ₹10,000 plus Applicable Taxes. Fee Waiver: Spend ₹8 lakh or more in a year before the renewal date to get the renewal fee waived."
+   },
+   "issuedBefore": "2021-10-18",
+   "verifiedOn": "2026-10-02",
+   "source": "https://www.hdfc.bank.in/credit-cards/infinia-credit-card",
+   "confidence": "assumed",
+   "notes": "A segment HDFC marks on the page itself, under \"INFINIA Metal Edition Card Fees and Charges\", beside the ₹10 lakh waiver for cards sourced after that day; the vault tells the two apart by the joining date. An earlier read took this line for a stray legacy one.",
+   "assumption": "\"in a year before the renewal date\" read as the card anniversary year, and \"sourced before October 18, 2021\" as a joining date before that day. Excluded spends not stated."
   },
   {
    "id": "hdfc-moneyback-plus-quarter",
@@ -1114,9 +1152,14 @@
     "excludes": [],
     "note": "Get 499 NeuCoins on Tata Neu App (as reversal of 1st Year Membership Fees), applicable on 1st Transaction done within 30 days of card issuance and will be available to claim inside Tata Neu App within 60 days of such transaction."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-12",
    "source": "https://www.hdfc.bank.in/credit-cards/tata-neu-plus-hdfc-bank-credit-card",
-   "confidence": "verified"
+   "confidence": "verified",
+   "notes": "Page, read 2026-10-02: \"Welcome Benefit is not applicable on Lifetime Free and First Year Free Cards.\""
   },
   {
    "id": "hdfc-indianoil-year-fee",
@@ -1373,7 +1416,8 @@
      "benefit": {
       "type": "other",
       "text": "BookMyShow movie offer in the following quarter (buy one, up to ₹750 off the second, 4 a month)"
-     }
+     },
+     "approxWindow": true
     }
    ],
    "stacks": false,
@@ -1548,7 +1592,8 @@
      "benefit": {
       "type": "other",
       "text": "BookMyShow movie offer in the following quarter"
-     }
+     },
+     "approxWindow": true
     },
     {
      "threshold": 75000,
@@ -1556,14 +1601,14 @@
      "benefit": {
       "type": "lounge",
       "unit": "visits",
-      "text": "Domestic airport lounge access in the following calendar quarter"
+      "text": "Domestic airport lounge access in the following calendar quarter (primary cardholders only)"
      }
     }
    ],
    "stacks": true,
    "counts": {
     "excludes": [],
-    "note": "To enjoy domestic airport lounge access, you must spend ₹75,000 or more on your Sapphiro Credit Card in a calendar quarter."
+    "note": "To enjoy domestic airport lounge access, you must spend ₹75,000 or more on your Sapphiro Credit Card in a calendar quarter. This entitles you to avail the lounge access benefit in the following calendar quarter. The benefit is exclusively applicable to the primary Cardholder. Please note that the airport lounge access benefit is available only for primary Cardholders."
    },
    "verifiedOn": "2026-09-12",
    "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/sapphiro-card",
@@ -1732,7 +1777,8 @@
      "benefit": {
       "type": "other",
       "text": "BookMyShow movie offer in the following quarter"
-     }
+     },
+     "approxWindow": true
     },
     {
      "threshold": 75000,
@@ -1741,8 +1787,9 @@
       "type": "lounge",
       "value": 2,
       "unit": "visits",
-      "text": "2 domestic airport lounge visits in the following calendar quarter"
-     }
+      "text": "2 domestic airport lounge visits in the following calendar quarter (primary cardholders only)"
+     },
+     "approxWindow": true
     }
    ],
    "stacks": true,
@@ -1916,7 +1963,8 @@
      "benefit": {
       "type": "other",
       "text": "BookMyShow movie/event ticket offer in the following quarter"
-     }
+     },
+     "approxWindow": true
     },
     {
      "threshold": 75000,
@@ -1924,14 +1972,14 @@
      "benefit": {
       "type": "lounge",
       "unit": "visits",
-      "text": "Domestic airport lounge access in the following calendar quarter"
+      "text": "Domestic airport lounge access in the following calendar quarter (primary cardholders only)"
      }
     }
    ],
    "stacks": true,
    "counts": {
     "excludes": [],
-    "note": "To enjoy domestic airport lounge access, you must spend ₹75,000 or more on your Coral Credit Card in a calendar quarter. This entitles you to avail the lounge access benefit in the following calendar quarter."
+    "note": "To enjoy domestic airport lounge access, you must spend ₹75,000 or more on your Coral Credit Card in a calendar quarter. This entitles you to avail the lounge access benefit in the following calendar quarter. The benefit is exclusively applicable to the primary Cardholder. Please note that the airport lounge access benefit is available only for primary Cardholders."
    },
    "verifiedOn": "2026-09-12",
    "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/coral-credit-card",
@@ -1987,7 +2035,8 @@
      "benefit": {
       "type": "other",
       "text": "Movie ticket offer (25% off up to ₹150, twice a month) in the following quarter"
-     }
+     },
+     "approxWindow": true
     },
     {
      "threshold": 75000,
@@ -1996,7 +2045,7 @@
       "type": "lounge",
       "value": 2,
       "unit": "visits",
-      "text": "2 domestic airport lounge visits in the following quarter"
+      "text": "2 domestic airport lounge visits in the following quarter (primary cardholders only)"
      }
     }
    ],
@@ -2040,6 +2089,10 @@
     ],
     "note": "Earn flight vouchers on spends of ₹25,000 (not including joining/annual fee, interest or bank levies) within 60 days of card activation."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-12",
    "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/adani-icici-credit-card/signature-credit-card",
    "confidence": "verified",
@@ -2095,7 +2148,8 @@
       "value": 4,
       "unit": "visits",
       "text": "4 domestic airport lounge visits in the following calendar quarter"
-     }
+     },
+     "approxWindow": true
     }
    ],
    "stacks": false,
@@ -2145,6 +2199,9 @@
     ],
     "note": "Cardholder(s) will qualify for bonus 5,000 Skywards Miles as Joining and Annual Benefit if he / she is a Cardholder, subject to ₹(INR) 5 lakh spends in the previous year for the Annual Benefit."
    },
+   "notFor": [
+    "lifetime-free"
+   ],
    "verifiedOn": "2026-09-12",
    "source": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/revamp-page-images/docs/pdf/emirates-icici-bank-sapphiro-tnc.pdf",
    "confidence": "assumed",
@@ -2168,7 +2225,8 @@
      "benefit": {
       "type": "other",
       "text": "BookMyShow offer (up to ₹500 off the second ticket, twice a month) in the following quarter"
-     }
+     },
+     "approxWindow": true
     },
     {
      "threshold": 75000,
@@ -2178,7 +2236,8 @@
       "value": 2,
       "unit": "visits",
       "text": "2 domestic airport lounge visits in the following calendar quarter"
-     }
+     },
+     "approxWindow": true
     }
    ],
    "stacks": true,
@@ -2240,7 +2299,8 @@
      "benefit": {
       "type": "other",
       "text": "Movie ticket offer (25% off up to ₹100) in the following quarter"
-     }
+     },
+     "approxWindow": true
     },
     {
      "threshold": 75000,
@@ -2293,6 +2353,10 @@
     ],
     "note": "Spending ₹15,000 within 90 days of Card Membership entitles you to a Welcome Gift of 10,000 Membership Rewards® points. Eligible spends do not include cash advances, express cash transaction, draft made from the account, balance transfer, fees and is net of any returns"
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.americanexpress.com/in/credit-cards/platinum-travel-credit-card/",
    "confidence": "verified",
@@ -2443,6 +2507,10 @@
     "excludes": [],
     "note": "Welcome Gift of 4,000 Bonus Membership Rewards® Points will be applicable on payment of joining fee and on spending INR 15,000 within first 90 days of Cardmembership."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.americanexpress.com/in/credit-cards/membership-rewards-card/",
    "confidence": "verified",
@@ -2497,7 +2565,7 @@
       "type": "points",
       "value": 1000,
       "unit": "points",
-      "text": "1,000 bonus Membership Rewards points"
+      "text": "1,000 bonus Membership Rewards points (enrolment required)"
      }
     }
    ],
@@ -2575,6 +2643,10 @@
     "excludes": [],
     "note": "Welcome Gift is available only in the 1st year on payment of the annual fee and on spending INR 10,000 within 90 days of Cardmembership."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.americanexpress.com/in/charge-cards/gold-card/",
    "confidence": "verified",
@@ -2642,6 +2714,10 @@
     ],
     "note": "Rs. 500 cashback as a Welcome Gift in form of statement credit on eligible spends of Rs. 10,000 in the first 90 days. Eligible spends do not include cash advances, express cash transactions, drafts made from the Account, balance transfers and fees."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.americanexpress.com/in/credit-cards/smart-earn-credit-card/",
    "confidence": "verified",
@@ -2761,6 +2837,10 @@
     ],
     "note": "Welcome Gift is available only in the 1st year on payment of the annual fee and on spending INR 30,000 within 90 days of Cardmembership. Eligible spends do not include cash advances, express cash transaction, draft made from the account, balance transfer, fees and is net of any returns."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.americanexpress.com/in/credit-cards/platinum-reserve-credit-card/",
    "confidence": "verified",
@@ -2783,7 +2863,7 @@
       "type": "voucher",
       "value": 1000,
       "unit": "inr",
-      "text": "₹1,000 voucher (Tata CLiQ Luxury, BookMyShow, Shoppers Stop, Big Basket, PVR, MakeMyTrip)"
+      "text": "₹1,000 voucher (Tata CLiQ Luxury, BookMyShow, Shoppers Stop, Big Basket, PVR, MakeMyTrip; enrolment required)"
      }
     }
    ],
@@ -2847,7 +2927,8 @@
      "benefit": {
       "type": "voucher",
       "text": "welcome gift vouchers (choice from the benefits catalogue)"
-     }
+     },
+     "approxWindow": true
     }
    ],
    "stacks": false,
@@ -2855,6 +2936,10 @@
     "excludes": [],
     "note": "You will receive the welcome gift within 6-8 weeks of payment of annual fee and upon net spends of INR 50,000 in first 2 months of Cardmembership."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.americanexpress.com/in/charge-cards/platinum-card/",
    "confidence": "assumed",
@@ -2887,10 +2972,13 @@
     "excludes": [],
     "note": "On spends on INR 20 Lakhs in membership year and payment of renewal fee, get vouchers upto INR 35,000* as renewal benefit on the product"
    },
+   "notFor": [
+    "lifetime-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.americanexpress.com/in/charge-cards/platinum-card/",
    "confidence": "verified",
-   "notes": "Paid only with the renewal fee; the spend gate makes it a milestone rather than a plain renewal benefit. No fee waiver on spend for this card. Excluded spends not stated."
+   "notes": "Paid only with the renewal fee (\"and payment of renewal fee\"), so a card with no renewal fee is never paid it: left out for lifetime-free cards. A first-year-free card still pays the renewal after its first year. The spend gate makes it a milestone rather than a plain renewal benefit. No fee waiver on spend for this card. Excluded spends not stated."
   },
   {
    "id": "axis-atlas-year",
@@ -2981,6 +3069,10 @@
     "excludes": [],
     "note": "2500 EDGE Miles shall be credited to cardholders' EDGE Miles account upon successful completion of 1 transaction on the card within 37 days from the date of card issuance. Note: This will be applicable for all cards sourced from 20th April 2024 onwards."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "effectiveFrom": "2024-04-20",
    "verifiedOn": "2026-09-14",
    "source": "https://www.axis.bank.in/docs/default-source/default-document-library/credit-cards/terms-and-conditions-of-features-of-axis-bank-atlas-credit-card.pdf?sfvrsn=8bde9bb5_6",
@@ -3086,7 +3178,7 @@
       "type": "points",
       "value": 10000,
       "unit": "points",
-      "text": "10,000 EDGE REWARD Points"
+      "text": "10,000 EDGE REWARD Points (not for Burgundy account holders)"
      }
     }
    ],
@@ -3095,6 +3187,9 @@
     "excludes": [],
     "note": "Get 10,000 EDGE REWARD Points worth ₹2000 on your first card transaction (Not applicable for life time free credit card / burgundy account holders). First transaction to be done within 30 days of card issuance."
    },
+   "notFor": [
+    "lifetime-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.axis.bank.in/cards/credit-card/axis-bank-select-credit-card",
    "confidence": "verified"
@@ -3206,6 +3301,10 @@
     "excludes": [],
     "note": "15,000 Reward Points on Card activation* — *Customer must do first transaction within 30 days of card creation to be eligible for 15,000 Edge Reward points in the first year. Activation benefit is not appliable for customers who have first year free and life-time free credit card."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.axis.bank.in/cards/credit-card/reserve-credit-card/beyond-expectations-always",
    "confidence": "verified"
@@ -3227,7 +3326,7 @@
       "type": "points",
       "value": 10000,
       "unit": "points",
-      "text": "10,000 EDGE REWARD Points"
+      "text": "10,000 EDGE REWARD Points (spends counted when settled)"
      }
     }
    ],
@@ -3249,7 +3348,7 @@
    "verifiedOn": "2026-09-14",
    "source": "https://www.axis.bank.in/docs/default-source/default-document-library/credit-card/axis-privilege-credit-card-milestone-benefit-terms-and-conditions.pdf?sfvrsn=ab8f36bf_2",
    "confidence": "verified",
-   "notes": "PDF: \"card holders are entitled to additional 10,000 Edge Reward points on spends of Rs. 2.5 lakhs in a card anniversary year.\" Page: \"Get an additional 10,000 EDGE REWARDS points worth ₹2000 by spending ₹2.5 lakhs in a card anniversary year.\" Primary + add-on spends count. Earlier repeating \"every 2.5 Lakhs\" multi-brand voucher milestone was discontinued 20 Apr 2024."
+   "notes": "PDF: \"card holders are entitled to additional 10,000 Edge Reward points on spends of Rs. 2.5 lakhs in a card anniversary year.\" Page: \"Get an additional 10,000 EDGE REWARDS points worth ₹2000 by spending ₹2.5 lakhs in a card anniversary year.\" Primary + add-on spends count. PDF: \"Eligible transactions are those which qualify as customers' spend and settled by the merchant between the offer start and end dates, both days inclusive.\" Earlier repeating \"every 2.5 Lakhs\" multi-brand voucher milestone was discontinued 20 Apr 2024."
   },
   {
    "id": "axis-privilege-year-fee",
@@ -3318,6 +3417,10 @@
     "excludes": [],
     "note": "12,500 EDGE REWARD points, Worth ₹2500 redeemable against vouchers upon levy of joining fees and on completion of 1st transaction within 30 days of card issuance."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.axis.bank.in/cards/credit-card/privilege-credit-card-with-unlimited-benefits",
    "confidence": "verified",
@@ -3351,6 +3454,10 @@
     "excludes": [],
     "note": "5000 EDGE Miles shall be credited if the first transaction from the card is greater than INR 1000 within 30 days of Credit Card issuance. In the event that a customer's first transaction is below 1,000, and a subsequent second transaction is of 1,000 or above (even within 30 days), the customer will not be eligible for the welcome benefit."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.axis.bank.in/docs/default-source/default-document-library/credit-cards/terms-and-conditions-for-horizon-credit-card.pdf",
    "confidence": "verified",
@@ -3433,7 +3540,7 @@
      "kind": "fee-waiver",
      "benefit": {
       "type": "fee-waiver",
-      "text": "₹500 annual fee waived"
+      "text": "₹500 annual fee waived (spends counted by posting date: meet it 3 working days before the card anniversary)"
      }
     }
    ],
@@ -3478,10 +3585,14 @@
     "excludes": [],
     "note": "Flipkart voucher worth ₹250 on making the first transaction using your Flipkart Axis Bank Credit Card within 30 days of card issuance."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.axis.bank.in/cards/credit-card/flipkart-axisbank-credit-card",
    "confidence": "verified",
-   "notes": "Part of \"₹350 worth of activation benefits\"; the balance is a partner offer without a spend gate. A dated \"Cleartrip Voucher worth ₹1500 on minimum spends of ₹30,000 ... within 30 days\" promo is not shipped."
+   "notes": "Page, read 2026-10-02: \"Only paid cards with Joining Fee and Annual Fee are eligible for the welcome benefit of Flipkart Voucher worth INR 250. First-Year Free cards (with no Joining Fee) are not eligible for this voucher.\" The joining fee is \"₹NIL (Limited period offer)\" today, so most new cards are first-year free. Part of \"₹350 worth of activation benefits\"; the balance is a partner offer without a spend gate. A dated \"Cleartrip Voucher worth ₹1500 on minimum spends of ₹30,000 ... within 30 days\" promo is not shipped."
   },
   {
    "id": "axis-airtel-year-fee",
@@ -3543,6 +3654,10 @@
     "excludes": [],
     "note": "Get Amazon eVoucher worth ₹250 on first transaction made within first 30 days of card issuance. (offer not applicable for cards issued without Joining fee)"
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.axis.bank.in/cards/credit-card/airtel-axis-bank-credit-card",
    "confidence": "verified",
@@ -3592,6 +3707,10 @@
     ],
     "note": "The milestone spends calculation will be based on cumulative spends (net of any reversals) across eligible categories & transactions within a card anniversary year. Purchase transactions performed on Merchant Category Codes (MCC) detailed below shall not be considered for milestone benefit spends calculation: Government services, Insurance services, Utility Services (Including telecom), Rental payments, Wallet, Fuel, Jewelry, Bridge Fees, Road Fees & Tolls"
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.axis.bank.in/docs/default-source/default-document-library/final_indigo-base_customer-tnc.pdf?sfvrsn=797c78d0_2",
    "confidence": "verified",
@@ -3661,6 +3780,10 @@
     ],
     "note": "The milestone spends calculation will be based on cumulative spends (net of any reversals) across eligible categories & transactions within a card anniversary year. ... shall not be considered for milestone benefit spends calculation: Government services, Insurance services, Utility Services (Including telecom), Rental payments, Wallet, Fuel, Jewelry, Bridge Fees, Road Fees & Tolls"
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.axis.bank.in/docs/default-source/default-document-library/final_indigo-premium_customer-tnc.pdf?sfvrsn=6394c91f_2",
    "confidence": "verified",
@@ -4240,6 +4363,10 @@
     "excludes": [],
     "note": "Get 5,000 Travel Credits on spends of Rs. 1 lakh within 60 days of card issuance"
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles-elite.page",
    "confidence": "verified",
@@ -4364,6 +4491,10 @@
     "excludes": [],
     "note": "Get 3,000 Travel Credits on spends of Rs. 60,000 within 60 days of card issuance"
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.sbicard.com/en/personal/credit-cards/travel/sbi-card-miles-prime.page",
    "confidence": "verified",
@@ -4651,12 +4782,12 @@
    "stacks": false,
    "counts": {
     "excludes": [],
-    "note": "Spend based reversal of annual fee on spends of Rs. 2 Lakhs. Eligible spends incurred on the Credit Card within the last 365 days from the Annual Card Fee billing date shall be considered for the spend-based reversal of the Annual Card fees."
+    "note": "IRCTC SBI Card Premier: Annual Fee 1499, Renewal Fee 1499 (Waived off on annual spends of 2 Lakh or more in the preceding year)."
    },
-   "verifiedOn": "2026-09-14",
-   "source": "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/ekit-tncs/IRCTCPremiertnc.pdf",
+   "verifiedOn": "2026-10-02",
+   "source": "https://www.sbicard.com/en/most-important-terms-and-conditions.page",
    "confidence": "verified",
-   "notes": "Page: \"Spend Based Renewal Fee will be reversed within 30 days from Annual fee charged date.\" \"Eligible spends\" not itemised."
+   "notes": "The ₹2 lakh is SBI Card's MITC fee table, read 2026-10-02; the product page (irctc-sbi-card-premier.page) now returns SBI Card's 404. The ekit T&C (https://www.sbicard.com/sbi-card-en/assets/docs/pdf/ekit-tncs/IRCTCPremiertnc.pdf), cited until then, names no threshold, only the window: \"Eligible spends incurred on the Credit Card within the last 365 days from the Annual Card Fee billing date shall be considered for the spend-based reversal of the Annual Card fees.\" The 2026-09-14 read also quoted \"Spend Based Renewal Fee will be reversed within 30 days from Annual fee charged date.\" \"Eligible spends\" not itemised."
   },
   {
    "id": "sbi-reliance-prime-year",
@@ -5144,7 +5275,7 @@
       "type": "points",
       "value": 10000,
       "unit": "points",
-      "text": "10,000 bonus reward points"
+      "text": "10,000 bonus reward points (primary cardholders only)"
      }
     }
    ],
@@ -5159,7 +5290,7 @@
    "verifiedOn": "2026-09-14",
    "source": "https://www.hsbc.co.in/content/dam/hsbc/in/documents/milestone-benefits-2-tnc.pdf",
    "confidence": "verified",
-   "notes": "Page: \"Earn 10,000 bonus reward points when you spend more than INR1,200,000 a year.\" Net of reversals; add-on spends have no separate eligibility. Balance transfers are excluded (no SpendExclusion value). PDF calls itself \"a limited period Offer\" (© 2024)."
+   "notes": "Page: \"Earn 10,000 bonus reward points when you spend more than INR1,200,000 a year.\" Net of reversals. T&C: \"This Offer is only applicable to HSBC TravelOne Primary Credit Cards\" and \"Add-on credit Cardholders will not have separate Offer eligibility\". Balance transfers are excluded (no SpendExclusion value). PDF calls itself \"a limited period Offer\" (© 2024)."
   },
   {
    "id": "hsbc-travelone-year-fee",
@@ -5176,7 +5307,7 @@
      "kind": "fee-waiver",
      "benefit": {
       "type": "fee-waiver",
-      "text": "₹4,999 annual fee reversed"
+      "text": "₹4,999 annual fee reversed (spends on the primary card only)"
      }
     }
    ],
@@ -5209,7 +5340,7 @@
       "type": "cashback",
       "value": 1000,
       "unit": "inr",
-      "text": "₹1,000 cashback + ₹3,000 Postcard Hotels voucher + 3 months EazyDiner Prime"
+      "text": "₹1,000 cashback + ₹3,000 Postcard Hotels voucher + 3 months EazyDiner Prime (download and log on to the HSBC India Mobile Banking app)"
      }
     }
    ],
@@ -5245,7 +5376,7 @@
       "type": "points",
       "value": 20000,
       "unit": "points",
-      "text": "20,000 reward points"
+      "text": "20,000 reward points (first transaction must not be fuel, a fee, a charge or a cash advance)"
      }
     }
    ],
@@ -5258,6 +5389,10 @@
     ],
     "note": "eligible Premier Credit Cardholders will receive 20,000 reward points upon completing their first transaction using the HSBC Premier Credit Card, within 30 days of card issuance. Reward points will not be awarded if the first transaction involves fees, charges, cash advances, disputed transactions, or falls within the following merchant categories: Merchant Group: Fuel; Merchant Category Codes (MCC): 5541, 5983, 5172, 5542, 5552"
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.hsbc.co.in/content/dam/hsbc/in/documents/introductory-offers-tc-premier-credit-card.pdf",
    "confidence": "verified",
@@ -5281,7 +5416,7 @@
       "type": "cashback",
       "value": 1000,
       "unit": "inr",
-      "text": "₹1,000 cashback"
+      "text": "₹1,000 cashback (download and log on to the HSBC India Mobile Banking app)"
      }
     }
    ],
@@ -5345,7 +5480,7 @@
       "type": "points",
       "value": 2000,
       "unit": "points",
-      "text": "2,000 reward points"
+      "text": "2,000 reward points (download and log on to the HSBC India Mobile Banking app, and activate the card)"
      }
     }
    ],
@@ -5377,7 +5512,7 @@
      "kind": "fee-waiver",
      "benefit": {
       "type": "fee-waiver",
-      "text": "₹999 annual fee reversed"
+      "text": "₹999 annual fee reversed (spends on the primary card only)"
      }
     }
    ],
@@ -5642,7 +5777,7 @@
       "type": "lounge",
       "value": 2,
       "unit": "visits",
-      "text": "2 domestic airport lounge visits in the next calendar quarter"
+      "text": "2 domestic airport lounge visits in the next calendar quarter (primary cardholders only)"
      }
     }
    ],
@@ -6162,7 +6297,7 @@
       "type": "points",
       "value": 1000,
       "unit": "points",
-      "text": "1,000 Reward Points + ₹1,000 ixigo money vouchers"
+      "text": "1,000 Reward Points + ₹1,000 ixigo money vouchers (vouchers for new-to-bank customers only)"
      }
     }
    ],
@@ -6194,7 +6329,7 @@
       "type": "lounge",
       "value": 2,
       "unit": "visits",
-      "text": "2 domestic airport lounge visits in the next calendar quarter"
+      "text": "2 domestic airport lounge visits in the next calendar quarter (primary cardholders only)"
      }
     }
    ],
@@ -6905,7 +7040,7 @@
       "type": "voucher",
       "value": 500,
       "unit": "inr",
-      "text": "₹500 gift voucher on top brands"
+      "text": "₹500 gift voucher on top brands (spends on the primary card only)"
      }
     }
    ],
@@ -6968,7 +7103,7 @@
       "type": "voucher",
       "value": 500,
       "unit": "inr",
-      "text": "₹500 gift voucher on top brands"
+      "text": "₹500 gift voucher on top brands (spends on the primary card only)"
      }
     }
    ],
@@ -7040,10 +7175,11 @@
     "excludes": [],
     "note": "₹1,000 cashback for each of 4 transactions worth ₹1,000+ completed within 60 days of card generation (cashback credited within 7 days of transaction settlement)"
    },
+   "withdrawnOn": "2025-09-01",
    "verifiedOn": "2026-09-14",
    "source": "https://www.idfcfirst.bank.in/credit-card/metal-credit-card/mayura",
    "confidence": "verified",
-   "notes": "Quoted from the page's own JSON-LD \"Joining benefit\" entry. Each qualifying transaction pays ₹1,000; the tier counts the four."
+   "notes": "Quoted 2026-09-14 from the page's own JSON-LD \"Joining benefit\" entry. Each qualifying transaction paid ₹1,000; the tier counted the four. Withdrawn: re-read 2026-10-02, the page carries it nowhere, in its text or its JSON-LD. Its joining benefit is now the Joining Fee Payment Benefit (idfc-mayura-welcome-cycles), \"Applicable for Mayura Credit Cards generated on and after 1st September 2025\", so every Mayura inside a 60-day window since then has that one and not this. withdrawnOn is the day that benefit starts; IDFC names no end date for the cashback."
   },
   {
    "id": "idfc-mayura-welcome-cycles",
@@ -7063,8 +7199,9 @@
       "type": "points",
       "value": 4000,
       "unit": "points",
-      "text": "4,000 Reward Points per qualifying statement cycle (2nd and 3rd cycles; up to 8,000)"
-     }
+      "text": "4,000 Reward Points per qualifying statement cycle (2nd and 3rd cycles; up to 8,000; spends counted when settled)"
+     },
+     "approxWindow": true
     }
    ],
    "stacks": false,
@@ -7076,6 +7213,10 @@
     ],
     "note": "Only settled retail transactions done via the Primary Credit Card, Add-on Credit Cards and FIRST Digital Credit Card associated with the Primary Credit Card will be considered for milestone evaluation. Exclusions: Cash withdrawals, Monthly instalments of the transactions converted into EMI, Fees & charges, Interest, GST, Reversals/refunds."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "effectiveFrom": "2025-09-01",
    "verifiedOn": "2026-09-14",
    "source": "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/Mayura-Joining-Fee-Payment-Benefit-TnC-29-08-25-2.pdf",
@@ -7122,6 +7263,9 @@
     ],
     "note": "Only net spends will be considered for annual fee payment benefit. The following transactions will not be considered: a. Fee, charges, and the corresponding GST. b. The transactions which get refunded or reversed. c. Cash withdrawal."
    },
+   "notFor": [
+    "lifetime-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/Mayura-Credit-Card-Annual%20fee%20payment-Offer-29-08-25-02.pdf",
    "confidence": "verified",
@@ -7185,10 +7329,11 @@
     "excludes": [],
     "note": "₹500 cashback for each of 4 transactions worth ₹500+ done within 60 days of card generation (joining benefit credited next statement)"
    },
+   "withdrawnOn": "2025-09-01",
    "verifiedOn": "2026-09-14",
    "source": "https://www.idfcfirst.bank.in/credit-card/metal-credit-card/ashva",
    "confidence": "verified",
-   "notes": "Quoted from the page's own JSON-LD \"Joining benefit\" entry."
+   "notes": "Quoted 2026-09-14 from the page's own JSON-LD \"Joining benefit\" entry, beside an APR \"effective from Feb 20, 2025\"; the visible page never said it. Withdrawn: re-read 2026-10-02, the page's text offers only the Joining Fee Payment Benefit (idfc-ashva-welcome-cycles), \"Applicable for Ashva Credit Cards generated on and after 1st September 2025\", and its T&C PDF names no cashback. The HTML the server sends no longer carries it, but the page as a browser renders it still does, in a JSON-LD \"Joining Benefits\" entry (\"₹500 cashback for each of 4 transactions worth ₹500+ done within 60 days of card generation\"), re-read 2026-10-02. Read as stale: the visible page and the T&C name only the new benefit. Replaced as Mayura's was; withdrawnOn is the day the new benefit starts."
   },
   {
    "id": "idfc-ashva-welcome-cycles",
@@ -7208,8 +7353,9 @@
       "type": "points",
       "value": 2500,
       "unit": "points",
-      "text": "2,500 Reward Points per qualifying statement cycle (2nd and 3rd cycles; up to 5,000)"
-     }
+      "text": "2,500 Reward Points per qualifying statement cycle (2nd and 3rd cycles; up to 5,000; spends counted when settled)"
+     },
+     "approxWindow": true
     }
    ],
    "stacks": false,
@@ -7221,6 +7367,10 @@
     ],
     "note": "Only settled retail transactions done via the Primary Credit Card, Add-on Credit Cards and FIRST Digital Credit Card associated with the Primary Credit Card will be considered for milestone evaluation. Exclusions: Cash withdrawals, Monthly instalments of the transactions converted into EMI, Fees & charges, Interest, GST, Reversals/refunds."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "effectiveFrom": "2025-09-01",
    "verifiedOn": "2026-09-14",
    "source": "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/Ashva-Joining-Fee-Payment-Benefit-T-C-29-08-25-2.pdf",
@@ -7257,6 +7407,9 @@
     ],
     "note": "Only net spends will be considered for annual fee payment benefit. The following transactions will not be considered: a. Fee, charges, and the corresponding GST. b. The transactions which get refunded or reversed. c. Cash withdrawal."
    },
+   "notFor": [
+    "lifetime-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/Ashva-Credit-Card-Annual-Fee-Payment-Benefit-Offer-29-08-25-02.pdf",
    "confidence": "verified",
@@ -7376,8 +7529,9 @@
       "type": "points",
       "value": 2000,
       "unit": "points",
-      "text": "2,000 bonus Maharaja Points per qualifying billing cycle (2nd, 3rd and 4th cycles; up to 6,000)"
-     }
+      "text": "2,000 bonus Maharaja Points per qualifying billing cycle (2nd, 3rd and 4th cycles; up to 6,000; transactions under ₹200 not counted)"
+     },
+     "approxWindow": true
     }
    ],
    "stacks": false,
@@ -7473,7 +7627,7 @@
       "type": "voucher",
       "value": 500,
       "unit": "inr",
-      "text": "₹500 gift voucher on top brands"
+      "text": "₹500 gift voucher on top brands (spends on the primary card only)"
      }
     }
    ],
@@ -7505,7 +7659,7 @@
       "type": "voucher",
       "value": 500,
       "unit": "inr",
-      "text": "₹500 gift voucher on top brands"
+      "text": "₹500 gift voucher on top brands (spends on the primary card only)"
      }
     }
    ],
@@ -7571,7 +7725,7 @@
       "type": "voucher",
       "value": 250,
       "unit": "inr",
-      "text": "₹250 gift voucher (first HPCL fuel transaction of ₹250 or above)"
+      "text": "₹250 gift voucher (first HPCL fuel transaction of ₹250 or above; primary card only)"
      }
     }
    ],
@@ -7580,6 +7734,10 @@
     "excludes": [],
     "note": "FIRST Power: ₹250 worth gift voucher on 1st fuel transaction of ₹250 or above at HPCL fuel station. Applicability: Only on Fuel Transactions done at HPCL Authorised Fuel stations. Validity: Within 60 days of card set-up. UPI transactions done using FIRST Power/Power+ will not be eligible for this offer. Only cardholders who have paid the Joining Fee will be eligible for this offer."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "effectiveFrom": "2025-06-10",
    "verifiedOn": "2026-09-14",
    "source": "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/cards/Power-Series-Welcome-Offer-Benefits.pdf",
@@ -7638,7 +7796,7 @@
       "type": "voucher",
       "value": 500,
       "unit": "inr",
-      "text": "₹500 gift voucher (first HPCL fuel transaction of ₹500 or above)"
+      "text": "₹500 gift voucher (first HPCL fuel transaction of ₹500 or above; primary card only)"
      }
     }
    ],
@@ -7647,6 +7805,10 @@
     "excludes": [],
     "note": "FIRST Power+: ₹500 worth gift voucher on 1st fuel transaction of ₹500 or above at HPCL fuel station. Applicability: Only on Fuel Transactions done at HPCL Authorised Fuel stations. Validity: Within 60 days of card set-up. UPI transactions done using FIRST Power/Power+ will not be eligible for this offer. Only cardholders who have paid the Joining Fee will be eligible for this offer."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "effectiveFrom": "2025-06-10",
    "verifiedOn": "2026-09-14",
    "source": "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/cards/Power-Series-Welcome-Offer-Benefits.pdf",
@@ -7680,6 +7842,10 @@
     "excludes": [],
     "note": "Welcome Offer: Gift voucher worth ₹500 on spending ₹5,000 within 30 days of joining fee payment"
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.idfcfirst.bank.in/credit-card/swyp-emi-credit-card",
    "confidence": "verified",
@@ -7938,6 +8104,10 @@
     "excludes": [],
     "note": "Limited Period Introductory offer - 100% cashback of ₹200, i.e. up to ₹50 each, on first 4 UPI transactions done within 15 days of card issuance. Cashback will be credited to eligible customers within 60 days of card generation date. Welcome offer of Rs.200 Cashback is not applicable for FIRST Digital RuPay Credit Cards issued without joining fee."
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.idfcfirst.bank.in/credit-card/rupay-credit-card",
    "confidence": "verified",
@@ -8105,8 +8275,9 @@
       "type": "points",
       "value": 2000,
       "unit": "points",
-      "text": "2,000 Reward Points + 3-month EazyDiner Prime renewal"
-     }
+      "text": "2,000 Reward Points + 3-month EazyDiner Prime renewal (spends counted when settled)"
+     },
+     "approxWindow": true
     }
    ],
    "stacks": false,
@@ -8551,7 +8722,7 @@
       "type": "voucher",
       "value": 5000,
       "unit": "inr",
-      "text": "White Pass value ₹5,000"
+      "text": "White Pass value ₹5,000 (spends counted when settled)"
      }
     },
     {
@@ -8561,7 +8732,7 @@
       "type": "voucher",
       "value": 6000,
       "unit": "inr",
-      "text": "White Pass value ₹6,000 (₹11,000 cumulative)"
+      "text": "White Pass value ₹6,000 (₹11,000 cumulative; spends counted when settled)"
      }
     },
     {
@@ -8571,7 +8742,7 @@
       "type": "voucher",
       "value": 9000,
       "unit": "inr",
-      "text": "White Pass value ₹9,000 (₹20,000 cumulative)"
+      "text": "White Pass value ₹9,000 (₹20,000 cumulative; spends counted when settled)"
      }
     },
     {
@@ -8581,7 +8752,7 @@
       "type": "voucher",
       "value": 12000,
       "unit": "inr",
-      "text": "White Pass value ₹12,000 (₹32,000 cumulative)"
+      "text": "White Pass value ₹12,000 (₹32,000 cumulative; spends counted when settled)"
      }
     },
     {
@@ -8591,7 +8762,7 @@
       "type": "voucher",
       "value": 13000,
       "unit": "inr",
-      "text": "White Pass value ₹13,000 (₹45,000 cumulative)"
+      "text": "White Pass value ₹13,000 (₹45,000 cumulative; spends counted when settled)"
      }
     },
     {
@@ -8601,7 +8772,7 @@
       "type": "voucher",
       "value": 24000,
       "unit": "inr",
-      "text": "White Pass value ₹24,000 (₹69,000 cumulative)"
+      "text": "White Pass value ₹24,000 (₹69,000 cumulative; spends counted when settled)"
      }
     },
     {
@@ -8611,7 +8782,7 @@
       "type": "voucher",
       "value": 26000,
       "unit": "inr",
-      "text": "White Pass value ₹26,000 (₹95,000 cumulative)"
+      "text": "White Pass value ₹26,000 (₹95,000 cumulative; spends counted when settled)"
      }
     },
     {
@@ -8621,7 +8792,7 @@
       "type": "voucher",
       "value": 28000,
       "unit": "inr",
-      "text": "White Pass value ₹28,000 (₹1,23,000 cumulative)"
+      "text": "White Pass value ₹28,000 (₹1,23,000 cumulative; spends counted when settled)"
      }
     },
     {
@@ -8631,7 +8802,7 @@
       "type": "voucher",
       "value": 63000,
       "unit": "inr",
-      "text": "White Pass value ₹63,000 (₹1,86,000 cumulative)"
+      "text": "White Pass value ₹63,000 (₹1,86,000 cumulative; spends counted when settled)"
      }
     },
     {
@@ -8641,7 +8812,7 @@
       "type": "voucher",
       "value": 64000,
       "unit": "inr",
-      "text": "White Pass value ₹64,000 (₹2,50,000 cumulative)"
+      "text": "White Pass value ₹64,000 (₹2,50,000 cumulative; spends counted when settled)"
      }
     }
    ],
@@ -8653,7 +8824,7 @@
    "verifiedOn": "2026-09-14",
    "source": "https://www.kotak.bank.in/en/personal-banking/cards/credit-cards/white-reserve-credit-card/whitepass.html",
    "confidence": "assumed",
-   "notes": "White Pass table 3L → ₹5,000 … 1Cr → ₹64,000 with a running \"Total\" column (₹2,50,000 at 1Cr) → stacks. \"White Passes earned will be valid for 15 months from the date of credit.\" Main page: \"Earn White Pass Value up to ₹ 2.5 lakh annually\". One active White/White Reserve card per customer or no White Pass is credited.",
+   "notes": "White Pass table 3L → ₹5,000 … 1Cr → ₹64,000 with a running \"Total\" column (₹2,50,000 at 1Cr) → stacks. \"White Passes earned will be valid for 15 months from the date of credit.\" Main page: \"Earn White Pass Value up to ₹ 2.5 lakh annually\". One active White/White Reserve card per customer or no White Pass is credited: \"As per internal norms, customer can hold only one active White or White Reserve Credit Card. White Pass will not be credited if customer holds multiple active White and/or White Reserve cards.\" Not yet acted on: a vault holding two such cards for one holder still shows both ladders.",
    "assumption": "No excluded-category list is stated on the White Reserve White Pass page; all settled retail spend is counted. The sister White card excludes transportation and education from White Pass milestones from 1 Apr 2026 — Kotak may apply the same here."
   },
   {
@@ -8713,10 +8884,14 @@
     "excludes": [],
     "note": "Earn White Pass value of ₹1,500* on spending ₹30,000 within 60 days from card set-up"
    },
+   "notFor": [
+    "lifetime-free",
+    "first-year-free"
+   ],
    "verifiedOn": "2026-09-14",
    "source": "https://www.kotak.bank.in/en/personal-banking/cards/credit-cards/white-credit-card/whitepass.html",
    "confidence": "verified",
-   "notes": "Main page phrases it \"Earn Reward Point value of ₹1,500* on spending ₹30,000 within 60 days from card set-up\"."
+   "notes": "Main page phrases it \"Earn Reward Point value of ₹1,500* on spending ₹30,000 within 60 days from card set-up\". Its * footnote: \"*Receipt of these benefits is subject to payment of joining fee. Not applicable for free varaint\" (sic). Read 2026-10-02 to settle what the footnote covers: Privy League's page for the free variant (https://www.kotak.bank.in/en/personal-banking/privy-league/cards/white-signature-credit-card.html, \"Joining Fee: NIL- & Annual Fee: NIL*\") lists White Pass value, the lounges and the fuel surcharge waiver, and no welcome benefit. So a card issued without the joining fee is left out."
   },
   {
    "id": "kotak-white-year",
@@ -8735,7 +8910,7 @@
       "type": "voucher",
       "value": 2000,
       "unit": "inr",
-      "text": "White Pass value ₹2,000"
+      "text": "White Pass value ₹2,000 (spends counted when settled)"
      }
     },
     {
@@ -8745,7 +8920,7 @@
       "type": "voucher",
       "value": 4000,
       "unit": "inr",
-      "text": "White Pass value ₹4,000 (₹6,000 cumulative)"
+      "text": "White Pass value ₹4,000 (₹6,000 cumulative; spends counted when settled)"
      }
     },
     {
@@ -8755,7 +8930,7 @@
       "type": "voucher",
       "value": 6000,
       "unit": "inr",
-      "text": "White Pass value ₹6,000 (₹12,000 cumulative)"
+      "text": "White Pass value ₹6,000 (₹12,000 cumulative; spends counted when settled)"
      }
     },
     {
@@ -8765,7 +8940,7 @@
       "type": "voucher",
       "value": 7000,
       "unit": "inr",
-      "text": "White Pass value ₹7,000 (₹19,000 cumulative)"
+      "text": "White Pass value ₹7,000 (₹19,000 cumulative; spends counted when settled)"
      }
     },
     {
@@ -8775,7 +8950,7 @@
       "type": "voucher",
       "value": 8000,
       "unit": "inr",
-      "text": "White Pass value ₹8,000 (₹27,000 cumulative)"
+      "text": "White Pass value ₹8,000 (₹27,000 cumulative; spends counted when settled)"
      }
     }
    ],
@@ -8789,7 +8964,7 @@
    "verifiedOn": "2026-09-14",
    "source": "https://www.kotak.bank.in/en/personal-banking/cards/credit-cards/white-credit-card/whitepass.html",
    "confidence": "verified",
-   "notes": "\"Earn White Pass value upto Rs. 27,000 every year on annual spends of Rs. 12 lacs\". \"Every year on the anniversary date of the card, reward point value will be reset to zero.\" Transportation has no SpendExclusion value. Exclusion sentence from the 1-Apr-2026 revision page https://images.kotak.bank.in/bank/mailers/2026/files/WhiteFees&Charges.html (linked from the product page)."
+   "notes": "\"Earn White Pass value upto Rs. 27,000 every year on annual spends of Rs. 12 lacs\". \"Every year on the anniversary date of the card, reward point value will be reset to zero.\" Transportation has no SpendExclusion value. Exclusion sentence from the 1-Apr-2026 revision page https://images.kotak.bank.in/bank/mailers/2026/files/WhiteFees&Charges.html (linked from the product page). \"As per internal norms, customer can hold only one active White or White Reserve Credit Card. White Pass will not be credited if customer holds multiple active White and/or White Reserve cards.\" Not yet acted on: a vault holding two such cards for one holder still shows both ladders."
   },
   {
    "id": "kotak-white-year-fee",
@@ -8838,7 +9013,7 @@
       "type": "points",
       "value": 7500,
       "unit": "points",
-      "text": "7,500 bonus Zen Points"
+      "text": "7,500 bonus Zen Points (spends counted when settled)"
      }
     },
     {
@@ -8848,7 +9023,7 @@
       "type": "points",
       "value": 15000,
       "unit": "points",
-      "text": "15,000 bonus Zen Points"
+      "text": "15,000 bonus Zen Points (spends counted when settled)"
      }
     }
    ],
@@ -9107,7 +9282,7 @@
       "type": "points",
       "value": 10000,
       "unit": "points",
-      "text": "10,000 bonus Reward Points"
+      "text": "10,000 bonus Reward Points (spends counted when settled)"
      }
     },
     {
@@ -9117,7 +9292,7 @@
       "type": "points",
       "value": 30000,
       "unit": "points",
-      "text": "30,000 bonus Reward Points"
+      "text": "30,000 bonus Reward Points (spends counted when settled)"
      }
     }
    ],
@@ -9133,12 +9308,13 @@
      "education",
      "cash"
     ],
-    "note": "Spends on Utility, Wallet Load, Fuel, Online skill-based gaming, Insurance, Government, Rent, and Education will not be considered when calculating milestone benefits. The milestone program is valid for retail transactions only. Cash transactions, Personal Loan on cards & Balance Transfer transactions are not eligible."
+    "note": "Spends on Utility, Wallet Load, Fuel, Online skill-based gaming, Insurance, Government, Rent, and Education will not be considered when calculating milestone benefits. The milestone program is valid for retail transactions only. Cash transactions, Personal Loan on cards & Balance Transfer transactions are not eligible. For milestone benefits, all transactions settled during milestone period will be considered."
    },
+   "issuedFrom": "2017-02-25",
    "verifiedOn": "2026-09-14",
    "source": "https://www.kotak.bank.in/en/personal-banking/cards/credit-cards/royale-signature-credit-card/milestone-program.html",
    "confidence": "verified",
-   "notes": "\"Customer will be eligible for Bonus Reward Points basis only one of the Milestones at the end of the term. If someone has achieved spends of Rs. 8 Lakhs, he will be entitled to only 30,000 reward points.\" Period: \"your milestone program will run from the date of issuance to the next anniversary date\" (cards issued after 25 Feb 2017; earlier cards run 1 Feb – 31 Jan). Reward-milestone T&C PDF: credited in the statement after the anniversary; points expire 2 years after credit. Card discontinued for new applications; programme still published."
+   "notes": "\"Customer will be eligible for Bonus Reward Points basis only one of the Milestones at the end of the term. If someone has achieved spends of Rs. 8 Lakhs, he will be entitled to only 30,000 reward points.\" Period: \"In case, your card is issued post 25th Feb'17, your milestone program will run from the date of issuance to the next anniversary date.\" Before then: \"In case, your card is issued prior to 25th Feb'17, your milestone program will run from 1st Feb to 31st Jan every year\", so those cards are left out (issuedFrom; 25 Feb itself taken as post). \"Example- Milestone period is 1st Jan 2021 to 31st Dec 2021, then the transactions settled till 31st Dec 2021 will be considered for milestone benefits.\" Reward-milestone T&C PDF: credited in the statement after the anniversary; points expire 2 years after credit. Card discontinued for new applications; programme still published."
   },
   {
    "id": "kotak-royale-signature-year-fee",
@@ -9187,7 +9363,7 @@
       "type": "points",
       "value": 10000,
       "unit": "points",
-      "text": "10,000 bonus Reward Points (paid variant: 7,000 at ₹3L)"
+      "text": "10,000 bonus Reward Points (paid variant: 7,000 at ₹3L; spends counted when settled)"
      }
     },
     {
@@ -9197,7 +9373,7 @@
       "type": "points",
       "value": 30000,
       "unit": "points",
-      "text": "30,000 bonus Reward Points"
+      "text": "30,000 bonus Reward Points (spends counted when settled)"
      }
     }
    ],
@@ -9290,7 +9466,7 @@
       "type": "points",
       "value": 2500,
       "unit": "points",
-      "text": "2,500 Mojo Points (first year after issuance only)"
+      "text": "2,500 Mojo Points (first year after issuance only; spends counted when settled)"
      }
     }
    ],
@@ -9543,7 +9719,7 @@
      "kind": "reward",
      "benefit": {
       "type": "voucher",
-      "text": "3 complimentary PVR tickets"
+      "text": "3 complimentary PVR tickets (spends counted when settled)"
      }
     }
    ],
@@ -9558,12 +9734,12 @@
      "fuel",
      "rent"
     ],
-    "note": "Utility, Education, Wallet Loading, Government, Insurance, Online Skill based Gaming, Fuel and Rent will not be considered while calculating milestone benefits"
+    "note": "Utility, Education, Wallet Loading, Government, Insurance, Online Skill based Gaming, Fuel and Rent will not be considered while calculating milestone benefits. For milestone benefits, all transactions settled during milestone period will be considered."
    },
    "verifiedOn": "2026-09-14",
    "source": "https://www.kotak.bank.in/en/personal-banking/cards/credit-cards/kotak-811-credit-card/milestone-program.html",
    "confidence": "verified",
-   "notes": "\"...eligible to get free PVR tickets as mentioned below on achieving the spends criteria of INR 75,000 in an anniversary year\" ; \"Your anniversary year will run from the date of issuance to the next anniversary date.\" ; \"You can claim your PVR tickets within 3 months after the anniversary year gets over.\" Exclusions effective 1 Jun 2025; gaming has no SpendExclusion value. Re-read 2026-09-14 via the Firecrawl snapshot: the page now renders fully and still carries no such milestone — only a generic \"milestone vouchers\" bullet."
+   "notes": "\"...eligible to get free PVR tickets as mentioned below on achieving the spends criteria of INR 75,000 in an anniversary year\" ; \"Your anniversary year will run from the date of issuance to the next anniversary date. i.e. If your card is issued on 30th of June, then your anniversary year for milestone program will run from 1st July to 30th June every year.\" Kotak's year starts the day after issue and the card year here on the issue day, so this window closes one day before Kotak's: the safe side, and What needs me names that earlier day. ; \"You can claim your PVR tickets within 3 months after the anniversary year gets over.\" Exclusions effective 1 Jun 2025; gaming has no SpendExclusion value. Re-read 2026-09-14 via the Firecrawl snapshot: the page now renders fully and still carries no such milestone — only a generic \"milestone vouchers\" bullet."
   },
   {
    "id": "kotak-811-welcome",
