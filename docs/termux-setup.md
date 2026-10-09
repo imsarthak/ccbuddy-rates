@@ -91,14 +91,24 @@ It will refuse to start if that clone has uncommitted changes, because it
 resets the tree on a failed rebase. On a dedicated watcher clone that never
 happens.
 
-To have it survive a reboot, install **Termux:Boot** from F-Droid and create
-`~/.termux/boot/watch` containing:
+**Not optional: make it survive a reboot.** On 2026-10-04 the phone switched
+off, came back, and the loop did not: windows went unseen for days. Install
+**Termux:Boot** from F-Droid, **open it once** (Android only lets it start
+things after that), set its battery use to Unrestricted like Termux's, and
+create `~/.termux/boot/watch` containing:
 
 ```bash
 #!/data/data/com.termux/files/usr/bin/bash
 termux-wake-lock
 cd ~/ccbuddy-rates && bash scraper/watch-termux.sh
 ```
+
+then make it runnable with `chmod +x ~/.termux/boot/watch`. Reboot the phone
+once to check the wake-lock notification comes back by itself.
+
+If the loop stops anyway, `.github/workflows/watchdog.yml` opens a "BLINKDEAL
+watcher is down" issue on this repo within about an hour of the last write,
+and closes it when the feed moves again.
 
 ## 6. Confirm it is alive
 

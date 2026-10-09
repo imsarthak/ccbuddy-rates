@@ -1,0 +1,30 @@
+name: BLINKDEAL watchdog
+
+# The watcher and its alerts both live on a phone, so a dead phone is silent.
+# This checks the committed feed from GitHub instead, and opens one issue when
+# it goes stale (GitHub notifies the owner), closing it when the feed moves.
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'   # every 15 minutes
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: watchdog
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - run: node scraper/watchdog.test.mjs
+      - run: node scraper/watchdog.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
