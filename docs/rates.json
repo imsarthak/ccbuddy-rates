@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-20T21:52:43.661Z",
+ "updated": "2026-10-21T00:57:47.427Z",
  "merchants": [
   {
    "id": "malabar",
@@ -9,13 +9,12 @@
    "note": "Their One India One Gold Rate, as published on malabargoldanddiamonds.com.",
    "market": "Pan-India",
    "rate": {
-    "fetched": "2026-10-20T21:52:25.243Z",
+    "fetched": "2026-10-21T00:57:28.678Z",
     "buy24": 14607,
     "buy22": 13390,
     "ok": true
    },
    "spark": [
-    14825,
     14825,
     14744,
     14744,
@@ -44,6 +43,7 @@
     14716,
     14607,
     14607,
+    14607,
     14607
    ]
   },
@@ -55,7 +55,7 @@
    "note": "Kalyan's online arm Candere — Hyderabad board.",
    "market": "Hyderabad",
    "rate": {
-    "fetched": "2026-10-20T21:52:26.580Z",
+    "fetched": "2026-10-21T00:57:30.352Z",
     "buy24": 14618,
     "buy22": 13390,
     "ok": true
@@ -63,7 +63,6 @@
    "spark": [
     14836,
     14836,
-    14836,
     14754,
     14754,
     14754,
@@ -90,6 +89,7 @@
     14727,
     14727,
     14727,
+    14618,
     14618
    ]
   },
@@ -101,7 +101,7 @@
    "note": "Wholesale refinery rate, 18% GST extra — the only board here with a published buyback.",
    "market": "Bengaluru",
    "rate": {
-    "fetched": "2026-10-20T21:52:29.068Z",
+    "fetched": "2026-10-21T00:57:32.412Z",
     "buy24": 16020,
     "buy22": 14830,
     "sell22": 14500,
@@ -109,7 +109,6 @@
    },
    "spark": [
     16120,
-    16120,
     16020,
     16020,
     16020,
@@ -134,6 +133,7 @@
     16040,
     16040,
     16040,
+    16020,
     16020,
     16020,
     16020,
@@ -148,14 +148,13 @@
    "note": "As published on their online store.",
    "market": "Pan-India",
    "rate": {
-    "fetched": "2026-10-20T21:52:30.128Z",
+    "fetched": "2026-10-21T00:57:33.599Z",
     "buy24": 14585,
     "buy22": 13499,
     "ok": true
    },
    "spark": [
     14690,
-    14690,
     14626,
     14626,
     14626,
@@ -180,6 +179,7 @@
     14656,
     14656,
     14656,
+    14585,
     14585,
     14585,
     14585,
@@ -194,13 +194,12 @@
    "note": "As published on their online store.",
    "market": "Bengaluru",
    "rate": {
-    "fetched": "2026-10-20T21:52:31.392Z",
+    "fetched": "2026-10-21T00:57:34.923Z",
     "buy24": 14607,
     "buy22": 13390,
     "ok": true
    },
    "spark": [
-    14825,
     14825,
     14744,
     14744,
@@ -227,6 +226,7 @@
     14804,
     14804,
     14716,
+    14607,
     14607,
     14607,
     14607
@@ -288,13 +288,12 @@
    "note": "Their Telangana board — Lalithaa rates vary by state.",
    "market": "Telangana",
    "rate": {
-    "fetched": "2026-10-20T21:52:33.448Z",
+    "fetched": "2026-10-21T00:57:37.085Z",
     "buy24": 14618,
     "buy22": 13390,
     "ok": true
    },
    "spark": [
-    14836,
     14836,
     14754,
     14754,
@@ -321,6 +320,7 @@
     14814,
     14814,
     14727,
+    14618,
     14618,
     14618,
     14618
@@ -334,13 +334,12 @@
    "note": "As published on their online store.",
    "market": "Chennai",
    "rate": {
-    "fetched": "2026-10-20T21:52:33.884Z",
+    "fetched": "2026-10-21T00:57:37.613Z",
     "buy24": 14618,
     "buy22": 13390,
     "ok": true
    },
    "spark": [
-    14836,
     14836,
     14754,
     14754,
@@ -369,6 +368,7 @@
     14727,
     14618,
     14618,
+    14618,
     14618
    ]
   },
@@ -380,7 +380,7 @@
    "note": "As published on their online store.",
    "market": "Pan-India",
    "rate": {
-    "fetched": "2026-10-20T21:52:34.863Z",
+    "fetched": "2026-10-21T00:57:38.301Z",
     "buy24": 14809,
     "buy22": 13449,
     "ok": true
@@ -390,7 +390,6 @@
     14939,
     14939,
     14939,
-    14939,
     14749,
     14749,
     14749,
@@ -411,6 +410,7 @@
     14769,
     14769,
     14769,
+    14809,
     14809,
     14809,
     14809,
@@ -426,13 +426,12 @@
    "note": "Their published city board — rates vary by city.",
    "market": "Bengaluru",
    "rate": {
-    "fetched": "2026-10-20T21:52:35.886Z",
+    "fetched": "2026-10-21T00:57:38.981Z",
     "buy24": 14760,
     "buy22": 13530,
     "ok": true
    },
    "spark": [
-    14875,
     14875,
     14875,
     14875,
@@ -461,6 +460,7 @@
     14809,
     14809,
     14760,
+    14760,
     14760
    ]
   },
@@ -472,13 +472,12 @@
    "note": "As published on their online store. Their 24K is 995-fine, so it reads slightly under a 999 board.",
    "market": "Pan-India",
    "rate": {
-    "fetched": "2026-10-20T21:52:39.726Z",
+    "fetched": "2026-10-21T00:57:43.587Z",
     "buy24": 14603.28,
     "buy22": 13390,
     "ok": true
    },
    "spark": [
-    14821.4,
     14821.4,
     14739.61,
     14739.61,
@@ -507,6 +506,7 @@
     14712.35,
     14603.28,
     14603.28,
+    14603.28,
     14603.28
    ]
   },
@@ -518,14 +518,13 @@
    "note": "Minted-bar buy price before GST — sits above a plain spot rate. 22K is derived.",
    "market": "Pan-India",
    "rate": {
-    "fetched": "2026-10-20T21:52:40.184Z",
-    "buy24": 14961.12,
-    "buy22": 13704,
+    "fetched": "2026-10-21T00:57:44.111Z",
+    "buy24": 14903.37,
+    "buy22": 13651,
     "derived22": true,
     "ok": true
    },
    "spark": [
-    14987.4,
     15058.97,
     15012.13,
     15050.16,
@@ -554,7 +553,8 @@
     14921.36,
     14970.96,
     14922.81,
-    14961.12
+    14961.12,
+    14903.37
    ]
   },
   {
@@ -565,7 +565,7 @@
    "note": "Live bullion dealer board (999 fine, quoted per 10 g). 22K is derived; buyback included.",
    "market": "Bengaluru",
    "rate": {
-    "fetched": "2026-10-20T21:52:41.807Z",
+    "fetched": "2026-10-21T00:57:45.901Z",
     "buy24": 14523,
     "buy22": 13303,
     "derived22": true,
@@ -573,7 +573,6 @@
     "ok": true
    },
    "spark": [
-    14502,
     14502,
     14655,
     14619,
@@ -602,6 +601,7 @@
     14584,
     14554,
     14523,
+    14523,
     14523
    ]
   },
@@ -613,13 +613,12 @@
    "note": "Madurai board — the ticker on their rates page, per gram.",
    "market": "Madurai",
    "rate": {
-    "fetched": "2026-10-20T21:52:42.467Z",
+    "fetched": "2026-10-21T00:57:46.332Z",
     "buy24": 14607,
     "buy22": 13390,
     "ok": true
    },
    "spark": [
-    14825,
     14825,
     14825,
     14825,
@@ -648,6 +647,7 @@
     14765,
     14765,
     14607,
+    14607,
     14607
    ]
   },
@@ -659,14 +659,13 @@
    "note": "The rate list behind their online price calculator.",
    "market": "Pan-India",
    "rate": {
-    "fetched": "2026-10-20T21:52:43.661Z",
+    "fetched": "2026-10-21T00:57:47.427Z",
     "buy24": 14746,
     "buy22": 13517,
     "ok": true
    },
    "spark": [
     14788,
-    14788,
     14737,
     14737,
     14737,
@@ -677,6 +676,7 @@
     14817,
     14817,
     14817,
+    14746,
     14746,
     14746,
     14746,
