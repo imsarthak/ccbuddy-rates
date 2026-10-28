@@ -11,7 +11,10 @@ Code: `scraper/wa-post.mjs`. Workflow: `.github/workflows/wa-post.yml`. Tests:
 machine).
 
 **It ships switched off.** Until you set the repo variable `WA_DRY_RUN` to
-`0`, every run prints the post it would send and calls nothing.
+`0`, every run on a phone push prints the post it would send and calls
+nothing. Before that, Whapi is only called by the runs you start by hand
+(step 6) and by the watchdog's read-only session check, and only once the
+`WHAPI_TOKEN` secret exists.
 
 ## What followers see
 
@@ -53,9 +56,13 @@ node scraper/wa-post.mjs --mode preview
 ```
 
 Nothing is posted for a window first seen more than 15 minutes after it
-opened (the phone was offline), or for one that opened and closed between two
-pushes. A post more than 15 minutes late is news about a deal that is nearly
-over.
+opened (the phone was offline), for one that opened and closed between two
+pushes, or for one that has already ended by the time the job runs. A post
+more than 15 minutes late is news about a deal that is nearly over.
+
+If the phone was off or offline when a window ended, the time it recorded is
+when it came back, so the edit says just `Over. These prices no longer
+apply.` with no time.
 
 ## How it stays safe
 
@@ -66,20 +73,26 @@ over.
   coupon id (Myntra reuses one id across windows, even twice in a day). Each
   opening is in exactly one phone push. A record of each real post is kept in
   the Actions cache, so a duplicate run cannot post twice, and the end knows
-  which post to edit. Re-running a workflow run never posts.
+  which post to edit. Re-running a workflow run never posts. If the job cannot
+  read the feed as it was before the push, it posts nothing: it could not tell
+  the opening from a heartbeat.
 - **One off switch.** An issue titled **WhatsApp poster is paused** stops it
   completely: while the issue is open, the job does not call Whapi at all and
   only comments on each window it skipped. The job opens it itself when
-  something needs you. Close it to resume.
+  something needs you; you can also open one with that exact title to pause
+  it by hand. Close it to resume. The repo is public, so an issue with that
+  title counts only if the workflow, you, or a collaborator opened it.
 - **No retry storms.** A 429 from Whapi means WhatsApp has soft-blocked the
   number. The job never retries it: it pauses and says how long to rest the
   number. A 401 (a session reconnecting for 2-3 seconds) is retried three
-  times, 3 seconds apart. A server error is never retried, because the post
-  may already have gone out. The run fails instead, and GitHub emails you.
+  times, 3 seconds apart, on every call. A server error is never retried,
+  because the post may already have gone out. The run fails instead, and
+  GitHub emails you.
 - **Public logs.** This repo is public, so its Actions logs and issues are
   too. The job prints the post text, the session status, the channel name and
-  role, and message ids. It never prints the token, the channel id, the
-  linked number or a raw Whapi response.
+  role, and message ids. It never prints the token, either channel id, the
+  linked number or a raw Whapi response. That is why all three ids are
+  secrets: GitHub prints a step's settings in its log and masks only secrets.
 - **Session watch.** The watchdog workflow also asks Whapi, read-only, whether
   the session is still connected. It opens the pause issue if the spare phone
   was logged out, so you find out hours before a window rather than at one.
@@ -129,7 +142,7 @@ through it, Whapi) will be able to see yours. Followers never see either.
 **5. Secrets and variables.** On GitHub, open ccbuddy-rates → Settings →
 Secrets and variables → Actions.
 
-Secrets tab, two **repository secrets**:
+Secrets tab, three **repository secrets** (New repository secret, once each):
 
 ```
 WHAPI_TOKEN
@@ -144,15 +157,14 @@ WHAPI_CHANNEL_ID
 The real channel's id, ending `@newsletter`. It is in the dashboard's
 Newsletters list, or under GET /newsletters in Whapi's API page.
 
-Variables tab, one **repository variable**:
-
 ```
 WA_TEST_CHANNEL_ID
 ```
 
-The test channel's id, ending `@newsletter`.
+The test channel's id, ending `@newsletter`. A secret rather than a variable,
+so it never shows in the public run logs.
 
-Do **not** create `WA_DRY_RUN` yet.
+Do **not** create the variable `WA_DRY_RUN` yet.
 
 **6. Merge, then test on the test channel.** After this branch is on master,
 open Actions → **BLINKDEAL to WhatsApp Channel** → Run workflow:
@@ -162,7 +174,8 @@ open Actions → **BLINKDEAL to WhatsApp Channel** → Run workflow:
 - mode `test-post`: open the test channel on your phone. A post headed
   `TEST POST — not a live deal` appears, and about 35 seconds later it is
   edited to the "Over" version. This is the first proof that an admin can post
-  through Whapi. It refuses to run if the test channel id is the real one.
+  through Whapi. It refuses to run if the test channel id is the real one, or
+  if `WHAPI_CHANNEL_ID` is missing (then it could not tell them apart).
 
 **7. One real window, still dry.** When the next window opens, open that
 push's run and read the **Post** step. It shows the exact post, then the edit
@@ -212,11 +225,11 @@ only a person knows when the number has rested.
 
 ## Switches
 
-| Repo variable | Effect |
+| Setting | Effect |
 |---|---|
-| `WA_DRY_RUN` = `0` | Posts for real. Unset or anything else: prints only. |
-| `WA_CLOSE` = `off` | No "Over" edit. The open post stays as it is. |
-| `WA_TEST_CHANNEL_ID` | Where `test-post` posts. Never the real channel. |
+| Variable `WA_DRY_RUN` = `0` | Posts for real. Unset or anything else: prints only. |
+| Variable `WA_CLOSE` = `off` | No "Over" edit. The open post stays as it is. |
+| Secret `WA_TEST_CHANNEL_ID` | Where `test-post` posts. Never the real channel. |
 
 ## Not yet known
 

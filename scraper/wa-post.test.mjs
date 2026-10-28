@@ -81,17 +81,27 @@ async function fakeWhapi(routes = {}) {
   }
 }
 
-/** The repo's issues: what wa-post.mjs asks of GitHub, and nothing more. */
-function fakeGitHub(open = []) {
-  const issues = open.map((i) => ({ ...i }))
+/**
+ * The repo's issues and master's feed: what wa-post.mjs asks of GitHub, and
+ * nothing more. An issue is the bot's unless it says otherwise. `latest` is
+ * master's docs/blinkdeal.json (a value or a function); left out, reading it
+ * fails, as the API can.
+ */
+function fakeGitHub(open = [], latest) {
+  const issues = open.map((i) => ({ user: { login: 'github-actions[bot]', type: 'Bot' }, author_association: 'NONE', ...i }))
   const calls = []
   let next = 40
   const gh = async (path, init = {}) => {
     const body = init.body ? JSON.parse(init.body) : null
     calls.push({ path, method: init.method ?? 'GET', body })
+    if (path === '/contents/docs/blinkdeal.json' && !init.method) {
+      assert.equal(init.headers?.accept, 'application/vnd.github.raw+json')
+      if (latest === undefined) throw new Error('GET /contents/docs/blinkdeal.json: 503 unavailable')
+      return typeof latest === 'function' ? latest() : latest
+    }
     if (path.startsWith('/issues?')) return issues
     if (path === '/issues' && init.method === 'POST') {
-      const i = { number: ++next, title: body.title, body: body.body }
+      const i = { number: ++next, title: body.title, body: body.body, user: { login: 'github-actions[bot]', type: 'Bot' }, author_association: 'NONE' }
       issues.push(i)
       return i
     }
@@ -111,10 +121,10 @@ const NOW = Date.parse('2026-10-29T11:30:30.000Z') // 5:00:30 pm IST
 const LIVE_ENV = { WA_DRY_RUN: '0', WHAPI_TOKEN: TOKEN, WHAPI_CHANNEL_ID: CHANNEL, GITHUB_EVENT_NAME: 'push', GITHUB_RUN_ATTEMPT: '1' }
 
 /** One fake Whapi, one fake GitHub, one ledger directory, shared by every run in a test. */
-async function harness(t, { routes, issues, env } = {}) {
+async function harness(t, { routes, issues, env, latest, timeoutMs = 3000 } = {}) {
   const wa = await fakeWhapi(routes)
   t.after(() => wa.close())
-  const github = fakeGitHub(issues)
+  const github = fakeGitHub(issues, latest)
   const lines = []
   const slept = []
   const outputs = {}
@@ -125,7 +135,9 @@ async function harness(t, { routes, issues, env } = {}) {
     log: (s) => lines.push(String(s)),
     now: () => NOW,
     output: async (k, v) => void (outputs[k] = v),
-    timeoutMs: 300,
+    // Generous: these tests run in the posting job, and a slow runner must
+    // not fail one and cost a real window its post.
+    timeoutMs,
   }
   const fullEnv = (extra) => ({ ...LIVE_ENV, WHAPI_BASE: wa.base, ...env, ...extra })
   return {
@@ -156,6 +168,9 @@ function liveFeed(from, over = {}) {
 const quietFeed = (lastLive) => ({ generated: 'x', checkedAt: 'x', ok: true, heartbeatMs: 1200000, live: false, knownIds: ['135733'], ...(lastLive ? { lastLive } : {}) })
 const ended = (live, to) => quietFeed({ ...live.lastLive, to })
 const after = (iso, s) => Date.parse(iso) + s * 1000
+// The feed as the phone last wrote it before a window ended: a live feed is
+// rewritten every 2 min, so its checkedAt is a minute or so before the end.
+const liveTill = (from, end) => liveFeed(from, { checkedAt: new Date(Date.parse(end) - 60000).toISOString() })
 
 const OPEN_TEXT = [
   'BLINKDEAL6 live on Myntra — 6% off gold coins',
@@ -185,7 +200,7 @@ test('the same window before and after (a heartbeat) is no edge', () => {
 })
 
 test('live → quiet on a good read closes it, with the end time the feed recorded', () => {
-  const e = edge(liveFeed(W1), ended(liveFeed(W1), W1_END), after(W1_END, 20))
+  const e = edge(liveTill(W1, W1_END), ended(liveFeed(W1), W1_END), after(W1_END, 20))
   assert.equal(e.close.key, `BLINKDEAL6-${Date.parse(W1)}`)
   assert.equal(e.close.to, W1_END)
   assert.equal(e.open, null)
@@ -217,15 +232,41 @@ test('a window that opened and closed between two pushes gets nothing', () => {
   assert.deepEqual([e.open, e.close], [null, null])
 })
 
-test('a first-ever push (no feed before) opens a fresh window', () => {
+test('a first-ever push (no feed file before) opens a fresh window', () => {
   assert.ok(edge({}, liveFeed(W1), NOW).open)
-  assert.ok(edge(null, liveFeed(W1), NOW).open)
+})
+
+test('a feed before the push that could not be read never opens: a heartbeat would look like the opening', () => {
+  // The workflow writes { unreadable: true } when the old head cannot be
+  // fetched; readJson gives null for a file that is not JSON.
+  for (const before of [{ unreadable: true }, null, 'garbage', [], 42]) {
+    const e = edge(before, liveFeed(W1, { checkedAt: 'hb' }), after(W1, 140))
+    assert.deepEqual([e.open, e.close], [null, null], JSON.stringify(before))
+    assert.match(e.notes.join(' '), /could not be read/)
+  }
+  // A before that says live but whose window is garbage: not a quiet feed either.
+  const e = edge({ ok: true, live: true, lastLive: { code: 'BLINKDEAL6', from: 'x' } }, liveFeed(W1), NOW)
+  assert.equal(e.open, null)
+})
+
+test('the end time is dropped when the watcher had stopped before it (the phone died mid-window)', () => {
+  // Live feed last written 5:10 pm; the phone came back at 11:40 pm and the
+  // detector stamped the close then. "Over at 11:40 pm, after 6 h" would be false.
+  const before = liveFeed(W1, { checkedAt: '2026-10-29T11:40:00.000Z', heartbeatMs: 120000 })
+  const late = ended(liveFeed(W1), '2026-10-29T18:10:00.000Z')
+  const e = edge(before, late, Date.parse('2026-10-29T18:10:20.000Z'))
+  assert.equal(e.close.key, `BLINKDEAL6-${Date.parse(W1)}`)
+  assert.equal(e.close.to, null)
+  assert.equal(renderOver(e.close.data, e.close.to).split('\n')[0], 'Over. These prices no longer apply.')
+  // A watcher that was watching: the last live write 2 min before the close.
+  const fresh = edge(liveFeed(W1, { checkedAt: '2026-10-29T12:03:30.000Z' }), ended(liveFeed(W1), W1_END), after(W1_END, 20))
+  assert.equal(fresh.close.to, W1_END)
 })
 
 test('one push jumping from one window straight to the next closes the first and opens the second', () => {
   // Same code and same coupon id both times: only the start tells them apart.
   const history = { windows: [{ code: 'BLINKDEAL6', couponId: '135733', from: W1, to: W1_END }] }
-  const e = edge(liveFeed(W1), liveFeed(W2), after(W2, 40), history)
+  const e = edge(liveTill(W1, W1_END), liveFeed(W2), after(W2, 40), history)
   assert.equal(e.close.key, `BLINKDEAL6-${Date.parse(W1)}`)
   assert.equal(e.close.to, W1_END, 'the end comes from the history file')
   assert.equal(e.open.key, `BLINKDEAL6-${Date.parse(W2)}`)
@@ -347,7 +388,7 @@ test('missing or broken secrets mean a dry run, whatever WA_DRY_RUN says', async
 
 test('a close in a dry run prints the edit it would make', async (t) => {
   const h = await harness(t)
-  await h.run(edge(liveFeed(W1), ended(liveFeed(W1), W1_END), NOW), { WA_DRY_RUN: '' })
+  await h.run(edge(liveTill(W1, W1_END), ended(liveFeed(W1), W1_END), NOW), { WA_DRY_RUN: '' })
   assert.ok(h.lines.join('\n').includes('Over at 5:35 pm, after 36 min.'))
   assert.equal(h.wa.requests.length, 0)
 })
@@ -464,7 +505,7 @@ test('a 5xx may have been sent: one attempt, the run fails, no pause, nothing re
 })
 
 test('no answer at all: one attempt, the run fails, no retry', async (t) => {
-  const h = await harness(t, { routes: { 'POST /messages/text': { hang: true } } })
+  const h = await harness(t, { routes: { 'POST /messages/text': { hang: true } }, timeoutMs: 300 })
   await assert.rejects(h.run(edge(quietFeed(), liveFeed(W1), NOW)), /no answer \(timed out\)/)
   assert.equal(h.wa.posts().length, 1)
   assert.equal(h.github.opened().length, 0)
@@ -494,13 +535,65 @@ test('while the pause issue is open, no Whapi call is made at all', async (t) =>
   assert.equal(h.github.calls.at(-1).path, '/issues/7/comments')
 })
 
+test('a stranger cannot pause it: only an issue by the workflow, the owner or a collaborator is the switch', async (t) => {
+  // The repo is public: anyone can open an issue with that title.
+  const stranger = { number: 9, title: PAUSE_TITLE, user: { login: 'someone', type: 'User' }, author_association: 'NONE' }
+  const h = await harness(t, { issues: [stranger] })
+  const res = await h.run(edge(quietFeed(), liveFeed(W1), NOW))
+  assert.ok(res.posted)
+  assert.equal(res.paused, null)
+  assert.ok(!h.github.comments().length, "nothing is written on the stranger's issue")
+  for (const author_association of ['OWNER', 'COLLABORATOR']) {
+    const own = await harness(t, { issues: [{ ...stranger, user: { login: 'owner', type: 'User' }, author_association }] })
+    assert.equal((await own.run(edge(quietFeed(), liveFeed(W1), NOW))).paused, 'already', author_association)
+    assert.equal(own.wa.requests.length, 0)
+  }
+})
+
+test('a window master has already moved past is not posted (the run queued past a short window)', async (t) => {
+  // Master's feed now: W1 has ended.
+  const h = await harness(t, { latest: ended(liveFeed(W1), W1_END) })
+  const res = await h.run(edge(quietFeed(), liveFeed(W1), NOW))
+  assert.equal(res.posted, null)
+  assert.equal(h.wa.requests.length, 0)
+  assert.match(h.lines.join('\n'), /moved on \(no window live\)/)
+  // The same window still live on master posts, and so does a failed read
+  // of master (the push said so) or no answer from the API at all.
+  for (const latest of [liveFeed(W1, { checkedAt: 'later' }), { ...liveFeed(W1), ok: false, live: false }, undefined]) {
+    const ok = await harness(t, { latest })
+    assert.ok((await ok.run(edge(quietFeed(), liveFeed(W1), NOW))).posted, JSON.stringify(latest)?.slice(0, 40))
+  }
+})
+
+test('a 401 on a read (session or role) is a reconnect too: retried, not a pause', async (t) => {
+  const no = { status: 401, body: { error: { code: 401, message: 'Need channel authorization' } } }
+  const h = await harness(t, {
+    routes: {
+      'GET /health': [no, { body: { status: { code: 4, text: 'AUTH' } } }],
+      'GET /newsletters/:id': [no, no, { body: { id: CHANNEL, user_role: 'admin' } }],
+    },
+  })
+  const res = await h.run(edge(quietFeed(), liveFeed(W1), NOW))
+  assert.ok(res.posted)
+  assert.equal(res.paused, null)
+  // The watchdog's probe rides it out the same way.
+  const probe = await harness(t, { routes: { 'GET /health': [no, { body: { status: { code: 4, text: 'AUTH' } } }] } })
+  assert.equal(await runHealth({ env: probe.env(), deps: probe.deps }), 'AUTH')
+  assert.equal(probe.github.opened().length, 0)
+  // One that never clears still pauses, and says the watchdog opened it.
+  const dead = await harness(t, { routes: { 'GET /health': no } })
+  assert.equal(await runHealth({ env: dead.env(), deps: dead.deps }), 'unauthorised')
+  assert.equal(dead.wa.requests.length, 4)
+  assert.match(dead.github.opened()[0].body, /Opened by \.github\/workflows\/watchdog\.yml/)
+})
+
 // ---- The close ------------------------------------------------------------------------
 
 test('the end edits the recorded post in place; no second post', async (t) => {
   const h = await harness(t)
   const open = await h.run(edge(quietFeed(), liveFeed(W1), NOW))
   const id = (await readLedger(h.dir, open.posted)).messageId
-  const res = await h.run(edge(liveFeed(W1), ended(liveFeed(W1), W1_END), after(W1_END, 20)))
+  const res = await h.run(edge(liveTill(W1, W1_END), ended(liveFeed(W1), W1_END), after(W1_END, 20)))
   assert.equal(res.edited, id)
   const posts = h.wa.posts()
   assert.equal(posts.length, 2)
@@ -509,7 +602,7 @@ test('the end edits the recorded post in place; no second post', async (t) => {
 
 test('an end with no post on record (dry, late or failed) calls nothing', async (t) => {
   const h = await harness(t)
-  const res = await h.run(edge(liveFeed(W1), ended(liveFeed(W1), W1_END), NOW))
+  const res = await h.run(edge(liveTill(W1, W1_END), ended(liveFeed(W1), W1_END), NOW))
   assert.equal(res.edited, null)
   assert.equal(h.wa.requests.length, 0)
   assert.equal(h.github.calls.length, 0)
@@ -519,7 +612,7 @@ test('WA_CLOSE=off leaves the post as it is', async (t) => {
   const h = await harness(t, { env: { WA_CLOSE: 'off' } })
   await h.run(edge(quietFeed(), liveFeed(W1), NOW))
   const before = h.wa.requests.length
-  const res = await h.run(edge(liveFeed(W1), ended(liveFeed(W1), W1_END), NOW))
+  const res = await h.run(edge(liveTill(W1, W1_END), ended(liveFeed(W1), W1_END), NOW))
   assert.equal(res.edited, null)
   assert.equal(h.wa.requests.length, before)
 })
@@ -531,11 +624,11 @@ test('two windows on one day under one reused coupon id: two posts, two edits, e
     [quietFeed(), liveFeed(W1), after(W1, 25)], // open W1
     [liveFeed(W1), liveFeed(W1, { checkedAt: 'hb' }), after(W1, 145)], // heartbeat
     [quietFeed(), liveFeed(W1), after(W1, 200)], // W1's open again (a duplicate run, a lost before): the ledger stops it
-    [liveFeed(W1), ended(liveFeed(W1), W1_END), after(W1_END, 20)], // W1 ends
+    [liveTill(W1, W1_END), ended(liveFeed(W1), W1_END), after(W1_END, 20)], // W1 ends
     [ended(liveFeed(W1), W1_END), ended(liveFeed(W1), W1_END), after(W1_END, 1200)], // quiet heartbeat
     [ended(liveFeed(W1), W1_END), liveFeed(W2), after(W2, 25)], // open W2: same code, same coupon id, same day
-    [liveFeed(W2), ended(liveFeed(W2), W2_END), after(W2_END, 20)], // W2 ends
-    [liveFeed(W2), ended(liveFeed(W2), W2_END), after(W2_END, 80)], // the same end again: an edit is idempotent anyway
+    [liveTill(W2, W2_END), ended(liveFeed(W2), W2_END), after(W2_END, 20)], // W2 ends
+    [liveTill(W2, W2_END), ended(liveFeed(W2), W2_END), after(W2_END, 80)], // the same end again: an edit is idempotent anyway
   ]
   for (const [b, a, now] of pushes) await h.run(edge(b, a, now))
   const posts = h.wa.posts()
@@ -557,7 +650,7 @@ test('a post Whapi gave no id for is still recorded (never posted twice) but can
   const res = await h.run(edge(quietFeed(), liveFeed(W1), NOW))
   assert.equal((await readLedger(h.dir, res.posted)).messageId, null)
   await h.run(edge(quietFeed(), liveFeed(W1), NOW))
-  await h.run(edge(liveFeed(W1), ended(liveFeed(W1), W1_END), NOW))
+  await h.run(edge(liveTill(W1, W1_END), ended(liveFeed(W1), W1_END), NOW))
   assert.equal(h.wa.posts().length, 1)
 })
 
@@ -628,6 +721,11 @@ test('test-post refuses the real channel, a missing test channel, and a paused p
   const h = await harness(t)
   assert.equal(await runTestPost({ env: h.env({ WA_TEST_CHANNEL_ID: CHANNEL }), deps: h.deps }), false)
   assert.equal(await runTestPost({ env: h.env({ WA_TEST_CHANNEL_ID: undefined }), deps: h.deps }), false)
+  // The real id missing or mistyped: the guard above would have nothing to compare with.
+  for (const WHAPI_CHANNEL_ID of [undefined, '', 'CCBuddy Deals']) {
+    assert.equal(await runTestPost({ env: h.env({ WA_TEST_CHANNEL_ID: CHANNEL, WHAPI_CHANNEL_ID }), deps: h.deps }), false)
+  }
+  assert.match(h.lines.join('\n'), /set the WHAPI_CHANNEL_ID secret/)
   const paused = await harness(t, { issues: [{ number: 3, title: PAUSE_TITLE }] })
   assert.equal(await runTestPost({ env: paused.env({ WA_TEST_CHANNEL_ID: TEST_CHANNEL }), deps: paused.deps }), false)
   assert.equal(h.wa.requests.length + paused.wa.requests.length, 0)

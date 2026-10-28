@@ -26,15 +26,20 @@ permissions:
   contents: read
   issues: write # the "WhatsApp poster is paused" issue
 
-# No concurrency group, on purpose. A group keeps one run waiting and cancels
-# any older pending one, and a heartbeat push can land seconds after the
-# opening push: a group could cancel the very run that posts the window.
+# No workflow-wide concurrency group, on purpose. A group keeps one run
+# waiting and cancels any older pending one, and a heartbeat push can land
+# seconds after the opening push: a group could cancel the very run that
+# posts the window. The push job has a group per pushed commit instead, so
+# only a duplicate run of the SAME push waits, and then finds the ledger.
 
 jobs:
   push:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    concurrency:
+      group: wa-post-push-${{ github.sha }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v5
       - name: The feed before this push
@@ -43,13 +48,18 @@ jobs:
         run: |
           # A push can carry several commits (one the phone could not push
           # last tick goes with the next), so this is the old head, not HEAD~1.
-          if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] \
-            && git fetch -q --depth=1 origin "$BEFORE" \
-            && git show "$BEFORE:docs/blinkdeal.json" > "$RUNNER_TEMP/before.json"; then
+          # A fetch that fails says "unreadable", never "no feed": read as
+          # quiet, a heartbeat push mid-window would post the window again.
+          out="$RUNNER_TEMP/before.json"
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo '{}' > "$out"
+            echo "before: none (a new branch)"
+          elif git fetch -q --depth=1 origin "$BEFORE" || { sleep 3; git fetch -q --depth=1 origin "$BEFORE"; }; then
+            git show "$BEFORE:docs/blinkdeal.json" > "$out" 2>/dev/null || echo '{}' > "$out"
             echo "before: $BEFORE"
           else
-            echo '{}' > "$RUNNER_TEMP/before.json"
-            echo "before: none"
+            echo '{"unreadable":true}' > "$out"
+            echo "before: $BEFORE could not be fetched; nothing will be posted"
           fi
       - uses: actions/setup-node@v5
         with:
@@ -86,6 +96,7 @@ jobs:
           WHAPI_CHANNEL_ID: ${{ secrets.WHAPI_CHANNEL_ID }}
           WA_DRY_RUN: ${{ vars.WA_DRY_RUN }}
           WA_CLOSE: ${{ vars.WA_CLOSE }}
+          # Also reads master's feed once, just before posting an opening.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Remember the post
         # Even if a later call in the step failed: the post itself went out.
@@ -111,5 +122,7 @@ jobs:
           MODE: ${{ inputs.mode }}
           WHAPI_TOKEN: ${{ secrets.WHAPI_TOKEN }}
           WHAPI_CHANNEL_ID: ${{ secrets.WHAPI_CHANNEL_ID }}
-          WA_TEST_CHANNEL_ID: ${{ vars.WA_TEST_CHANNEL_ID }}
+          # A secret, not a variable: a step's env is printed in its log, and
+          # only secrets are masked there.
+          WA_TEST_CHANNEL_ID: ${{ secrets.WA_TEST_CHANNEL_ID }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

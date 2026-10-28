@@ -20,9 +20,11 @@
 // exactly one push, so the diff alone posts once; the ledger (one Actions
 // cache entry per window, written only after a real post) is what makes a
 // duplicate run harmless and what the close needs to find the post to edit.
+// When the feed before the push cannot be read, nothing opens: a missed post
+// is better than a second one.
 //
 // Posting is OFF until the repo variable WA_DRY_RUN is 0 and both secrets
-// exist. Until then every run prints the exact post and calls nothing.
+// exist. Until then every push run prints the exact post and calls nothing.
 //
 //   --edge --before <f> --after <f> [--history <f>] [--out <f>]
 //                         work out the edge; open_key/close_key/any to $GITHUB_OUTPUT
@@ -33,8 +35,9 @@
 //                         edit it; refuses the real channel
 //   --mode health         the watchdog's probe: pause if the session dropped
 //
-// Environment: WHAPI_TOKEN, WHAPI_CHANNEL_ID (secrets); WA_DRY_RUN, WA_CLOSE,
-// WA_TEST_CHANNEL_ID (repo variables); GITHUB_TOKEN, GITHUB_REPOSITORY,
+// Environment: WHAPI_TOKEN, WHAPI_CHANNEL_ID, WA_TEST_CHANNEL_ID (secrets: a
+// variable would be printed in clear in the step's env, in a public log);
+// WA_DRY_RUN, WA_CLOSE (repo variables); GITHUB_TOKEN, GITHUB_REPOSITORY,
 // GITHUB_EVENT_NAME, GITHUB_RUN_ATTEMPT, GITHUB_OUTPUT (Actions); WHAPI_BASE
 // (tests point it at a local fake).
 //
@@ -58,6 +61,12 @@ export const PAUSE_TITLE = 'WhatsApp poster is paused'
 // runner queued. Say nothing rather than say it late.
 export const OPEN_MAX_AGE_MS = 15 * 60 * 1000
 const CLOCK_SKEW_MS = 5 * 60 * 1000
+// A live feed is rewritten every 2 min (blinkdeal.mjs LIVE_HEARTBEAT_MS). A
+// close stamped more than two heartbeats and a bit after the feed before it
+// was last checked was seen by a watcher that had stopped: its time is when
+// the phone came back, not when the window ended (watchdog.mjs, same rule).
+const LIVE_HEARTBEAT_MS = 2 * 60 * 1000
+const STALE_GRACE_MS = 5 * 60 * 1000
 const TIMEOUT_MS = 15000
 // Whapi: a session reconnects "once or several times a day" for 2-3 s, and
 // sends in that gap answer 401. A few spaced retries ride it out. Nothing
@@ -127,15 +136,22 @@ export function renderOver(data, to) {
 }
 
 // When the window in `before` ended: the feed after the push, or the history
-// file, records it when the close is in this push.
+// file, records it when the close is in this push. Unknown (null) when the
+// watcher had stopped before it: then the recorded end is the restart.
 function endOf(before, after, history) {
   const code = before.lastLive?.code ?? before.code
   const from = Date.parse(before.lastLive.from)
   const seen = [after?.lastLive, ...[...(Array.isArray(history?.windows) ? history.windows : [])].reverse()]
   const w = seen.find((x) => x && x.code === code && Date.parse(x.from) === from && x.to)
   const to = Date.parse(w?.to ?? '')
-  return Number.isFinite(to) ? new Date(to).toISOString() : null
+  if (!Number.isFinite(to)) return null
+  const checked = Date.parse(before.checkedAt ?? '')
+  const beat = Number(before.heartbeatMs) > 0 ? Number(before.heartbeatMs) : LIVE_HEARTBEAT_MS
+  if (Number.isFinite(checked) && to - checked > 2 * beat + STALE_GRACE_MS) return null
+  return new Date(to).toISOString()
 }
+
+const isFeed = (f) => !!f && typeof f === 'object' && !Array.isArray(f)
 
 /**
  * The edge one push makes, from the feed before it and after it. Pure.
@@ -146,16 +162,27 @@ function endOf(before, after, history) {
  * phone was offline across a quiet spell). A failed read (ok: false) never
  * opens or closes anything, as in blinkdeal.mjs, and a window that opened and
  * closed between two pushes gets nothing: it is over before anyone could act.
+ * `before` is {} when the file did not exist before the push; anything that
+ * is not an object, or { unreadable: true } from the workflow, means it could
+ * not be read, and then nothing happens: a heartbeat push mid-window would
+ * otherwise look like the opening and post the window a second time.
  */
 export function edge(before, after, nowMs = Date.now(), history = null) {
   const out = { open: null, close: null, notes: [] }
-  if (!after || typeof after !== 'object' || after.ok !== true) {
+  if (!isFeed(after) || after.ok !== true) {
     out.notes.push('the feed after this push is not a good read; a failed read never opens or closes a window')
+    return out
+  }
+  if (!isFeed(before) || before.unreadable === true) {
+    out.notes.push('the feed before this push could not be read, so an opening cannot be told from a heartbeat; not posting')
     return out
   }
   const was = windowKey(before)
   const now = windowKey(after)
-  if (before?.live === true && !was) out.notes.push('the feed before this push says live but its window is unreadable; nothing to close')
+  if (before.live === true && !was) {
+    out.notes.push('the feed before this push says live but its window is unreadable; nothing to close, and not posting')
+    return out
+  }
   if (after.live === true && !now) out.notes.push('the feed says live but its window is unreadable; not posting')
   if (was && was !== now) out.close = { key: was, data: postData(before), to: endOf(before, after, history) }
   if (now && now !== was) {
@@ -200,13 +227,17 @@ export function redact(text, secrets = []) {
   return s.replace(/\d{6,}/g, '<n>').replace(/\s+/g, ' ').slice(0, 120)
 }
 
+const realSleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
 /**
  * A minimal client. `what` names the call in errors and logs, so neither ever
- * carries a path with the channel or message id in it.
+ * carries a path with the channel or message id in it. A 401 is retried on
+ * every call, reads included (Whapi: "add retry logic for API calls that fail
+ * with 401"), so a 2-3 s reconnect never pauses the poster; nothing else is.
  */
-export function whapi({ token, base = WHAPI, fetch: fetchFn, timeoutMs = TIMEOUT_MS }) {
+export function whapi({ token, base = WHAPI, fetch: fetchFn, timeoutMs = TIMEOUT_MS, sleep = realSleep, log = () => {} }) {
   const doFetch = fetchFn ?? ((...a) => globalThis.fetch(...a))
-  return async function call(what, method, path, body) {
+  async function once(what, method, path, body) {
     let res
     try {
       res = await doFetch(`${base}${path}`, {
@@ -225,6 +256,20 @@ export function whapi({ token, base = WHAPI, fetch: fetchFn, timeoutMs = TIMEOUT
     const json = await res.json().catch(() => null)
     if (!res.ok) throw new WhapiError(what, res.status, redact(json?.error?.message, [token]))
     return json ?? {}
+  }
+  return async function call(what, method, path, body) {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await once(what, method, path, body)
+      } catch (e) {
+        if (e instanceof WhapiError && e.status === 401 && attempt <= RETRY_401) {
+          log(`Whapi ${what}: 401, the session may be reconnecting: retry ${attempt} of ${RETRY_401} in ${RETRY_GAP_MS / 1000} s`)
+          await sleep(RETRY_GAP_MS)
+          continue
+        }
+        throw e
+      }
+    }
   }
 }
 
@@ -264,20 +309,8 @@ async function preflight(call, channelId, sleep) {
   return { status, role, name }
 }
 
-async function send(call, body, { sleep, log }) {
-  for (let attempt = 1; ; attempt++) {
-    try {
-      return await call(body.edit ? 'edit' : 'send', 'POST', '/messages/text', body)
-    } catch (e) {
-      if (e instanceof WhapiError && e.status === 401 && attempt <= RETRY_401) {
-        log(`Whapi 401, the session may be reconnecting: retry ${attempt} of ${RETRY_401} in ${RETRY_GAP_MS / 1000} s`)
-        await sleep(RETRY_GAP_MS)
-        continue
-      }
-      throw e
-    }
-  }
-}
+// A 401 is retried inside the client; a 429, 5xx or timeout never is.
+const send = (call, body) => call(body.edit ? 'edit' : 'send', 'POST', '/messages/text', body)
 
 /** A 200 is not delivery (Whapi: unsupported posts sit in `pending`). Look once. */
 async function verify(call, id, { sleep, log }) {
@@ -300,9 +333,13 @@ async function verify(call, id, { sleep, log }) {
 // it; while it is open the poster calls Whapi not at all and only notes each
 // window it skipped. Closing it is the only way back on, on purpose: after a
 // 429 the number needs a day or two of rest, and only a person knows when.
-// Issues are public here, so the bodies carry no names and no numbers.
+// Issues are public here, so the bodies carry no names and no numbers. And
+// anyone can open an issue on a public repo, so only one opened by this
+// workflow or by the owner or a collaborator counts as the switch.
 
 const CLOSE_TO_RESUME = 'Close this issue to resume posting.'
+const PAUSERS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR'])
+const BOT = 'github-actions[bot]'
 
 export const REASONS = {
   softBan: (nowMs) => ({
@@ -416,7 +453,7 @@ export const REASONS = {
   }),
 }
 
-export function pauseBody(reason, nowMs) {
+export function pauseBody(reason, nowMs, by = 'wa-post.yml') {
   return [
     reason.title,
     '',
@@ -424,26 +461,52 @@ export function pauseBody(reason, nowMs) {
     '',
     ...reason.steps.map((s, i) => `${i + 1}. ${s}`),
     '',
-    `_Opened by .github/workflows/wa-post.yml, ${ist(nowMs)} IST._`,
+    `_Opened by .github/workflows/${by}, ${ist(nowMs)} IST._`,
   ].join('\n')
 }
 
-async function findPause(gh) {
+export async function findPause(gh) {
   const open = await gh('/issues?state=open&per_page=100')
-  return (Array.isArray(open) ? open : []).find((i) => !i.pull_request && i.title === PAUSE_TITLE) ?? null
+  return (
+    (Array.isArray(open) ? open : []).find(
+      (i) => !i.pull_request && i.title === PAUSE_TITLE && (i.user?.login === BOT || PAUSERS.has(i.author_association)),
+    ) ?? null
+  )
 }
 
-async function pause(gh, reason, nowMs, log) {
+async function pause(gh, reason, nowMs, log, by) {
   const open = await findPause(gh)
   if (open) {
     const body = [`Also: ${reason.title}`, '', ...reason.steps.map((s, i) => `${i + 1}. ${s}`)].join('\n')
     await gh(`/issues/${open.number}/comments`, { method: 'POST', body: JSON.stringify({ body }) })
   } else {
-    await gh('/issues', { method: 'POST', body: JSON.stringify({ title: PAUSE_TITLE, body: pauseBody(reason, nowMs) }) })
+    await gh('/issues', { method: 'POST', body: JSON.stringify({ title: PAUSE_TITLE, body: pauseBody(reason, nowMs, by) }) })
   }
   log(`PAUSED: ${reason.title}`)
   return reason.kind
 }
+
+/**
+ * Is master's feed still showing this window? A run that queued past a short
+ * window would otherwise post a deal that is already over. Unknown (the read
+ * failed, or the feed is a failed read) counts as yes: the push said so.
+ */
+async function stillLive(key, latest, log) {
+  let feed
+  try {
+    feed = await latest()
+  } catch (e) {
+    log(`could not read the feed on master (${redact(e?.message)}); going by this push`)
+    return true
+  }
+  const k = windowKey(feed)
+  if (k === key || !isFeed(feed) || feed.ok !== true) return true
+  log(`${key}: the feed on master has moved on (${k ? `now ${k}` : 'no window live'}); not posting a window that is over`)
+  return false
+}
+
+// The feed as master has it now, through the API (raw.githubusercontent.com is cached for minutes).
+const masterFeed = (gh) => () => gh('/contents/docs/blinkdeal.json', { headers: { accept: 'application/vnd.github.raw+json' } })
 
 // ---- Acting on the edge -------------------------------------------------------------
 
@@ -471,8 +534,9 @@ const describe = (e) => `${e.data.code} live since ${istClock(Date.parse(e.data.
  */
 export async function runEdge(e, { env, ledgerDir = LEDGER_DIR, deps = {} }) {
   const log = deps.log ?? console.log
-  const sleep = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)))
+  const sleep = deps.sleep ?? realSleep
   const now = deps.now ?? Date.now
+  const gh = deps.gh ?? githubApi
   const result = { posted: null, edited: null, paused: null, dry: null }
   for (const n of e.notes ?? []) log(n)
   if (!e.open && !e.close) {
@@ -497,11 +561,10 @@ export async function runEdge(e, { env, ledgerDir = LEDGER_DIR, deps = {} }) {
   if (e.close && !closeOf) log(`${e.close.key}: no post on record (the run was dry, late, or failed); nothing to edit`)
   if (e.close && closeOf && !closeOf.messageId) log(`${e.close.key}: Whapi gave no message id for it; cannot edit in the end`)
   if (e.close && closeOf?.messageId && !cfg.close) log('WA_CLOSE is off: leaving the post as it is')
-  const doOpen = e.open && !openDone
+  const doOpen = e.open && !openDone && (await stillLive(e.open.key, deps.latest ?? masterFeed(gh), log))
   const doClose = e.close && closeOf?.messageId && cfg.close
   if (!doOpen && !doClose) return result
 
-  const gh = deps.gh ?? githubApi
   const held = await findPause(gh)
   if (held) {
     const what = [doOpen && describe(e.open), doClose && `the end of ${describe(e.close)}`].filter(Boolean).join(' and ')
@@ -514,7 +577,7 @@ export async function runEdge(e, { env, ledgerDir = LEDGER_DIR, deps = {} }) {
     return result
   }
 
-  const call = whapi({ token: cfg.token, base: cfg.base, fetch: deps.fetch, timeoutMs: deps.timeoutMs })
+  const call = whapi({ token: cfg.token, base: cfg.base, fetch: deps.fetch, timeoutMs: deps.timeoutMs, sleep, log })
   try {
     const ok = await preflight(call, cfg.channelId, sleep)
     if (ok.reason) {
@@ -526,7 +589,7 @@ export async function runEdge(e, { env, ledgerDir = LEDGER_DIR, deps = {} }) {
     // The opening first: it is the news. The end of an older window can wait.
     if (doOpen) {
       const body = renderOpen(e.open.data)
-      const sent = await send(call, { to: cfg.channelId, body, no_link_preview: true }, { sleep, log })
+      const sent = await send(call, { to: cfg.channelId, body, no_link_preview: true })
       const id = typeof sent?.message?.id === 'string' && MESSAGE_ID_OK.test(sent.message.id) ? sent.message.id : null
       // Record it before anything else can fail: a second post of the same
       // window is the one outcome this must never produce.
@@ -541,7 +604,7 @@ export async function runEdge(e, { env, ledgerDir = LEDGER_DIR, deps = {} }) {
     }
     if (doClose) {
       const body = renderOver(closeOf.data, e.close.to)
-      await send(call, { to: cfg.channelId, edit: closeOf.messageId, body, no_link_preview: true }, { sleep, log })
+      await send(call, { to: cfg.channelId, edit: closeOf.messageId, body, no_link_preview: true })
       result.edited = closeOf.messageId
       log(`EDITED ${closeOf.messageId} to:\n${body}`)
     }
@@ -563,6 +626,11 @@ async function captured() {
   return { ...fx, discountPct: fx.discountPct ?? (Number(/(\d+)\s*$/.exec(fx.code)?.[1]) || null) }
 }
 
+/** What test-post sends: the captured window, as if it opened at `nowMs`. */
+export function testPostData(fx, nowMs) {
+  return postData({ ...fx, lastLive: { ...fx.lastLive, from: new Date(nowMs).toISOString() } })
+}
+
 /** Both posts from the captured 2026-09-15 window, closed after 36 min, the one exact duration measured. */
 export async function runPreview({ log = console.log } = {}) {
   const data = postData(await captured())
@@ -578,7 +646,7 @@ export async function runCheck({ env, deps = {} }) {
     log('The WHAPI_TOKEN secret is not set.')
     return false
   }
-  const call = whapi({ token: cfg.token, base: cfg.base, fetch: deps.fetch, timeoutMs: deps.timeoutMs })
+  const call = whapi({ token: cfg.token, base: cfg.base, fetch: deps.fetch, timeoutMs: deps.timeoutMs, sleep: deps.sleep, log })
   const status = await sessionStatus(call, deps.sleep, { wakeup: false })
   log(`session: ${status}${status === 'AUTH' ? '' : ' (AUTH is connected)'}`)
   let ready = status === 'AUTH'
@@ -590,7 +658,7 @@ export async function runCheck({ env, deps = {} }) {
       continue
     }
     const { role, name } = await roleIn(call, id)
-    log(`${label}: ${name ? `"${redact(name)}"` : 'not found'}, this number's role: ${role ?? 'none'}`)
+    log(`${label}: ${name ? `"${redact(name)}"` : 'not found'}, this number's role: ${role ? String(role).replace(/[^a-z_]/gi, '').slice(0, 20) : 'none'}`)
     if (label === 'channel' && role !== 'admin') ready = false
     if (role === 'owner') log(`  The OWNER number is linked. Unlink it now: docs/whatsapp-poster.md.`)
   }
@@ -604,7 +672,7 @@ export async function runCheck({ env, deps = {} }) {
  */
 export async function runTestPost({ env, deps = {} }) {
   const log = deps.log ?? console.log
-  const sleep = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)))
+  const sleep = deps.sleep ?? realSleep
   const now = deps.now ?? Date.now
   const gh = deps.gh ?? githubApi
   const cfg = settings(env)
@@ -614,23 +682,24 @@ export async function runTestPost({ env, deps = {} }) {
     return false
   }
   if (!cfg.token) return refuse('the WHAPI_TOKEN secret is not set.')
-  if (!NEWSLETTER_OK.test(test)) return refuse("set the repo variable WA_TEST_CHANNEL_ID to the test channel's …@newsletter id.")
+  if (!NEWSLETTER_OK.test(test)) return refuse("set the WA_TEST_CHANNEL_ID secret to the test channel's …@newsletter id.")
+  // Without the real id there is nothing to tell the test channel apart from.
+  if (!NEWSLETTER_OK.test(cfg.channelId)) return refuse("set the WHAPI_CHANNEL_ID secret to the real channel's …@newsletter id first, so a test can never reach it by mistake.")
   if (test === cfg.channelId) return refuse('WA_TEST_CHANNEL_ID is the real channel. A test only ever goes to a test channel.')
   if (await findPause(gh)) return refuse('the poster is paused. Close the pause issue first.')
-  const call = whapi({ token: cfg.token, base: cfg.base, fetch: deps.fetch, timeoutMs: deps.timeoutMs })
+  const call = whapi({ token: cfg.token, base: cfg.base, fetch: deps.fetch, timeoutMs: deps.timeoutMs, sleep, log })
   const ok = await preflight(call, test, sleep)
   if (ok.reason) return refuse(ok.reason.title)
-  const fx = await captured()
-  const data = postData({ ...fx, lastLive: { ...fx.lastLive, from: new Date(now()).toISOString() } })
+  const data = testPostData(await captured(), now())
   const body = `${TEMPLATES.waTest}\n\n${renderOpen(data)}`
-  const sent = await send(call, { to: test, body, no_link_preview: true }, { sleep, log })
+  const sent = await send(call, { to: test, body, no_link_preview: true })
   const id = typeof sent?.message?.id === 'string' && MESSAGE_ID_OK.test(sent.message.id) ? sent.message.id : null
   log(`POSTED to the test channel as ${id ?? '(no id)'}:\n${body}`)
   if (!id) return false
   const status = await verify(call, id, { sleep, log })
   await sleep(TEST_EDIT_AFTER_MS)
   const over = `${TEMPLATES.waTest}\n\n${renderOver(data, new Date(Date.parse(data.from) + 36 * 60000).toISOString())}`
-  await send(call, { to: test, edit: id, body: over, no_link_preview: true }, { sleep, log })
+  await send(call, { to: test, edit: id, body: over, no_link_preview: true })
   log(`EDITED ${id} to:\n${over}`)
   log(status === 'failed' ? 'WhatsApp marked the test post failed: see docs/whatsapp-poster.md.' : 'Look at the test channel: the post, then the edit.')
   return status !== 'failed'
@@ -650,19 +719,19 @@ export async function runHealth({ env, deps = {} }) {
     log('WhatsApp poster: paused; not probing')
     return 'paused'
   }
-  const call = whapi({ token: cfg.token, base: cfg.base, fetch: deps.fetch, timeoutMs: deps.timeoutMs })
+  const call = whapi({ token: cfg.token, base: cfg.base, fetch: deps.fetch, timeoutMs: deps.timeoutMs, sleep: deps.sleep, log })
   let status
   try {
     status = await sessionStatus(call, deps.sleep, { wakeup: false })
   } catch (err) {
     if (err instanceof WhapiError && err.status >= 400 && err.status < 500) {
       log(err.message)
-      return pause(gh, err.status === 429 ? REASONS.softBan(now()) : REASONS.http(err.status), now(), log)
+      return pause(gh, err.status === 429 ? REASONS.softBan(now()) : REASONS.http(err.status), now(), log, 'watchdog.yml')
     }
     throw err
   }
   log(`WhatsApp session: ${status}`)
-  if (DROPPED.has(status)) return pause(gh, REASONS.session(status), now(), log)
+  if (DROPPED.has(status)) return pause(gh, REASONS.session(status), now(), log, 'watchdog.yml')
   return status
 }
 
