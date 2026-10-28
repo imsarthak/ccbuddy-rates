@@ -284,10 +284,9 @@ export function composeAlert(feed) {
 
 export const APP_LINK = 'https://ccbuddy.app/blinkdeal'
 
-// The WhatsApp Channel's arrival link: the app counts visits per place it
-// posts (ARRIVAL_LINKS in the app's src/routes.ts). It opens the app as `/`
-// does, not the BLINKDEAL screen.
-export const WA_LINK = 'https://ccbuddy.app/wa'
+// The WhatsApp Channel's link: the BLINKDEAL screen, as Telegram's is (his
+// pick, 2026-10-29, over the /wa arrival link, which opens the app home).
+export const WA_LINK = APP_LINK
 
 // Blank-line-separated blocks; empty lines and empty blocks drop out, so a
 // missing value never leaves a gap, a "null" or a dangling heading.

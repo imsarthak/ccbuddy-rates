@@ -30,7 +30,7 @@ Cheapest 24K per gram after the coupon:
 20 g · ₹15,143/g · Kalyan Jewellers bar
 
 207 coins: https://www.myntra.com/gold-coins?f=Coupons:BLINKDEAL6_135733
-Compare them all on CCBuddy: https://ccbuddy.app/wa
+Compare them all on CCBuddy: https://ccbuddy.app/blinkdeal
 ```
 
 The same post, edited when the window ends. An edit does not ping followers
@@ -45,7 +45,7 @@ Live from 6:22 pm to 6:58 pm.
 Cheapest 24K per gram it gave:
 …the same rows…
 
-Gold coin prices on CCBuddy: https://ccbuddy.app/wa
+Gold coin prices on CCBuddy: https://ccbuddy.app/blinkdeal
 ```
 
 The words live in `TEMPLATES` in `scraper/notify.mjs`, next to the Telegram
@@ -240,8 +240,6 @@ only a person knows when the number has rested.
   the watchdog's check 5-7 times a day).
 - Whapi renamed the role field `user_role`; its API reference still says
   `role`. The job reads both.
-- `https://ccbuddy.app/wa` opens the app's home screen, not the BLINKDEAL
-  screen. It is the WhatsApp arrival link, so visits are counted per channel.
 - Speed: the post lands about 30-40 seconds after the phone sees the window.
   The Telegram post goes out in about 3 seconds. A window lasts about 35
   minutes.
