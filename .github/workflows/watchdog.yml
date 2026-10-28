@@ -28,3 +28,13 @@ jobs:
       - run: node scraper/watchdog.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # The WhatsApp poster's linked session drops if the spare phone goes 14
+      # days without WhatsApp. Catch that here, hours before a window rather
+      # than at one. Does nothing until the WHAPI_TOKEN secret exists, and can
+      # never fail the watchdog above.
+      - name: WhatsApp poster session
+        continue-on-error: true
+        run: node scraper/wa-post.mjs --mode health
+        env:
+          WHAPI_TOKEN: ${{ secrets.WHAPI_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

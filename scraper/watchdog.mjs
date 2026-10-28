@@ -55,7 +55,8 @@ export function issueBody(checked) {
   ].join('\n')
 }
 
-async function gh(path, init = {}) {
+/** The repo's own GitHub API, as the workflow's token. Shared with wa-post.mjs. */
+export async function gh(path, init = {}) {
   const res = await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}${path}`, {
     ...init,
     headers: {

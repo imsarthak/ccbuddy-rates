@@ -13,3 +13,6 @@ logs/
 
 # Local-only alert channel config, tokens inside (never commit)
 .notify.env
+
+# The WhatsApp poster's per-window ledger, kept in the Actions cache only
+.wa-ledger/

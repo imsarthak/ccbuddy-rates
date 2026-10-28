@@ -33,9 +33,13 @@
 // Sarthak the moment a window opens (telegram chatId, sms, whatsapp, local).
 // The POSTS are public: one when a window opens and one when it closes, to
 // the Telegram channel (telegram.channelId — the bot must be an admin of it)
-// and, one tap away, to the WhatsApp Channel: there is no API for those, so
-// the local notification carries a "Post to channel" button that copies the
-// post and opens the channel (whatsappChannel.url); an admin pastes and sends.
+// and, one tap away, to the WhatsApp Channel: the local notification carries a
+// "Post to channel" button that copies the post and opens the channel
+// (whatsappChannel.url); an admin pastes and sends.
+//
+// The WhatsApp Channel can also be posted unattended by scraper/wa-post.mjs,
+// from GitHub Actions on each phone push, as a spare admin number linked to
+// Whapi.Cloud (docs/whatsapp-poster.md). Its words are TEMPLATES.wa*, below.
 //
 // Channel notes:
 //   telegram  Free and instant, reaches any device. Make a bot with
@@ -176,24 +180,88 @@ async function fanOut(jobs) {
   return out
 }
 
+/** A coin's weight in grams, read from its name or info line; null if neither says. */
+export function gramsOf(s) {
+  const m = /(\d+(?:\.\d+)?)\s*(?:grams?|gms?|g)\b/i.exec(`${s?.name} ${s?.info ?? ''}`)
+  const g = m ? parseFloat(m[1]) : null
+  return g > 0 ? g : null
+}
+
+/** What a coin costs with the coupon applied. */
+export function afterCoupon(s) {
+  return s.bestPrice ?? (s.discount != null ? s.price - s.discount : s.price)
+}
+
 /**
  * The cheapest coin per gram in a SKU list, weight read from its name.
  * Shared by the alert and the channel posts so the two can never disagree.
  */
 export function cheapestPerGram(skus) {
-  const parseG = (s) => {
-    const m = /(\d+(?:\.\d+)?)\s*(?:grams?|gms?|g)\b/i.exec(`${s.name} ${s.info ?? ''}`)
-    return m ? parseFloat(m[1]) : null
-  }
-  const after = (s) => s.bestPrice ?? (s.discount != null ? s.price - s.discount : s.price)
   let best = null
   for (const s of skus ?? []) {
-    const g = parseG(s)
+    const g = gramsOf(s)
     if (!g) continue
-    const pg = Math.round(after(s) / g)
+    const pg = Math.round(afterCoupon(s) / g)
     if (!best || pg < best.pg) best = { pg, g, brand: s.brand, url: s.url }
   }
   return best
+}
+
+// 24K, as the app's coin list counts it: 995 is sold as 24K too.
+const PURE_24K = /24\s*K|99[59]/i
+
+/**
+ * The cheapest coin per gram at each of the weights most coins come in:
+ * 24K only, coins carrying the coupon only, lightest first. One price per
+ * weight because ₹/g is only comparable within a weight: a 0.5 g coin
+ * always costs more per gram than a 20 g bar. Rows are { g, pg, brand, kind }
+ * with kind 'bar' or 'coin', read from the product name. Malformed SKUs are
+ * skipped, never printed.
+ */
+export function bestByWeight(skus, { limit = 4 } = {}) {
+  const at = new Map()
+  for (const s of Array.isArray(skus) ? skus : []) {
+    if (!s || typeof s !== 'object') continue
+    // The coupon page can list a coin the code does not discount (code null).
+    if (s.code !== undefined && !/BLINK/i.test(s.code ?? '')) continue
+    if (!PURE_24K.test(`${s.name ?? ''} ${s.info ?? ''}`)) continue
+    const g = gramsOf(s)
+    const price = Number(afterCoupon(s))
+    if (!g || !(price > 0)) continue
+    const pg = Math.round(price / g)
+    const w = at.get(g) ?? { n: 0, best: null }
+    w.n++
+    if (!w.best || pg < w.best.pg) w.best = { g, pg, brand: s.brand, kind: /\bbar\b/i.test(s.name ?? '') ? 'bar' : 'coin' }
+    at.set(g, w)
+  }
+  return [...at.values()]
+    .sort((a, b) => b.n - a.n || a.best.g - b.best.g)
+    .slice(0, limit)
+    .map((w) => w.best)
+    .sort((a, b) => a.g - b.g)
+}
+
+/**
+ * A brand as a post should print it. Myntra sends some in capitals
+ * ("BHIMA", "P N GADGIL JEWELLERS"), which reads as shouting; those are
+ * title-cased, except vowel-less words that are initials (PMJ, MMTC). Company
+ * suffixes go, and so do WhatsApp's formatting marks and line breaks, since
+ * the name comes from a third party and lands in a public post.
+ */
+export function brandName(raw) {
+  let b = String(raw ?? '').replace(/[\r\n*_~`]/g, ' ').replace(/\s+/g, ' ').trim()
+  b = b.replace(/\s+(pvt\.?\s+ltd\.?|private\s+limited|ltd\.?)$/i, '')
+  if (/[A-Z]{3}/.test(b) && b === b.toUpperCase()) {
+    b = b.split(' ').map((w) => (/[AEIOU]/.test(w) ? w[0] + w.slice(1).toLowerCase() : w)).join(' ')
+  }
+  return b.slice(0, 40).trim()
+}
+
+/** "4:44 pm", IST. Arithmetic rather than Intl, so every Node build agrees. */
+export function istClock(ms) {
+  const d = new Date(ms + 330 * 60000)
+  const h = d.getUTCHours()
+  return `${h % 12 || 12}:${String(d.getUTCMinutes()).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`
 }
 
 /** The alert itself. Short, because SMS charges by the segment. */
@@ -216,6 +284,15 @@ export function composeAlert(feed) {
 
 export const APP_LINK = 'https://ccbuddy.app/blinkdeal'
 
+// The WhatsApp Channel's arrival link: the app counts visits per place it
+// posts (ARRIVAL_LINKS in the app's src/routes.ts). It opens the app as `/`
+// does, not the BLINKDEAL screen.
+export const WA_LINK = 'https://ccbuddy.app/wa'
+
+// Blank-line-separated blocks; empty lines and empty blocks drop out, so a
+// missing value never leaves a gap, a "null" or a dangling heading.
+const blocks = (...bs) => bs.map((b) => b.filter(Boolean).join('\n')).filter(Boolean).join('\n\n')
+
 export const TEMPLATES = {
   open: ({ code, pct, count, best, source }) =>
     [
@@ -233,6 +310,26 @@ export const TEMPLATES = {
   openTitle: 'BLINKDEAL is live',
   closeTitle: 'BLINKDEAL is over',
   button: 'Post to channel',
+  // The WhatsApp Channel (scraper/wa-post.mjs). One post per window, edited in
+  // place when it ends, so followers are pinged once and anyone opening it
+  // later sees it is over. `since`/`until` are IST clock times ("4:44 pm").
+  waOpen: ({ code, pct, count, since, rows, source }) =>
+    blocks(
+      [`${code} live on Myntra${pct ? ` — ${pct}% off gold coins` : ''}`, since ? `Live since ${since}. Windows have lasted about 35 min.` : null],
+      rows?.length ? ['Cheapest 24K per gram after the coupon:', ...rows.map(TEMPLATES.waRow)] : [],
+      [source ? `${count ? `${count} coins` : 'The coins'}: ${source}` : null, `Compare them all on CCBuddy: ${WA_LINK}`],
+    ),
+  waOver: ({ code, pct, since, until, duration, rows }) =>
+    blocks(
+      [`Over${until ? ` at ${until}` : ''}${duration ? `, after ${duration}` : ''}. These prices no longer apply.`],
+      [`${code} was live on Myntra${pct ? ` — ${pct}% off gold coins` : ''}`, since ? `Live from ${since}${until ? ` to ${until}` : ''}.` : null],
+      rows?.length ? ['Cheapest 24K per gram it gave:', ...rows.map(TEMPLATES.waRow)] : [],
+      [`Gold coin prices on CCBuddy: ${WA_LINK}`],
+    ),
+  waRow: ({ g, pg, brand, kind }) => `${g} g · ₹${pg.toLocaleString('en-IN')}/g · ${brand ? `${brand} ` : ''}${kind === 'bar' ? 'bar' : 'coin'}`,
+  // Heads the test-post on the private test channel, so a test can never pass
+  // for a live deal wherever it ends up.
+  waTest: 'TEST POST — not a live deal',
 }
 
 /**

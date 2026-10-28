@@ -1,0 +1,115 @@
+name: BLINKDEAL to WhatsApp Channel
+
+# The phone pushes docs/blinkdeal.json with a personal access token, so its
+# pushes start workflows; pushes made with GITHUB_TOKEN never do, which keeps
+# the rates bot out of this. Each run compares the feed before the push with
+# after it: a window opening posts to the WhatsApp Channel through
+# Whapi.Cloud, a window ending edits that post, and anything else (a
+# heartbeat, ~90 a day) is done in seconds.
+#
+# Posting is OFF until the repo variable WA_DRY_RUN is 0 and the secrets
+# WHAPI_TOKEN and WHAPI_CHANNEL_ID exist. Until then each run prints the post
+# it would send. Code: scraper/wa-post.mjs. Setup: docs/whatsapp-poster.md.
+on:
+  push:
+    branches: [master]
+    paths: [docs/blinkdeal.json]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: preview = print both posts; check = session and role, read-only; test-post = post and edit on the TEST channel
+        type: choice
+        default: preview
+        options: [preview, check, test-post]
+
+permissions:
+  contents: read
+  issues: write # the "WhatsApp poster is paused" issue
+
+# No concurrency group, on purpose. A group keeps one run waiting and cancels
+# any older pending one, and a heartbeat push can land seconds after the
+# opening push: a group could cancel the very run that posts the window.
+
+jobs:
+  push:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: The feed before this push
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          # A push can carry several commits (one the phone could not push
+          # last tick goes with the next), so this is the old head, not HEAD~1.
+          if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] \
+            && git fetch -q --depth=1 origin "$BEFORE" \
+            && git show "$BEFORE:docs/blinkdeal.json" > "$RUNNER_TEMP/before.json"; then
+            echo "before: $BEFORE"
+          else
+            echo '{}' > "$RUNNER_TEMP/before.json"
+            echo "before: none"
+          fi
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - name: Edge
+        id: edge
+        run: >-
+          node scraper/wa-post.mjs --edge
+          --before "$RUNNER_TEMP/before.json" --after docs/blinkdeal.json
+          --history docs/blinkdeal-history.json --out "$RUNNER_TEMP/edge.json"
+      - name: Test the poster
+        if: steps.edge.outputs.any == '1'
+        run: node --test scraper/wa-post.test.mjs
+      # The ledger: one cache entry per window, saved only after a real post.
+      # Its keys are immutable, so the first post of a window is the only one.
+      - name: Ledger of the window opening
+        if: steps.edge.outputs.open_key != ''
+        uses: actions/cache/restore@v6
+        with:
+          path: .wa-ledger/${{ steps.edge.outputs.open_key }}.json
+          key: wa-post-${{ steps.edge.outputs.open_key }}
+      - name: Ledger of the window ending
+        if: steps.edge.outputs.close_key != ''
+        uses: actions/cache/restore@v6
+        with:
+          path: .wa-ledger/${{ steps.edge.outputs.close_key }}.json
+          key: wa-post-${{ steps.edge.outputs.close_key }}
+      - name: Post
+        id: post
+        if: steps.edge.outputs.any == '1'
+        run: node scraper/wa-post.mjs --post --edge-file "$RUNNER_TEMP/edge.json"
+        env:
+          WHAPI_TOKEN: ${{ secrets.WHAPI_TOKEN }}
+          WHAPI_CHANNEL_ID: ${{ secrets.WHAPI_CHANNEL_ID }}
+          WA_DRY_RUN: ${{ vars.WA_DRY_RUN }}
+          WA_CLOSE: ${{ vars.WA_CLOSE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Remember the post
+        # Even if a later call in the step failed: the post itself went out.
+        if: always() && steps.post.outputs.posted_key != ''
+        uses: actions/cache/save@v6
+        with:
+          path: .wa-ledger/${{ steps.post.outputs.posted_key }}.json
+          key: wa-post-${{ steps.post.outputs.posted_key }}
+
+  by-hand:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - run: node --test scraper/wa-post.test.mjs
+      - name: ${{ inputs.mode }}
+        run: node scraper/wa-post.mjs --mode "$MODE"
+        env:
+          MODE: ${{ inputs.mode }}
+          WHAPI_TOKEN: ${{ secrets.WHAPI_TOKEN }}
+          WHAPI_CHANNEL_ID: ${{ secrets.WHAPI_CHANNEL_ID }}
+          WA_TEST_CHANNEL_ID: ${{ vars.WA_TEST_CHANNEL_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -272,12 +272,19 @@ prints the alert and both posts to the log instead of sending them
 
 ## WhatsApp Channel — one tap from the phone
 
-There is no API for posting to a WhatsApp Channel, and every "channels API"
-on the market is a linked-device session of your own number that WhatsApp's
-help pages say can get it banned. So the watcher does not post; it makes the
-post one tap away. On both edges the phone's own notification carries a
-**Post to channel** button. Tapping it copies the post to the clipboard and
+Meta's own API cannot post to a WhatsApp Channel. The "channels APIs" on the
+market, Whapi.Cloud among them, are linked-device sessions of a number, and
+WhatsApp's help pages say linking can get that number banned. So your own
+number, the channel's owner, is never linked. Unattended posting goes through
+a **spare admin number** on Whapi, from GitHub Actions: see
+[whatsapp-poster.md](whatsapp-poster.md). This section is the manual route,
+which needs nothing linked. On both edges the phone's own notification carries
+a **Post to channel** button. Tapping it copies the post to the clipboard and
 opens the channel; whoever holds the phone pastes and sends.
+
+**While the Whapi poster is live (`WA_DRY_RUN` = `0`), don't tap the
+button.** The window has already been posted, and tapping would post it a
+second time.
 
 Add the channel's invite link (Channel info → share icon, or the link under
 Channel info → Invite link):
@@ -316,10 +323,16 @@ until you press send.
 
 ## WhatsApp Channel — unattended
 
-Optional, off by default, and it drives the WhatsApp app with a robot thumb
-(Tasker + AutoInput) as a spare admin number. `"autopost": true` next to the
-URL turns it on. Setup, the intent the watcher emits, the risks, and the
-checklist are in [whatsapp-tasker.md](whatsapp-tasker.md).
+The route chosen on 2026-10-28 is the **Whapi poster**. It runs in GitHub
+Actions, posts as a spare admin number, and needs nothing on this phone
+beyond the watcher: [whatsapp-poster.md](whatsapp-poster.md).
+
+The older alternative drives the WhatsApp app with a robot thumb
+(Tasker + AutoInput), as a spare admin number. It is optional and off by
+default; `"autopost": true` next to the URL turns it on. Setup, the intent
+the watcher emits, the risks, and the checklist are in
+[whatsapp-tasker.md](whatsapp-tasker.md). **Never run it and the Whapi poster
+together:** each window would be posted twice.
 
 ---
 

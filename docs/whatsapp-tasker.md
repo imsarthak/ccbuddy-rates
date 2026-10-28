@@ -1,5 +1,11 @@
 # Unattended WhatsApp Channel posts with Tasker + AutoInput
 
+> **Superseded (2026-10-28)** by [whatsapp-poster.md](whatsapp-poster.md),
+> which posts from GitHub Actions through Whapi.Cloud as a spare admin number,
+> with nothing to keep awake on the phone. This page stays as an alternative.
+> **Never run Tasker autopost and the Whapi poster together:** each window
+> would be posted twice.
+
 Stage 3 of the channel route (research: `GC Management/docs/research/
 whatsapp-channel-autopost.md`, 2026-09-21). Stages 1 and 2 — the Telegram
 channel and the one-tap notification — are in `docs/termux-setup.md` and work

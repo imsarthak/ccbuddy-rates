@@ -61,7 +61,11 @@ test('formatDuration never shows seconds and rolls into hours', () => {
 })
 
 test('every follower-facing string is in TEMPLATES', () => {
-  assert.deepEqual(Object.keys(TEMPLATES).sort(), ['button', 'close', 'closeTitle', 'open', 'openTitle'])
+  assert.deepEqual(Object.keys(TEMPLATES).sort(), [
+    'button', 'close', 'closeTitle', 'open', 'openTitle',
+    // the WhatsApp Channel, scraper/wa-post.mjs
+    'waOpen', 'waOver', 'waRow', 'waTest',
+  ])
   assert.equal(TEMPLATES.button, 'Post to channel')
 })
 
