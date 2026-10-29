@@ -69,9 +69,11 @@ apply.` with no time.
 - **It finds the channel itself.** You give it only the Whapi token. Before
   every post it asks Whapi which Channels the linked number is in, and posts to
   the one where it is an admin (your test channel aside, if you made one). If
-  it is an admin of none, or of more than one, it posts nothing and opens an
-  issue saying what to do. The `WHAPI_CHANNEL_ID` secret pins the channel
-  instead; you need it only if the spare number admins more than one Channel.
+  it is an admin of none, or of more than one, or the test channel has more
+  followers than the one it found (the test id is then the real one), it
+  posts nothing and opens an issue saying what to do. The `WHAPI_CHANNEL_ID`
+  secret pins the channel instead; you need it only if the spare number
+  admins more than one Channel.
 - **Your number is never linked.** The same question tells it the linked
   number's role. If that number owns any Channel, it may be your own number:
   it posts nothing and opens an issue telling you to unlink it.
@@ -79,9 +81,10 @@ apply.` with no time.
   coupon id (Myntra reuses one id across windows, even twice in a day). Each
   opening is in exactly one phone push. A record of each real post is kept in
   the Actions cache, so a duplicate run cannot post twice, and the end knows
-  which post to edit. Re-running a workflow run never posts. If the job cannot
-  read the feed as it was before the push, it posts nothing: it could not tell
-  the opening from a heartbeat.
+  which post to edit. It edits it only in the Channel the post went to: if
+  the channel has changed since, the post is left as it is. Re-running a
+  workflow run never posts. If the job cannot read the feed as it was before
+  the push, it posts nothing: it could not tell the opening from a heartbeat.
 - **One off switch.** An issue titled **WhatsApp poster is paused** stops it
   completely: while the issue is open, the job does not call Whapi at all and
   only comments on each window it skipped. The job opens it itself when
@@ -197,8 +200,8 @@ WA_TEST_CHANNEL_ID
    phone. A post headed `TEST POST — not a live deal` appears, and about 35
    seconds later it is edited to the "Over" version. It never posts to the
    real channel: it refuses if the test channel id is the real one, or if the
-   test channel does not have fewer followers than the real one (ids put in
-   the wrong secrets).
+   follower counts say `WA_TEST_CHANNEL_ID` holds the real channel's id. It
+   also refuses if the linked number owns either channel.
 
 **7. One real window, still dry.** When the next window opens, open that
 push's run and read the **Post** step. It shows the exact post, then the edit
@@ -239,6 +242,7 @@ To switch it off again, delete the variable or set it to anything else.
 | the OWNER is linked | Log out the Whapi device on your own phone **now**. Link the spare number instead. (If the linked number really is the spare one and it owns a Channel of its own, set `WHAPI_CHANNEL_ID`.) |
 | not an admin | Invite the spare number as admin (again) and accept on the spare phone. |
 | admin of 2 or more Channels, or follows too many | Add the `WHAPI_CHANNEL_ID` secret (step 5). If the other one is your test channel, its `WA_TEST_CHANNEL_ID` secret (step 6) does instead. |
+| `WA_TEST_CHANNEL_ID` may be the real channel | Check the `WA_TEST_CHANNEL_ID` secret holds the test channel's id, not the real one's. Or add `WHAPI_CHANNEL_ID` (step 5). |
 | 401 | Check `WHAPI_TOKEN` matches the dashboard. If it does, re-link (QR). |
 | 402 | The plan's limit is used up. Check the plan. |
 | 403 / 404 | Check the spare number is still an admin, and that `WHAPI_CHANNEL_ID` is right if you set it. |
@@ -268,8 +272,9 @@ only a person knows when the number has rested.
   `Channels this number admins: 0` though the spare number is an admin, set
   `WHAPI_CHANNEL_ID`.
 - Whether the free Sandbox plan can post to Channels, and whether the session
-  checks count against its 1,000 requests a month (about 4 per window, plus
-  the watchdog's check 5-7 times a day).
+  checks count against its 1,000 requests a month (about 7 per window: 4 for
+  the post, 3 for the edit; plus the watchdog's check 4-8 times a day, about
+  180 a month).
 - Whapi renamed the role field `user_role`; its API reference still says
   `role`. The job reads both.
 - Speed: the post lands about 30-40 seconds after the phone sees the window.

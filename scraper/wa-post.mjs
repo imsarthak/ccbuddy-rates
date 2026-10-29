@@ -31,7 +31,10 @@
 // Channel the linked number admins, the test channel aside, found from one
 // GET /newsletters just before a post (that call replaces the role check, so
 // it costs nothing extra). A number that owns any Channel, admins none, or
-// admins more than one posts nothing, and the poster pauses saying why.
+// admins more than one posts nothing, and the poster pauses saying why; so
+// does a test channel with more followers than the one found (the two ids
+// swapped). Either way, a window's end is edited only in the Channel its
+// post went to.
 //
 //   --edge --before <f> --after <f> [--history <f>] [--out <f>]
 //                         work out the edge; open_key/close_key/any to $GITHUB_OUTPUT
@@ -54,6 +57,7 @@
 // response; the token travels only in the Authorization header.
 
 import { readFile, writeFile, mkdir, appendFile } from 'node:fs/promises'
+import { createHmac } from 'node:crypto'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { TEMPLATES, bestByWeight, brandName, istClock, formatDuration } from './notify.mjs'
@@ -292,30 +296,43 @@ async function sessionStatus(call, sleep, { wakeup }) {
   return status
 }
 
-// This number's role in a channel. Whapi renamed role to user_role (changelog 2026-04-21); read both.
-const roleOf = (n) => (n && typeof n === 'object' ? n.user_role ?? n.role ?? null : null)
-// The owner, when the channel is found. The spec's enum says owner; the
-// changelog that added the role (3 Aug 2024) called it creator. Both count.
+// This number's role in a channel, in lower case. Whapi renamed role to
+// user_role (changelog 2026-04-21): both are read, user_role first.
+const rolesOf = (n) =>
+  (n && typeof n === 'object' ? [n.user_role, n.role] : [])
+    .filter((r) => typeof r === 'string' && r.trim())
+    .map((r) => r.trim().toLowerCase())
+const roleOf = (n) => rolesOf(n)[0] ?? null
+// The owner. The spec's enum says owner; the changelog that added the role
+// (3 Aug 2024) called it creator. Either word, in either field, in any case,
+// makes this number the owner: an owner taken for an admin could post.
 const OWNS = new Set(['owner', 'creator'])
+const ownedBy = (n) => rolesOf(n).some((r) => OWNS.has(r))
 const nameOf = (n) => (typeof n?.name === 'string' ? n.name : null)
 const followersOf = (n) => (Number.isInteger(n?.subscribers_count) ? n.subscribers_count : null)
 // What a log may say about a channel: its name and this number's role, never its id.
 const quoted = (name) => (name ? `"${redact(name)}"` : 'a Channel with no name')
 const roleText = (role) => (role ? String(role).replace(/[^a-z_]/gi, '').slice(0, 20) : 'none')
+const about = (n) => ({ role: roleOf(n), owner: ownedBy(n), name: nameOf(n), followers: followersOf(n) })
 
 /** This number's role in the channel with this id (WHAPI_CHANNEL_ID, or the test channel's). */
 async function roleIn(call, channelId) {
   try {
     // `@` is legal in a path segment; every caller has checked the id's shape.
     const one = await call('channel', 'GET', `/newsletters/${channelId}`)
-    if (roleOf(one)) return { role: String(roleOf(one)), name: nameOf(one) }
+    if (roleOf(one)) return about(one)
   } catch (e) {
     if (!(e instanceof WhapiError) || (e.status !== 400 && e.status !== 404)) throw e
   }
   const list = await call('channels', 'GET', '/newsletters?count=100')
-  const n = (Array.isArray(list?.newsletters) ? list.newsletters : []).find((x) => x?.id === channelId)
-  return { role: roleOf(n) ? String(roleOf(n)) : null, name: nameOf(n) }
+  return about((Array.isArray(list?.newsletters) ? list.newsletters : []).find((x) => x?.id === channelId))
 }
+
+// The ledger lives in the Actions cache, which a pull request's workflow can
+// read, so it never holds a channel id: only this fingerprint of one, keyed
+// with the token, enough to tell whether an end is being edited in the
+// Channel its post went to.
+const channelTag = (token, channelId) => createHmac('sha256', token).update(channelId).digest('hex').slice(0, 16)
 
 // GET /newsletters answers at most `count` channels a call (OpenAPI 1.8.7:
 // count 1-500, offset; { newsletters, count, total, offset }). One page is
@@ -336,13 +353,28 @@ async function findChannel(call, testId = '') {
   const list = await call('channels', 'GET', `/newsletters?count=${LIST_PAGE}`)
   const all = (Array.isArray(list?.newsletters) ? list.newsletters : []).filter((n) => n && typeof n === 'object')
   const partial = all.length >= LIST_PAGE || (Number.isInteger(list?.total) && list.total > all.length)
-  const admins = all.filter((n) => roleOf(n) === 'admin' && NEWSLETTER_OK.test(n.id ?? '') && n.id !== test)
+  // One entry per id: a list that names a channel twice still names one.
+  const admins = [
+    ...new Map(
+      all
+        .filter((n) => roleOf(n) === 'admin' && typeof n.id === 'string' && NEWSLETTER_OK.test(n.id) && n.id !== test)
+        .map((n) => [n.id, n]),
+    ).values(),
+  ]
   const out = { admins: admins.length, partial, test: (test && all.find((n) => n.id === test)) || null }
-  if (all.some((n) => OWNS.has(roleOf(n)))) return { ...out, reason: REASONS.owner(true) }
+  if (all.some(ownedBy)) return { ...out, reason: REASONS.owner(true) }
   if (admins.length > 1) return { ...out, reason: REASONS.manyChannels(admins.length, !!test) }
   if (partial) return { ...out, reason: REASONS.manyChannels(null) }
   if (!admins.length) return { ...out, reason: REASONS.noChannel(!!test) }
-  return { ...out, channel: { id: admins[0].id, name: nameOf(admins[0]), followers: followersOf(admins[0]) } }
+  const [one] = admins
+  // The real channel's id put in WA_TEST_CHANNEL_ID leaves the real one out
+  // and makes the test channel the one found. It shows as a "test" channel
+  // this number admins with more followers than the one found.
+  const [testFollowers, followers] = [followersOf(out.test), followersOf(one)]
+  if (roleOf(out.test) === 'admin' && testFollowers !== null && followers !== null && testFollowers > followers) {
+    return { ...out, reason: REASONS.testSwapped() }
+  }
+  return { ...out, channel: { id: one.id, name: nameOf(one), followers } }
 }
 
 /**
@@ -355,12 +387,12 @@ async function preflight(call, channelId, sleep, testId = '') {
   if (!channelId) {
     const found = await findChannel(call, testId)
     if (found.reason) return { reason: found.reason }
-    return { status, role: 'admin', name: found.channel.name, channelId: found.channel.id, found: true }
+    return { status, role: 'admin', name: found.channel.name, followers: found.channel.followers, channelId: found.channel.id, found: true }
   }
-  const { role, name } = await roleIn(call, channelId)
-  if (role === 'owner') return { reason: REASONS.owner() }
+  const { role, owner, name, followers } = await roleIn(call, channelId)
+  if (owner) return { reason: REASONS.owner() }
   if (role !== 'admin') return { reason: REASONS.notAdmin(role) }
-  return { status, role, name, channelId }
+  return { status, role, name, followers, channelId }
 }
 
 // A 401 is retried inside the client; a 429, 5xx or timeout never is.
@@ -460,6 +492,16 @@ export const REASONS = {
     title: `The linked number is not an admin of any WhatsApp Channel${test ? ' other than the test channel' : ''} yet.`,
     steps: [
       'From your own number: Channel info → Invite admins → the spare number, then accept the invitation on the spare phone within 7 days.',
+      CLOSE_TO_RESUME,
+    ],
+  }),
+  // No WHAPI_CHANNEL_ID, and the Channel left out as the test one looks like the real one.
+  testSwapped: () => ({
+    kind: 'test-swapped',
+    title: 'WA_TEST_CHANNEL_ID may be the real channel: the Channel it leaves out has more followers than the one the poster found.',
+    steps: [
+      "Check the WA_TEST_CHANNEL_ID secret is the test channel's …@newsletter id, not the real channel's.",
+      "Or add the repository secret WHAPI_CHANNEL_ID: the real channel's id, ending @newsletter (docs/whatsapp-poster.md, step 5).",
       CLOSE_TO_RESUME,
     ],
   }),
@@ -676,7 +718,14 @@ export async function runEdge(e, { env, ledgerDir = LEDGER_DIR, deps = {} }) {
       const id = typeof sent?.message?.id === 'string' && MESSAGE_ID_OK.test(sent.message.id) ? sent.message.id : null
       // Record it before anything else can fail: a second post of the same
       // window is the one outcome this must never produce.
-      await writeLedger(ledgerDir, e.open.key, { key: e.open.key, messageId: id, data: e.open.data, body, postedAt: new Date(now()).toISOString() })
+      await writeLedger(ledgerDir, e.open.key, {
+        key: e.open.key,
+        messageId: id,
+        channelTag: channelTag(cfg.token, ok.channelId),
+        data: e.open.data,
+        body,
+        postedAt: new Date(now()).toISOString(),
+      })
       result.posted = e.open.key
       await deps.output?.('posted_key', e.open.key)
       log(`POSTED ${id ?? '(Whapi returned no message id, so the end cannot be edited in)'}:\n${body}`)
@@ -685,7 +734,11 @@ export async function runEdge(e, { env, ledgerDir = LEDGER_DIR, deps = {} }) {
         return result
       }
     }
-    if (doClose) {
+    // The end is edited only in the Channel its post went to. The channel
+    // this run found, or WHAPI_CHANNEL_ID, may have changed since the post.
+    if (doClose && closeOf.channelTag !== channelTag(cfg.token, ok.channelId)) {
+      log(`${e.close.key}: its post was made in another Channel, or under another Whapi token, than this run's; not editing it`)
+    } else if (doClose) {
       const body = renderOver(closeOf.data, e.close.to)
       await send(call, { to: ok.channelId, edit: closeOf.messageId, body, no_link_preview: true })
       result.edited = closeOf.messageId
@@ -756,10 +809,10 @@ export async function runCheck({ env, deps = {} }) {
         if (label === 'channel') ready = false
         continue
       }
-      const { role, name } = await roleIn(call, id)
+      const { role, owner, name } = await roleIn(call, id)
       log(`${label}: ${name ? `"${redact(name)}"` : 'not found'}, this number's role: ${roleText(role)}`)
-      if (label === 'channel' && role !== 'admin') ready = false
-      if (role === 'owner') log(`  The OWNER number is linked. Unlink it now: docs/whatsapp-poster.md.`)
+      if (label === 'channel' && (role !== 'admin' || owner)) ready = false
+      if (owner) log(`  The OWNER number is linked. Unlink it now: docs/whatsapp-poster.md.`)
     }
   }
   log(ready ? 'Ready: connected, and an admin of the channel.' : 'Not ready: see above.')
@@ -789,9 +842,38 @@ export async function runTestPost({ env, deps = {} }) {
   if (test === cfg.channelId) return refuse('WA_TEST_CHANNEL_ID is the real channel. A test only ever goes to a test channel.')
   if (await findPause(gh)) return refuse('the poster is paused. Close the pause issue first.')
   const call = whapi({ token: cfg.token, base: cfg.base, fetch: deps.fetch, timeoutMs: deps.timeoutMs, sleep, log })
+  try {
+    return await testPost(call, cfg, { log, sleep, now, refuse })
+  } catch (err) {
+    // A 429 rests the number for the real posts too: the same pause they use.
+    if (err instanceof WhapiError && err.status === 429) {
+      log(err.message)
+      await pause(gh, REASONS.softBan(now()), now(), log)
+      return false
+    }
+    throw err
+  }
+}
+
+/** runTestPost once its settings are checked: every Whapi call it makes. */
+async function testPost(call, cfg, { log, sleep, now, refuse }) {
+  const test = cfg.testId
   if (cfg.channelId) {
     const ok = await preflight(call, test, sleep)
     if (ok.reason) return refuse(ok.reason.title)
+    // The real channel too. The owner's number never posts, not even a test;
+    // and the two ids, each in the other's secret, would send the TEST POST
+    // to every follower. A test channel nobody follows reaches nobody, and
+    // without counts the ids are only told apart by being different.
+    const real = await roleIn(call, cfg.channelId)
+    if (real.owner) return refuse(REASONS.owner().title)
+    // As a real post needs it: a WHAPI_CHANNEL_ID that is not this number's
+    // channel is a mistake, and the test id may be the other half of it.
+    if (real.role !== 'admin') return refuse(`WHAPI_CHANNEL_ID: ${REASONS.notAdmin(real.role).title} Run mode check.`)
+    const [mine, theirs] = [ok.followers, real.followers]
+    if (mine !== null && theirs !== null && mine > 0 && mine >= theirs) {
+      return refuse(`the test channel has ${mine} followers and ${quoted(real.name)}, the WHAPI_CHANNEL_ID channel, has ${theirs}: the two ids may be swapped. Check WA_TEST_CHANNEL_ID and WHAPI_CHANNEL_ID.`)
+    }
   } else {
     // No real id to compare with: find the real channel as a post would, then
     // read the test channel's role from that same list.
