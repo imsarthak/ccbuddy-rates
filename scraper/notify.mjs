@@ -316,7 +316,7 @@ export const TEMPLATES = {
   // later sees it is over. `since`/`until` are IST clock times ("4:44 pm").
   waOpen: ({ code, pct, count, since, rows, source }) =>
     blocks(
-      [`${code} live on Myntra${pct ? ` — ${pct}% off gold coins` : ''}`, since ? `Live since ${since}. Windows have lasted about 35 min.` : null],
+      [`${code} live on Myntra${pct ? ` — ${pct}% off gold coins` : ''}`, since ? `Live since ${since}.` : null],
       rows?.length ? ['Cheapest 24K per gram after the coupon:', ...rows.map(TEMPLATES.waRow)] : [],
       [source ? `${count ? `${count} coins` : 'The coins'}: ${source}` : null, `Compare them all on CCBuddy: ${WA_LINK}`],
     ),
@@ -515,10 +515,8 @@ if (process.argv[1] && process.argv[1].replace(/\\/g, '/').toLowerCase().endsWit
     // synthetic: the fixture predates the history file, so give it 36 min,
     // the one exact duration measured (2026-09-16).
     const fx = JSON.parse(await readFile(join(ROOT, 'scraper', 'fixtures', 'live-window-2026-09-15.json'), 'utf8'))
-    // The fixture predates discountPct; the digits in the code are the same
-    // fallback the watcher uses (blinkdeal.mjs imports this file, so it
-    // cannot be imported back from here).
-    const open = { ...fx, discountPct: fx.discountPct ?? (Number(/(\d+)\s*$/.exec(fx.code)?.[1]) || null) }
+    // The fixture predates discountPct; its coins were 6% off.
+    const open = { ...fx, discountPct: fx.discountPct ?? 6 }
     const from = fx.lastLive?.from ?? fx.generated
     const close = { code: fx.code, from, to: new Date(Date.parse(from) + 36 * 60000).toISOString(), maxSkus: fx.totalCount }
     const dryRun = !process.argv.includes('--post-test')

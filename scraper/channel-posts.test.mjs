@@ -254,3 +254,9 @@ test('a post channel failing never fails the tick or loses the window', async ()
   assert.equal(next.ok, true)
   assert.equal(next.postedAt, undefined)
 })
+
+test("the discount comes from the coins, never from the digits in the code", () => {
+  assert.equal(inferDiscountPct('BLINKDEAL60', []), null, 'BLINKDEAL60 is 6%, not 60%')
+  assert.equal(inferDiscountPct('BLINKDEAL60', [{ discount: 1000, price: 16652 }]), 6)
+  assert.equal(inferDiscountPct('BLINKDEAL6', [{ discount: null, price: 16652 }]), null)
+})

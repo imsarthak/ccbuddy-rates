@@ -339,10 +339,11 @@ together:** each window would be posted twice.
 
 # Cadence
 
-Twenty seconds between 11:00 and 23:00 IST, five minutes overnight, plus a few
+Twenty seconds from 11:00 IST to midnight, five minutes overnight, plus a few
 seconds of jitter so requests do not land on the same second of every minute.
-Every BLINKDEAL sighting we have a timestamp for landed between 12:34 and
-22:52 IST, which is where that window comes from.
+September's BLINKDEAL sightings landed between 12:34 and 22:52 IST, and
+October's 63 starts between 12:28 and 23:52, three of them after 23:00. That
+is where the span comes from.
 
 Treat that with some suspicion — nine of those ten are tweet times and people
 tweet when they are awake, so an overnight window might simply never have been
@@ -352,14 +353,15 @@ posted. To poll hard around the clock:
 FAST=20 SLOW=20 FAST_FROM=0 FAST_TO=24 bash scraper/watch-termux.sh
 ```
 
-Around the top of every active hour — from thirty seconds before to two
-minutes after — it drops to five seconds and skips the git sync on those
-ticks, so the interval is really five seconds and not five plus a fetch over
-mobile data. The one exact window start we have is 17:00:43 IST, the other
-was about 18:00, and on 16 Sep the flip fell inside the ~25 s between two
-twenty-second ticks; the burst bounds that to about seven. It costs roughly
-thirty requests an hour on top of the hundred and eighty. `BURST=0` turns it
-off; `BURST_BEFORE` and `BURST_AFTER` are in seconds.
+With `BURST=5`, around the top of every active hour — from thirty seconds
+before to two minutes after — it drops to five seconds and skips the git sync
+on those ticks, so the interval is really five seconds and not five plus a
+fetch over mobile data. September's one exact window start was 17:00:43 IST,
+the other was about 18:00, and on 16 Sep the flip fell inside the ~25 s
+between two twenty-second ticks; the burst bounds that to about seven. It
+costs roughly thirty requests an hour on top of the hundred and eighty. It is
+off by default: none of October's 63 starts fell inside those minutes.
+`BURST_BEFORE` and `BURST_AFTER` are in seconds.
 
 Twenty seconds puts you roughly forty seconds ahead of every competitor we
 measured; the paid Telegram bot polls at ninety seconds and the tracker site

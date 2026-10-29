@@ -22,7 +22,7 @@ One post when a window opens:
 
 ```
 BLINKDEAL6 live on Myntra — 6% off gold coins
-Live since 6:22 pm. Windows have lasted about 35 min.
+Live since 6:22 pm.
 
 Cheapest 24K per gram after the coupon:
 0.5 g · ₹15,620/g · Mia by Tanishq coin
@@ -274,9 +274,10 @@ only a person knows when the number has rested.
 - Whether the free Sandbox plan can post to Channels, and whether the session
   checks count against its 1,000 requests a month (about 7 per window: 4 for
   the post, 3 for the edit; plus the watchdog's check 4-8 times a day, about
-  180 a month).
+  180 a month). October's pace, 5.4 windows a day, would make that about
+  1,320 a month.
 - Whapi renamed the role field `user_role`; its API reference still says
   `role`. The job reads both.
 - Speed: the post lands about 30-40 seconds after the phone sees the window.
-  The Telegram post goes out in about 3 seconds. A window lasts about 35
-  minutes.
+  The Telegram post goes out in about 3 seconds. October's windows lasted a
+  median 4 minutes, the longest 29 (rival channels' posts, 19-27 Oct).

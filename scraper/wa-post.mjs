@@ -69,8 +69,9 @@ export const LEDGER_DIR = join(ROOT, '.wa-ledger')
 export const PAUSE_TITLE = 'WhatsApp poster is paused'
 
 // A post more than this long after the window opened is news about a deal
-// that is nearly over (they run ~35 min): the phone was offline, or the
-// runner queued. Say nothing rather than say it late.
+// that is most likely over (October's windows ran a median 4 min, the
+// longest 29): the phone was offline, or the runner queued. Say nothing
+// rather than say it late.
 export const OPEN_MAX_AGE_MS = 15 * 60 * 1000
 const CLOCK_SKEW_MS = 5 * 60 * 1000
 // A live feed is rewritten every 2 min (blinkdeal.mjs LIVE_HEARTBEAT_MS). A
@@ -118,7 +119,7 @@ export function windowKey(feed) {
 export function postData(feed) {
   const code = feed.lastLive?.code ?? feed.code
   const skus = Array.isArray(feed.skus) ? feed.skus : []
-  const pct = Number(feed.discountPct) || Number(/(\d+)\s*$/.exec(code)?.[1]) || null
+  const pct = Number(feed.discountPct) || null
   const count = Number.isInteger(feed.totalCount) && feed.totalCount > 0 ? feed.totalCount : skus.length || null
   const source = typeof feed.source === 'string' && /^https:\/\/www\.myntra\.com\/\S*$/.test(feed.source) ? feed.source : null
   return {
@@ -762,7 +763,8 @@ export async function runEdge(e, { env, ledgerDir = LEDGER_DIR, deps = {} }) {
 
 async function captured() {
   const fx = JSON.parse(await readFile(join(ROOT, 'scraper', 'fixtures', 'live-window-2026-09-15.json'), 'utf8'))
-  return { ...fx, discountPct: fx.discountPct ?? (Number(/(\d+)\s*$/.exec(fx.code)?.[1]) || null) }
+  // It predates discountPct; its coins were 6% off.
+  return { ...fx, discountPct: fx.discountPct ?? 6 }
 }
 
 /** What test-post sends: the captured window, as if it opened at `nowMs`. */

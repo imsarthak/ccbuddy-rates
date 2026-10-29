@@ -174,7 +174,7 @@ const liveTill = (from, end) => liveFeed(from, { checkedAt: new Date(Date.parse(
 
 const OPEN_TEXT = [
   'BLINKDEAL6 live on Myntra — 6% off gold coins',
-  'Live since 5:00 pm. Windows have lasted about 35 min.',
+  'Live since 5:00 pm.',
   '',
   'Cheapest 24K per gram after the coupon:',
   '0.5 g · ₹15,620/g · Mia by Tanishq coin',
@@ -314,13 +314,13 @@ test('a feed with junk in it renders without a null, a NaN or a foreign link', (
     skus: [null, 7, { name: '24K coin 1 g', price: 'free', code: 'BLINKDEAL6' }, { brand: '*BOLD*\nNEWLINE', name: '24K Gold Coin 2 g', price: 32000, discount: 1000, code: 'BLINKDEAL6' }],
   })
   const data = postData(junk)
-  assert.equal(data.pct, 6, 'the digits in the code stand in')
+  assert.equal(data.pct, null, "a code's digits are not its discount")
   assert.equal(data.source, null)
   const text = renderOpen(data) + renderOver(data, W1_END)
   assert.ok(!/null|undefined|NaN|javascript/.test(text), text)
   assert.ok(text.includes('2 g · ₹15,500/g · Bold Newline coin'), text)
   const bare = renderOpen(postData(liveFeed(W1, { skus: 'nope', source: undefined, totalCount: undefined })))
-  assert.equal(bare, `BLINKDEAL6 live on Myntra — 6% off gold coins\nLive since 5:00 pm. Windows have lasted about 35 min.\n\nCompare them all on CCBuddy: ${WA_LINK}`)
+  assert.equal(bare, `BLINKDEAL6 live on Myntra — 6% off gold coins\nLive since 5:00 pm.\n\nCompare them all on CCBuddy: ${WA_LINK}`)
 })
 
 test('cheapest by weight: 24K only, coins the code covers only, the common weights, lightest first', () => {
@@ -1137,4 +1137,14 @@ test('the posting step gets the test channel too, so a test channel the spare nu
   }
   // A variable is printed in clear in the step's log, which is public.
   assert.doesNotMatch(yml, /vars\.(WHAPI|WA_TEST)/)
+})
+
+test('BLINKDEAL60 with no measured discount posts no percentage', () => {
+  const sixty = liveFeed(W1, {
+    code: 'BLINKDEAL60', discountPct: null,
+    lastLive: { code: 'BLINKDEAL60', couponId: '135733', from: W1, skuCount: 12 },
+  })
+  const data = postData(sixty)
+  assert.equal(data.pct, null)
+  assert.equal(renderOpen(data).split('\n')[0], 'BLINKDEAL60 live on Myntra')
 })
