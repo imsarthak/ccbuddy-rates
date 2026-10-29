@@ -303,8 +303,10 @@ export const TEMPLATES = {
     ]
       .filter(Boolean)
       .join('\n'),
+  // `duration` is null when nothing watched the window end (closeWindow in
+  // blinkdeal.mjs): how long it ran is not known then, so it is not said.
   close: ({ code, duration, count }) =>
-    [`${code} is over — lasted ${duration}${count ? `, ${count} coins` : ''}`, APP_LINK].join('\n'),
+    [duration ? `${code} is over — lasted ${duration}${count ? `, ${count} coins` : ''}` : `${code} is over`, APP_LINK].join('\n'),
   // The phone's own notification: its title per edge, and the button.
   openTitle: 'BLINKDEAL is live',
   closeTitle: 'BLINKDEAL is over',
@@ -416,7 +418,10 @@ export function formatDuration(ms) {
 /**
  * Render one post from the window as the watcher knows it at that moment.
  *   open   { code, discountPct, totalCount?, skus, source }
- *   close  { code, from, to, maxSkus? | skuCount? }
+ *   close  { code, from, to, approx?, maxSkus? | skuCount? }
+ * An `approx` close is one the watcher did not see happen: its `to` is the
+ * last time the window was seen live, so to − from is only a lower bound,
+ * and the post leaves the length out rather than state it.
  */
 export function composePost(kind, w) {
   if (kind === 'open') {
@@ -432,7 +437,7 @@ export function composePost(kind, w) {
   if (kind === 'close') {
     return TEMPLATES.close({
       code: w.code,
-      duration: formatDuration(Date.parse(w.to) - Date.parse(w.from)),
+      duration: w.approx === true ? null : formatDuration(Date.parse(w.to) - Date.parse(w.from)),
       count: w.maxSkus ?? w.skuCount ?? null,
     })
   }
