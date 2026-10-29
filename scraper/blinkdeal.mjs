@@ -200,6 +200,39 @@ export function brandFacet(results) {
   return []
 }
 
+/**
+ * How many of a coin Myntra says it holds: the sum of `inventory` over the
+ * product's inventoryInfo entries, or null when no entry can be read. It
+ * comes off the listing products the crawl already has, so it costs no
+ * request.
+ *
+ * The evidence is one gold-coins listing read on a phone on 2026-10-29 at
+ * 21:02 IST, outside a window (captures/listing-products-2026-10-29.json on
+ * the capture/bd-stock branch). All 46 coins on it carried exactly one entry,
+ * `{ skuId, label: "Onesize", inventory, available: true, brandSizeLabel }`,
+ * with inventory from 1 to 2190. None was listed at 0 or available: false, so
+ * what a sold-out coin looks like has not been seen: an entry marked
+ * available: false is left out rather than read as 0, and an inventory that is
+ * not a whole number of at least 0 is ignored. Summing, rather than taking
+ * the first entry, is for a coin sold in more than one size, which none is
+ * today.
+ *
+ * Advisory only. It is Myntra's figure at the read, and minutes old by the
+ * time anyone reads the feed: a stock change alone never rewrites the file
+ * (skuKey), so a live feed carries it out on the heartbeat. It says roughly
+ * how deep a coin's stock runs, never that one is still there to buy.
+ */
+export function stockOf(p) {
+  const entries = Array.isArray(p?.inventoryInfo) ? p.inventoryInfo : []
+  let total = null
+  for (const e of entries) {
+    if (!e || typeof e !== 'object' || e.available === false) continue
+    if (!Number.isInteger(e.inventory) || e.inventory < 0) continue
+    total = (total ?? 0) + e.inventory
+  }
+  return total
+}
+
 export function toSku(p) {
   return {
     id: p.productId,
@@ -212,6 +245,7 @@ export function toSku(p) {
     bestPrice: p.couponData?.couponDescription?.bestPrice ?? null,
     code: p.couponData?.couponDescription?.couponCode ?? null,
     url: `${ORIGIN}/${p.landingPageUrl}`,
+    stock: stockOf(p),
   }
 }
 
@@ -385,6 +419,11 @@ async function detect(previous, onLive = async () => {}, onFirstPage = async () 
   }
 }
 
+// Which coins a feed lists, by id and nothing else. A coin's price or stock
+// moving is not a material change: stock moves on most reads of a live
+// window, and keying on it would make every tick a write, each one a push over
+// mobile data and a wa-post run. The live heartbeat carries those numbers out
+// every couple of minutes anyway.
 const skuKey = (f) => (f.skus ?? []).map((s) => s.id).sort().join(',')
 
 /**

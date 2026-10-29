@@ -206,6 +206,17 @@ test('lastSeen alone never makes a write: a live tick between heartbeats still w
   assert.equal(next, null, 'each write is a push over mobile data and a workflow run')
 })
 
+// The same coins with every count moved, as the next read of a live window has them.
+const stocked = (stock) => ({ ...LIVE, skus: LIVE.skus.map((s) => ({ ...s, stock })) })
+
+test('stock alone never makes a write either: the heartbeat carries the new counts', async () => {
+  const { tick } = watcher()
+  const opened = (await tick({ checkedAt: ago(MIN), ok: true, live: false, knownIds: [] }, stocked(752))).next
+  assert.equal((await tick(opened, stocked(9))).next, null, 'every coin moved, none came or went')
+  const beat = (await tick({ ...opened, checkedAt: ago(3 * MIN) }, stocked(9))).next
+  assert.ok(beat.skus.every((s) => s.stock === 9))
+})
+
 test('the phone died 10 min into a window and came back 6 h 40 min after it opened', async () => {
   const { posts, tick } = watcher()
   const from = ago(400 * MIN)
@@ -278,6 +289,18 @@ test('the live app accepts every file the watcher now writes, gap rows included'
   assert.ok(isBlinkdealHistory(history), 'the published history with a gap row appended')
   assert.equal(history.windows.length, published.windows.length + 1)
   assert.deepEqual(history.windows.slice(0, -1), published.windows, 'past rows are never rewritten')
+})
+
+test('the live app accepts coins carrying stock, as a count or as null', async () => {
+  // isSku names no stock field, and the app ignores keys it does not name.
+  const { tick } = watcher()
+  for (const stock of [752, 0, null]) {
+    const opened = (await tick({ checkedAt: ago(MIN), ok: true, live: false, knownIds: [] }, stocked(stock))).next
+    assert.ok(opened.skus.every((s) => s.stock === stock))
+    assert.ok(isBlinkdealFeed(opened), String(stock))
+  }
+  const mixed = liveFeed({ skus: fixture.skus.map((s, i) => ({ ...s, stock: i % 2 ? null : i })) })
+  assert.ok(isBlinkdealFeed(mixed), 'counts and nulls in one feed')
 })
 
 // ---- The channel post -------------------------------------------------------------
