@@ -63,6 +63,16 @@ const HEARTBEAT_MS = 20 * 60 * 1000
 // showing nothing at all. Publishing every couple of minutes bounds how long
 // that lie can survive, and lets the app demand tight freshness when it counts.
 const LIVE_HEARTBEAT_MS = 2 * 60 * 1000
+// A window's end is the first good read that finds it gone, which is exact to
+// a tick only while the watcher was watching. When the phone dies, loses its
+// connection or cannot read Myntra mid-window, that first read is the moment
+// it came back, and a 35-minute window would go into the history as 6 h 40 min.
+// A close this long after the last good read that saw the window live is one
+// nobody watched: two live heartbeats and a bit, the bound wa-post.mjs puts
+// on a close it believes. A watched close stays well inside it: by day the
+// last sighting is written at most a heartbeat and a tick before the close,
+// and overnight, when every five-minute tick writes, one tick before it.
+export const GAP_MS = 2 * LIVE_HEARTBEAT_MS + 5 * 60 * 1000
 const PAGE_SIZE = 50 // what the server-rendered listing returns, always
 const EXTRA_SORTS = ['price_desc', 'price_asc', 'discount', 'new']
 const MAX_BRANDS = 25 // brand passes per window — a safety bound on proxy cost
@@ -369,6 +379,42 @@ async function detect(previous, onLive = async () => {}, onFirstPage = async () 
 
 const skuKey = (f) => (f.skus ?? []).map((s) => s.id).sort().join(',')
 
+/**
+ * The window `previous` was showing, closed by a good read at `now` that no
+ * longer finds it: the history row, and the feed's lastLive until the next
+ * window opens. Pure, so a test can pin the times.
+ *
+ * Every good live read that is written stamps lastLive.lastSeen; a failed
+ * read carries the stamp forward untouched (step keeps `previous` whole). So
+ * when this close comes more than GAP_MS after lastSeen, nothing watched the
+ * window end. Its end is then recorded as lastSeen, the last moment it was
+ * known to be live, marked `approx` (the app prints a `~` before the times),
+ * and the read that found it over is kept as `endedBy`: the window ended
+ * somewhere between the two, so it ran at least to − from.
+ *
+ * Why not keep `now` and mark it approximate: the app prints the minutes
+ * either way, and 400 of them under a `~` are still the false length. Why not
+ * drop `to`: the live app's history guard refuses the whole file over one row
+ * without a datetime `to`. `approx` and an extra key both pass that guard
+ * today, so this needs no app release first. lastSeen itself stays out of the
+ * closed row, so a watched close reads exactly as it always has.
+ */
+export function closeWindow(previous, now) {
+  // No lastLive at all is a feed older than the history file. skuCount is
+  // filled in because the app's guard refuses the whole file over a row
+  // without one.
+  const { lastSeen, ...w } = previous.lastLive ?? { code: previous.code, from: previous.checkedAt, skuCount: previous.skus?.length ?? 0 }
+  // A feed from before lastSeen existed: its own time was a sighting only if
+  // that read was good and saw the window live.
+  const seenIso = lastSeen ?? (previous.live === true && previous.ok === true ? previous.checkedAt : null)
+  // Last seen live is never before first seen live.
+  const seen = Math.max(Date.parse(seenIso ?? ''), Date.parse(w.from))
+  if (Number.isFinite(seen) && Date.parse(now) - seen > GAP_MS) {
+    return { ...w, to: new Date(seen).toISOString(), approx: true, endedBy: now }
+  }
+  return { ...w, to: now }
+}
+
 const fmtResults = (res) => Object.entries(res).map(([k, v]) => `${k}:${v}`).join(' ') || '(no channels configured)'
 
 /**
@@ -428,9 +474,11 @@ export async function step(previous, deps = {}) {
     next = { generated: now, checkedAt: now, ok: true, heartbeatMs: HEARTBEAT_MS, ...d }
     if (d.live) {
       const from = previous.live && previous.code === d.code ? previous.lastLive?.from ?? now : now
-      next.lastLive = { code: d.code, couponId: d.couponId, from, skuCount: d.skus.length }
+      // lastSeen moves only with the file, every LIVE_HEARTBEAT_MS, so it is
+      // the last sighting to within a heartbeat; closeWindow reads it.
+      next.lastLive = { code: d.code, couponId: d.couponId, from, skuCount: d.skus.length, lastSeen: now }
     } else if (previous.lastLive) {
-      next.lastLive = previous.lastLive.to ? previous.lastLive : { ...previous.lastLive, to: now }
+      next.lastLive = previous.lastLive.to ? previous.lastLive : closeWindow(previous, now)
     }
     console.log(d.live ? `LIVE  ${d.code} — ${d.skus.length}/${d.totalCount} SKUs` : 'quiet — no BLINK* coupon on gold coins')
     if (alerted) next.alertedAt = now
@@ -443,8 +491,7 @@ export async function step(previous, deps = {}) {
 
   let closedWindow = null
   if (previous.live && !next.live && next.ok) {
-    const w = previous.lastLive ?? { code: previous.code, from: previous.checkedAt }
-    closedWindow = { ...w, to: now, maxSkus: previous.skus?.length ?? 0 }
+    closedWindow = { ...closeWindow(previous, now), maxSkus: previous.skus?.length ?? 0 }
     // The CLOSING EDGE: exactly one tick sees live→quiet, so this posts once.
     if (!SILENT) {
       try {
