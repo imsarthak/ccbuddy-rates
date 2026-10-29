@@ -19,7 +19,7 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import {
   edge, windowKey, postData, renderOpen, renderOver, runEdge, runHealth, runCheck, runTestPost,
-  settings, redact, readLedger, whapi, OPEN_MAX_AGE_MS, PAUSE_TITLE, WHAPI,
+  settings, redact, readLedger, whapi, waitForEarlier, OPEN_MAX_AGE_MS, PAUSE_TITLE, WHAPI,
 } from './wa-post.mjs'
 import { bestByWeight, brandName, istClock, TEMPLATES, WA_LINK } from './notify.mjs'
 
@@ -82,12 +82,13 @@ async function fakeWhapi(routes = {}) {
 }
 
 /**
- * The repo's issues and master's feed: what wa-post.mjs asks of GitHub, and
- * nothing more. An issue is the bot's unless it says otherwise. `latest` is
- * master's docs/blinkdeal.json (a value or a function); left out, reading it
+ * The repo's issues, master's feed and this workflow's runs: what wa-post.mjs
+ * asks of GitHub, and nothing more. An issue is the bot's unless it says
+ * otherwise. `latest` is master's docs/blinkdeal.json and `runs` the recent
+ * runs of wa-post.yml (each a value or a function); left out, reading it
  * fails, as the API can.
  */
-function fakeGitHub(open = [], latest) {
+function fakeGitHub(open = [], latest, runs) {
   const issues = open.map((i) => ({ user: { login: 'github-actions[bot]', type: 'Bot' }, author_association: 'NONE', ...i }))
   const calls = []
   let next = 40
@@ -98,6 +99,11 @@ function fakeGitHub(open = [], latest) {
       assert.equal(init.headers?.accept, 'application/vnd.github.raw+json')
       if (latest === undefined) throw new Error('GET /contents/docs/blinkdeal.json: 503 unavailable')
       return typeof latest === 'function' ? latest() : latest
+    }
+    if (path.startsWith('/actions/workflows/wa-post.yml/runs?') && !init.method) {
+      if (runs === undefined) throw new Error('GET /actions/workflows/wa-post.yml/runs: 503 unavailable')
+      const list = typeof runs === 'function' ? runs() : runs
+      return { total_count: list.length, workflow_runs: list }
     }
     if (path.startsWith('/issues?')) return issues
     if (path === '/issues' && init.method === 'POST') {
@@ -121,10 +127,10 @@ const NOW = Date.parse('2026-10-29T11:30:30.000Z') // 5:00:30 pm IST
 const LIVE_ENV = { WA_DRY_RUN: '0', WHAPI_TOKEN: TOKEN, WHAPI_CHANNEL_ID: CHANNEL, GITHUB_EVENT_NAME: 'push', GITHUB_RUN_ATTEMPT: '1' }
 
 /** One fake Whapi, one fake GitHub, one ledger directory, shared by every run in a test. */
-async function harness(t, { routes, issues, env, latest, timeoutMs = 3000 } = {}) {
+async function harness(t, { routes, issues, env, latest, runs, timeoutMs = 3000 } = {}) {
   const wa = await fakeWhapi(routes)
   t.after(() => wa.close())
-  const github = fakeGitHub(issues, latest)
+  const github = fakeGitHub(issues, latest, runs)
   const lines = []
   const slept = []
   const outputs = {}
@@ -655,6 +661,105 @@ test('a post Whapi gave no id for is still recorded (never posted twice) but can
   assert.equal(h.wa.posts().length, 1)
 })
 
+// ---- An end that comes before its opening's run is done ---------------------------------
+//
+// October's windows ran a median 4 min, some a single tick: the end's push can
+// come while the run that posted the opening is still looking at its post,
+// before that run's last step saves the ledger to the Actions cache.
+
+const ONE_TICK_END = '2026-10-29T11:31:00.000Z' // 5:01 pm: a window seen once
+const at = (s) => new Date(after(W1, s)).toISOString()
+
+test("an end pushed while its opening's run is still going waits for that run, then edits the post", async (t) => {
+  const cache = new Map() // the Actions cache, shared by both runs
+  let opening = 'in_progress'
+  const runs = () => [
+    { run_number: 102, status: 'in_progress', created_at: at(75) }, // this run: the end
+    { run_number: 101, status: opening, created_at: at(10) }, // the opening's run
+    { run_number: 100, status: 'in_progress', created_at: at(-900) }, // pushed before the window opened: cannot hold its post
+  ]
+  const h = await harness(t, { runs })
+  // The opening's run, held where it looks at the post 15 s on. Only after
+  // that does its "Remember the post" step put the ledger in the cache.
+  let lookedAt, letLook
+  const looking = new Promise((ok) => (lookedAt = ok))
+  const resume = new Promise((ok) => (letLook = ok))
+  const sleep = (ms) => {
+    if (ms !== 15000) return undefined
+    lookedAt()
+    return resume
+  }
+  const openRun = (async () => {
+    const res = await runEdge(edge(quietFeed(), liveFeed(W1), NOW), { env: h.env(), ledgerDir: h.dir, deps: { ...h.deps, sleep } })
+    cache.set(res.posted, await readFile(join(h.dir, `${res.posted}.json`), 'utf8'))
+    opening = 'completed'
+  })()
+  await looking
+  // The end's run, on another runner: its own disk, the same cache.
+  const restore = async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'wa-ledger-'))
+    for (const [key, raw] of cache) await writeFile(join(dir, `${key}.json`), raw)
+    return dir
+  }
+  const close = edge(liveTill(W1, ONE_TICK_END), ended(liveFeed(W1), ONE_TICK_END), after(ONE_TICK_END, 20))
+  // Read now, as it was before the wait, the cache has no post: the end would never be edited in.
+  const early = await runEdge(close, { env: h.env(), ledgerDir: await restore(), deps: h.deps })
+  assert.equal(early.edited, null)
+  assert.match(h.lines.join('\n'), /no post on record/)
+  // With the wait, it reads the cache only once the opening's run is done.
+  const waited = await waitForEarlier(close, {
+    env: { GITHUB_RUN_NUMBER: '102' },
+    deps: {
+      ...h.deps,
+      sleep: async (ms) => {
+        h.slept.push(ms)
+        letLook()
+        await openRun
+      },
+    },
+  })
+  assert.equal(waited, 'done')
+  assert.deepEqual(h.slept, [5000])
+  assert.match(h.lines.join('\n'), /run #101, pushed since the window opened, is still going/)
+  const res = await runEdge(close, { env: h.env(), ledgerDir: await restore(), deps: h.deps })
+  assert.equal(res.edited, 'PsqXn5SAD5v7HRA-wHN2ziQ0001')
+  const posts = h.wa.posts()
+  assert.equal(posts.length, 2, 'one post, one edit')
+  assert.deepEqual(posts[1].body, { to: CHANNEL, edit: 'PsqXn5SAD5v7HRA-wHN2ziQ0001', body: renderOver(postData(liveFeed(W1)), ONE_TICK_END), no_link_preview: true })
+})
+
+test('the wait counts only earlier push runs started since the window opened, gives up after 2 min, and never stops the end', async (t) => {
+  const close = edge(liveTill(W1, ONE_TICK_END), ended(liveFeed(W1), ONE_TICK_END), after(ONE_TICK_END, 20))
+  const env = { GITHUB_RUN_NUMBER: '102' }
+  // Done, newer than this run, or pushed before the window opened: no wait, one read.
+  const idle = await harness(t, {
+    runs: [
+      { run_number: 101, status: 'completed', created_at: at(10) },
+      { run_number: 103, status: 'queued', created_at: at(90) },
+      { run_number: 98, status: 'in_progress', created_at: at(-900) },
+    ],
+  })
+  assert.equal(await waitForEarlier(close, { env, deps: idle.deps }), 'none')
+  assert.deepEqual(idle.slept, [])
+  assert.deepEqual(idle.github.calls.map((c) => c.path), ['/actions/workflows/wa-post.yml/runs?event=push&branch=master&per_page=30'])
+  // One still queued counts as much as one running; one that never ends is given up on at 2 min.
+  let clock = NOW
+  const stuck = await harness(t, { runs: [{ run_number: 101, status: 'queued', created_at: at(10) }] })
+  const deps = { ...stuck.deps, now: () => clock, sleep: async (ms) => void (stuck.slept.push(ms), (clock += ms)) }
+  assert.equal(await waitForEarlier(close, { env, deps }), 'gave-up')
+  assert.equal(stuck.slept.reduce((a, b) => a + b, 0), 120000)
+  assert.match(stuck.lines.at(-1), /run #101 still going after 120 s; reading the ledger as it is/)
+  // The runs cannot be read: no wait and no failure; the ledger is read as it is.
+  const blind = await harness(t)
+  assert.equal(await waitForEarlier(close, { env, deps: blind.deps }), 'unknown')
+  assert.deepEqual(blind.slept, [])
+  assert.match(blind.lines.join('\n'), /could not read this workflow's runs/)
+  // A push that ends nothing asks nothing.
+  const open = await harness(t)
+  assert.equal(await waitForEarlier(edge(quietFeed(), liveFeed(W1), NOW), { env, deps: open.deps }), 'none')
+  assert.equal(open.github.calls.length, 0)
+})
+
 // ---- What gets published ---------------------------------------------------------------
 
 test('logs and issues never carry the token, the linked number or the channel id', async (t) => {
@@ -1137,6 +1242,20 @@ test('the posting step gets the test channel too, so a test channel the spare nu
   }
   // A variable is printed in clear in the step's log, which is public.
   assert.doesNotMatch(yml, /vars\.(WHAPI|WA_TEST)/)
+})
+
+test('the workflow: an end waits for earlier runs before it reads the cache, and a wait that breaks never stops the post', async () => {
+  const yml = (await readFile(join(HERE, '..', '.github', 'workflows', 'wa-post.yml'), 'utf8')).replace(/\r\n/g, '\n')
+  const names = ['Edge', 'Wait for an earlier run still posting', 'Ledger of the window ending', 'Post', 'Remember the post']
+  const pos = names.map((n) => yml.indexOf(`      - name: ${n}\n`))
+  assert.ok(pos.every((i, k) => i > 0 && (k === 0 || i > pos[k - 1])), `the steps in this order: ${names.join(', ')}`)
+  const wait = yml.slice(pos[1], pos[2])
+  assert.match(wait, /^ +if: steps\.edge\.outputs\.close_key != '' && vars\.WA_DRY_RUN == '0'$/m)
+  assert.match(wait, /^ +continue-on-error: true$/m)
+  assert.match(wait, /--wait --edge-file "\$RUNNER_TEMP\/edge\.json"/)
+  assert.doesNotMatch(wait, /WHAPI|WA_TEST/, 'it asks GitHub only; the token stays with the Post step')
+  assert.match(yml, /^permissions:\n(?: {2}.*\n)* {2}actions: read /m)
+  assert.doesNotMatch(yml, /^concurrency:/m, 'no workflow-wide group: it could cancel the run that posts a window')
 })
 
 test('BLINKDEAL60 with no measured discount posts no percentage', () => {

@@ -28,12 +28,15 @@ on:
 permissions:
   contents: read
   issues: write # the "WhatsApp poster is paused" issue
+  actions: read # an end waits for an earlier run still posting its window
 
 # No workflow-wide concurrency group, on purpose. A group keeps one run
 # waiting and cancels any older pending one, and a heartbeat push can land
 # seconds after the opening push: a group could cancel the very run that
 # posts the window. The push job has a group per pushed commit instead, so
-# only a duplicate run of the SAME push waits, and then finds the ledger.
+# only a duplicate run of the SAME push waits, and then finds the ledger. An
+# end waits for an earlier run by asking whether it is done, which cancels
+# nothing.
 
 jobs:
   push:
@@ -84,6 +87,19 @@ jobs:
         with:
           path: .wa-ledger/${{ steps.edge.outputs.open_key }}.json
           key: wa-post-${{ steps.edge.outputs.open_key }}
+      # A window seen for a tick or two ends while the run that posted it may
+      # still be going: that run saves the ledger last, after looking at the
+      # post 15 s on. Read before then, the cache has no post and the end is
+      # never edited in, so the end first waits for any earlier run still
+      # going, for at most 2 min.
+      - name: Wait for an earlier run still posting
+        if: steps.edge.outputs.close_key != '' && vars.WA_DRY_RUN == '0'
+        # A wait that breaks must never cost the post after it.
+        continue-on-error: true
+        timeout-minutes: 3
+        run: node scraper/wa-post.mjs --wait --edge-file "$RUNNER_TEMP/edge.json"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Ledger of the window ending
         if: steps.edge.outputs.close_key != ''
         uses: actions/cache/restore@v6

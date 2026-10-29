@@ -19,9 +19,10 @@
 // one id across windows, days apart and twice in a day. Each opening is in
 // exactly one push, so the diff alone posts once; the ledger (one Actions
 // cache entry per window, written only after a real post) is what makes a
-// duplicate run harmless and what the close needs to find the post to edit.
-// When the feed before the push cannot be read, nothing opens: a missed post
-// is better than a second one.
+// duplicate run harmless and what the close needs to find the post to edit;
+// the close's run reads it only once no earlier run can still be saving it
+// (waitForEarlier). When the feed before the push cannot be read, nothing
+// opens: a missed post is better than a second one.
 //
 // Posting is OFF until the repo variable WA_DRY_RUN is 0 and the WHAPI_TOKEN
 // secret exists. Until then every push run prints the exact post and calls
@@ -38,6 +39,7 @@
 //
 //   --edge --before <f> --after <f> [--history <f>] [--out <f>]
 //                         work out the edge; open_key/close_key/any to $GITHUB_OUTPUT
+//   --wait --edge-file <f>   an end: wait for an earlier run still posting its window
 //   --post --edge-file <f>   post or edit it (print it, when dry)
 //   --mode preview        print both posts from the captured window; no network
 //   --mode check          session status and this number's role; read-only
@@ -759,6 +761,66 @@ export async function runEdge(e, { env, ledgerDir = LEDGER_DIR, deps = {} }) {
   return result
 }
 
+// ---- An end that comes before its opening's run is done -----------------------------------
+//
+// A window seen for a tick or two ends a minute or so after it opened, and the
+// run that posted it may still be going then: it looks at the post 15 s after
+// sending it, and only its last step saves the ledger to the Actions cache.
+// The end's run, reading the cache before that, would find no post and leave
+// the window "live" in the Channel for good. So before it reads the cache, the
+// end waits for every earlier push run of this workflow that started since
+// the window opened and is not done. Waiting cancels nothing (wa-post.yml says
+// why there is no concurrency group), and it is bounded.
+
+const RUNS_PAGE = 30
+const WAIT_POLL_MS = 5000
+const WAIT_MAX_MS = 2 * 60 * 1000
+
+/**
+ * Wait until no earlier run can still be saving the post this push ends.
+ * `deps`: { gh, sleep, log, now }. Returns 'none' (nothing to wait for),
+ * 'done', 'gave-up' (still going after WAIT_MAX_MS) or 'unknown' (the runs
+ * could not be read). Never throws: whatever happens, the cache is read next.
+ */
+export async function waitForEarlier(e, { env, deps = {} }) {
+  const log = deps.log ?? console.log
+  const sleep = deps.sleep ?? realSleep
+  const now = deps.now ?? Date.now
+  const gh = deps.gh ?? githubApi
+  if (!e?.close) {
+    log('no end in this push: nothing to wait for')
+    return 'none'
+  }
+  // Without its own run number a run cannot tell earlier from later, and waits for none.
+  const mine = Number(env.GITHUB_RUN_NUMBER)
+  // A run pushed before the window opened cannot hold its post.
+  const since = Date.parse(e.close.data?.from ?? '') - CLOCK_SKEW_MS
+  const until = now() + WAIT_MAX_MS
+  for (let waited = false; ; waited = true) {
+    let busy
+    try {
+      const page = await gh(`/actions/workflows/wa-post.yml/runs?event=push&branch=master&per_page=${RUNS_PAGE}`)
+      busy = (Array.isArray(page?.workflow_runs) ? page.workflow_runs : []).filter(
+        (r) => r && r.status !== 'completed' && Number(r.run_number) < mine && Date.parse(r.created_at) >= since,
+      )
+    } catch (err) {
+      log(`could not read this workflow's runs (${redact(err?.message)}); reading the ledger as it is`)
+      return 'unknown'
+    }
+    if (!busy.length) {
+      log(waited ? 'the earlier runs are done: reading the ledger' : 'no earlier run still going: reading the ledger')
+      return waited ? 'done' : 'none'
+    }
+    const which = busy.map((r) => `#${r.run_number}`).join(', ')
+    if (now() >= until) {
+      log(`run ${which} still going after ${WAIT_MAX_MS / 1000} s; reading the ledger as it is`)
+      return 'gave-up'
+    }
+    if (!waited) log(`${e.close.key}: run ${which}, pushed since the window opened, is still going and may have posted it; waiting`)
+    await sleep(WAIT_POLL_MS)
+  }
+}
+
 // ---- Modes run by hand from the Actions tab, and by the watchdog -----------------------
 
 async function captured() {
@@ -982,6 +1044,12 @@ async function main(argv, env) {
     await runEdge(e, { env, deps: { output } })
     return 0
   }
+  if (argv.includes('--wait')) {
+    const e = await readJson(flag('--edge-file'))
+    if (!e) throw new Error('--wait needs --edge-file from a --edge run')
+    await waitForEarlier(e, { env })
+    return 0
+  }
   const mode = flag('--mode')
   if (mode === 'preview') {
     await runPreview()
@@ -993,7 +1061,7 @@ async function main(argv, env) {
     await runHealth({ env })
     return 0
   }
-  console.error('usage: wa-post.mjs --edge … | --post --edge-file <f> | --mode preview|check|test-post|health')
+  console.error('usage: wa-post.mjs --edge … | --wait --edge-file <f> | --post --edge-file <f> | --mode preview|check|test-post|health')
   return 2
 }
 
