@@ -3,15 +3,41 @@ name: BLINKDEAL watchdog
 # The watcher and its alerts both live on a phone, so a dead phone is silent.
 # This checks the committed feed from GitHub instead, and opens one issue when
 # it goes stale (GitHub notifies the owner), closing it when the feed moves.
+# With the two BLINKDEAL_TELEGRAM_* secrets it also messages the owner privately
+# on Telegram, once each way; without them it sends nothing
+# (scraper/watchdog.mjs says how).
+#
+# GitHub's schedule alone is not a clock: set to every 15 minutes, it ran 3
+# to 7 hours apart in October. So three things start this:
+#   - the ccbuddy Worker's cron dispatches it (ccbuddy repo, worker/bdWatch.ts):
+#     every 5 minutes for the first hour the feed is past its limit, and once
+#     an hour whatever the feed says. It needs the Worker secret
+#     BD_WATCHDOG_DISPATCH_TOKEN; without it the schedule below is all there is.
+#   - a phone push of the feed, so "back" goes out within a minute. The phone
+#     pushes with a personal access token, so its pushes start workflows;
+#     pushes made with GITHUB_TOKEN never do.
+#   - the schedule, as the slow backstop.
 on:
   schedule:
-    - cron: '7,22,37,52 * * * *'   # every 15 minutes
+    - cron: '7,22,37,52 * * * *'   # asks for every 15 minutes; runs every 3-7 h
+  push:
+    branches: [master]
+    paths: [docs/blinkdeal.json]
   workflow_dispatch:
+    inputs:
+      mode:
+        description: check = the usual run; test-dm = send the test message only
+        type: choice
+        default: check
+        options: [check, test-dm]
 
 permissions:
   contents: read
   issues: write
 
+# One run at a time and none cancelled mid-run, so each outage gets one
+# issue, one "went quiet" and one "back". A run still waiting is replaced by
+# a newer one, which reads a newer feed.
 concurrency:
   group: watchdog
   cancel-in-progress: false
@@ -19,6 +45,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -28,11 +55,17 @@ jobs:
       - run: node scraper/watchdog.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BLINKDEAL_TELEGRAM_TOKEN: ${{ secrets.BLINKDEAL_TELEGRAM_TOKEN }}
+          BLINKDEAL_TELEGRAM_CHAT: ${{ secrets.BLINKDEAL_TELEGRAM_CHAT }}
+          MODE: ${{ inputs.mode || 'check' }}
       # The WhatsApp poster's linked session drops if the spare phone goes 14
       # days without WhatsApp. Catch that here, hours before a window rather
       # than at one. Does nothing until the WHAPI_TOKEN secret exists, and can
-      # never fail the watchdog above.
+      # never fail the watchdog above. On the schedule only: a phone push or
+      # a Worker dispatch runs this workflow dozens of times a day, and Whapi's
+      # sandbox allows 1,000 requests a month (docs/whatsapp-poster.md).
       - name: WhatsApp poster session
+        if: github.event_name == 'schedule'
         continue-on-error: true
         run: node scraper/wa-post.mjs --mode health
         env:

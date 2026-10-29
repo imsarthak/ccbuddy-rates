@@ -1,0 +1,22 @@
+{
+ "generated": "2026-10-29T07:39:21.107Z",
+ "checkedAt": "2026-10-29T07:39:21.107Z",
+ "ok": false,
+ "heartbeatMs": 1200000,
+ "live": false,
+ "knownIds": [
+  "123190",
+  "129356",
+  "132202",
+  "135733"
+ ],
+ "lastLive": {
+  "code": "BLINKDEAL6",
+  "couponId": "135733",
+  "from": "2026-09-28T11:14:57.790Z",
+  "skuCount": 202,
+  "to": "2026-09-28T11:50:36.696Z"
+ },
+ "stale": true,
+ "error": "fetch failed"
+}

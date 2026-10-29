@@ -107,8 +107,23 @@ then make it runnable with `chmod +x ~/.termux/boot/watch`. Reboot the phone
 once to check the wake-lock notification comes back by itself.
 
 If the loop stops anyway, `.github/workflows/watchdog.yml` opens a "BLINKDEAL
-watcher is down" issue on this repo within about an hour of the last write,
-and closes it when the feed moves again.
+watcher is down" issue on this repo about 45 to 50 minutes after the last
+write, and closes it within a minute of the phone's next push. That timing
+needs the ccbuddy Worker's secret `BD_WATCHDOG_DISPATCH_TOKEN` (a fine-grained
+token with Actions read and write on this repo only): the Worker's cron is
+what starts the check on time. Without it, only GitHub's own schedule does,
+and that has run 3 to 7 hours apart.
+
+With two repository secrets on this repo (Settings, Secrets and variables,
+Actions), the same check also sends you a private Telegram message when it
+opens the issue and another when it closes it, from the same bot as the
+channel posts:
+
+- `BLINKDEAL_TELEGRAM_TOKEN`: `telegram.token` from `.notify.env`
+- `BLINKDEAL_TELEGRAM_CHAT`: `telegram.chatId` from `.notify.env`
+
+To test them, run the "BLINKDEAL watchdog" workflow by hand with mode
+`test-dm`.
 
 ## 6. Confirm it is alive
 

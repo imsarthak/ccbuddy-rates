@@ -103,7 +103,8 @@ time.
   linked number or a raw Whapi response. That is why all three ids are
   secrets: GitHub prints a step's settings in its log and masks only secrets.
 - **Session watch.** The watchdog workflow also asks Whapi, read-only, whether
-  the session is still connected. It opens the pause issue if the spare phone
+  the session is still connected, on its schedule only (a phone push or the
+  ccbuddy Worker also starts that workflow, many times a day). It opens the pause issue if the spare phone
   was logged out, so you find out hours before a window rather than at one.
 
 ## Setup: your steps, in order
