@@ -149,7 +149,9 @@ export function renderOver(data, to) {
 
 // When the window in `before` ended: the feed after the push, or the history
 // file, records it when the close is in this push. Unknown (null) when the
-// watcher had stopped before it: then the recorded end is the restart.
+// watcher had stopped before it: then the recorded end is either the restart
+// (a watcher from before blinkdeal.mjs closeWindow) or the last sighting,
+// marked approx, and neither is when the window ended.
 function endOf(before, after, history) {
   const code = before.lastLive?.code ?? before.code
   const from = Date.parse(before.lastLive.from)
@@ -157,6 +159,7 @@ function endOf(before, after, history) {
   const w = seen.find((x) => x && x.code === code && Date.parse(x.from) === from && x.to)
   const to = Date.parse(w?.to ?? '')
   if (!Number.isFinite(to)) return null
+  if (w.approx === true) return null
   const checked = Date.parse(before.checkedAt ?? '')
   const beat = Number(before.heartbeatMs) > 0 ? Number(before.heartbeatMs) : LIVE_HEARTBEAT_MS
   if (Number.isFinite(checked) && to - checked > 2 * beat + STALE_GRACE_MS) return null

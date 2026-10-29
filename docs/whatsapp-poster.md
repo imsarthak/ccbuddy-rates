@@ -60,9 +60,9 @@ opened (the phone was offline), for one that opened and closed between two
 pushes, or for one that has already ended by the time the job runs. A post
 more than 15 minutes late is news about a deal that is nearly over.
 
-If the phone was off or offline when a window ended, the time it recorded is
-when it came back, so the edit says just `Over. These prices no longer
-apply.` with no time.
+If the phone was off or offline when a window ended, nobody saw when it
+ended, so the edit says just `Over. These prices no longer apply.` with no
+time.
 
 ## How it stays safe
 

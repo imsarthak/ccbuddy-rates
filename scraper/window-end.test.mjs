@@ -297,13 +297,10 @@ test('the close post drops the length only when the end was not seen', () => {
 // written, and then edits the post to "Over." with no time. A gap close now
 // carries the last sighting instead, which is about when that feed was
 // written, so the doubt no longer trips and the edit would print the last
-// sighting as the end. endOf there must read `approx` as an unknown end: one
-// line, `if (w.approx === true) return null`, once it has found the row. That
-// file is being changed on another branch, so this test waits, skipped:
-// unskip it in the change that adds the line. WA_DRY_RUN is unset, so the
-// poster only prints today.
+// sighting as the end. endOf there reads `approx` as an unknown end, so the
+// edit says "Over." with no time, as it did before the gap fix.
 
-test('the WhatsApp edit on a gap close does not print the last sighting as the end', { skip: 'waits for wa-post.mjs endOf to read approx as an unknown end' }, async () => {
+test('the WhatsApp edit on a gap close does not print the last sighting as the end', async () => {
   const { tick } = watcher()
   const seen = ago(390 * MIN)
   const before = liveFeed({ generated: seen, checkedAt: seen }, { from: ago(400 * MIN), lastSeen: seen })
