@@ -10,8 +10,9 @@
 # when quiet), and push docs/blinkdeal.json only when something changed.
 # GitHub Pages then serves it to the app exactly like rates.json.
 #
-#   bash scraper/watch-termux.sh              20s from 11:00 to midnight IST,
-#                                             5 min overnight
+#   bash scraper/watch-termux.sh              20s from 11:00 to midnight IST
+#                                             and while a window is live,
+#                                             5 min otherwise
 #   FAST=10 bash scraper/watch-termux.sh      poll harder
 #   BURST=5 bash scraper/watch-termux.sh      5s around the top of each hour
 #   FAST=20 SLOW=20 FAST_FROM=0 FAST_TO=24 …  no quiet period at all
@@ -109,8 +110,15 @@ burst_at() {
 }
 bursting() { burst_at "$(ist_hour)" "$(ist_sec_of_hour)"; }
 
+# A live window keeps the fast interval whatever the hour, so one that runs
+# past FAST_TO is not seen closed up to SLOW seconds late. blinkdeal.mjs
+# writes the feed with JSON.stringify(…, null, 1), which spells the key
+# exactly this way; a missing file reads as not live.
+window_live() { grep -qs '"live": true' docs/blinkdeal.json; }
+
 interval_now() {
-  if bursting; then echo "$BURST"
+  if window_live; then echo "$FAST"
+  elif bursting; then echo "$BURST"
   elif active_hour "$(ist_hour)"; then echo "$FAST"
   else echo "$SLOW"; fi
 }

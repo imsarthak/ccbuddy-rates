@@ -127,13 +127,16 @@ curl -s https://imsarthak.github.io/ccbuddy-rates/blinkdeal.json
 
 ## What to expect
 
-A quiet tick is one request of about 121 KB gzipped, so roughly 35 MB a day on
-Wi-Fi. When a window opens the watcher collects all the covered coins, about
-1.5 MB, and publishes the feed within a minute.
+A quiet tick is one request of about 121 KB gzipped. The default cadence is
+about 2,000 ticks a day, so roughly 240 MB a day on Wi-Fi. When a window opens
+the watcher collects all the covered coins, about 1.5 MB, and publishes the
+feed within a minute.
 
-Every BLINKDEAL sighting we have a timestamp for landed between 12:34 and
-22:52 IST, so an always-on phone comfortably covers the hours that have
-historically mattered.
+September's BLINKDEAL sightings landed between 12:34 and 22:52 IST, and
+October's 63 starts between 12:28 and 23:52, three of them after 23:00. The
+phone polls every twenty seconds from 11:00 to midnight, and past midnight
+while a window is still live, because October's windows ran a median of only
+four minutes: see [Cadence](#cadence).
 
 ## If the feed goes stale
 
@@ -343,11 +346,15 @@ Twenty seconds from 11:00 IST to midnight, five minutes overnight, plus a few
 seconds of jitter so requests do not land on the same second of every minute.
 September's BLINKDEAL sightings landed between 12:34 and 22:52 IST, and
 October's 63 starts between 12:28 and 23:52, three of them after 23:00. That
-is where the span comes from.
+is where the span comes from. A window still live at midnight keeps the
+twenty seconds until it closes. October's ran a median of four minutes,
+shorter than the overnight interval, so five-minute polling would see a close
+up to five minutes late.
 
-Treat that with some suspicion — nine of those ten are tweet times and people
-tweet when they are awake, so an overnight window might simply never have been
-posted. To poll hard around the clock:
+Treat that with some suspicion — those are post times, nine of September's
+ten from tweets and October's from two rival channels, and people post when
+they are awake, so an overnight window might simply never have been posted.
+To poll hard around the clock:
 
 ```bash
 FAST=20 SLOW=20 FAST_FROM=0 FAST_TO=24 bash scraper/watch-termux.sh

@@ -222,12 +222,21 @@ export function toSku(p) {
  * all. Take the most common value instead. With no coin to measure, say
  * nothing: a code's digits are not its discount. BLINKDEAL6 is 6%, and so is
  * BLINKDEAL60 (October 2026), which reading the digits made 60%.
+ *
+ * Only coins carrying the window's coupon count. The full crawl also returns
+ * coins on another code: the 2026-09-28 opening tick had 111 on BLINKDEAL6
+ * and 100 on MYNTRA300 (₹300 flat, mostly 0-2% of a coin), and replayed with
+ * 40 or fewer BLINK coins the modal came out 0. Same rule as bestByWeight,
+ * except a null code passes as well as a missing one: a coin the coupon does
+ * not cover has no discount either, and the first check drops it.
  */
 export function inferDiscountPct(code, skus) {
   const tally = new Map()
   for (const s of skus) {
     if (!s.discount || !s.price) continue
+    if (s.code != null && !/BLINK/i.test(s.code)) continue
     const p = Math.round((s.discount / s.price) * 100)
+    if (p <= 0) continue
     tally.set(p, (tally.get(p) ?? 0) + 1)
   }
   const modal = [...tally].sort((a, b) => b[1] - a[1])[0]

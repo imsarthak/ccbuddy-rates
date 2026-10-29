@@ -260,3 +260,18 @@ test("the discount comes from the coins, never from the digits in the code", () 
   assert.equal(inferDiscountPct('BLINKDEAL60', [{ discount: 1000, price: 16652 }]), 6)
   assert.equal(inferDiscountPct('BLINKDEAL6', [{ discount: null, price: 16652 }]), null)
 })
+
+test('the discount counts only coins carrying the BLINK coupon', () => {
+  // The 2026-09-28 opening tick: 111 coins on BLINKDEAL6, 100 on MYNTRA300.
+  const blink = Array.from({ length: 111 }, () => ({ code: 'BLINKDEAL6', discount: 1000, price: 16652 }))
+  const flat = Array.from({ length: 100 }, () => ({ code: 'MYNTRA300', discount: 300, price: 16652 }))
+  assert.equal(inferDiscountPct('BLINKDEAL6', [...flat, ...blink]), 6)
+  assert.equal(inferDiscountPct('BLINKDEAL6', [...flat, ...blink.slice(0, 40)]), 6)
+  assert.equal(inferDiscountPct('BLINKDEAL6', flat), null)
+  // A discount that rounds to 0% is no discount.
+  const zero = Array.from({ length: 5 }, () => ({ code: 'BLINKDEAL6', discount: 50, price: 16652 }))
+  assert.equal(inferDiscountPct('BLINKDEAL6', [...zero, blink[0]]), 6)
+  assert.equal(inferDiscountPct('BLINKDEAL6', [{ code: 'BLINKDEAL6', discount: 0, price: 16652 }]), null)
+  // Hand-built coins carry no code, or a null one; they still count.
+  assert.equal(inferDiscountPct('BLINKDEAL6', [{ code: null, discount: 1000, price: 16652 }]), 6)
+})
