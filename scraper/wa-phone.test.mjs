@@ -1,0 +1,907 @@
+// The watcher phone's own WhatsApp Channel post (wa-phone.mjs): once per
+// window whatever the ticks do, never in the way of the Telegram alert, the
+// crawl or the publish, and handed to the Actions poster whenever it did not
+// (or may not have) gone out.
+//
+//   node --test scraper/wa-phone.test.mjs
+//
+// Nothing here reaches the internet. Whapi is a local fake on 127.0.0.1
+// (test-fakes.mjs), GitHub's API is answered by an injected fetch, and fetch
+// itself refuses every other host, so a test that forgot its fake fails
+// instead of calling a real API. The real Whapi, GitHub and Telegram are never
+// called from this machine.
+
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { readFile, writeFile, mkdtemp, readdir } from 'node:fs/promises'
+import { readFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { step, inferDiscountPct } from './blinkdeal.mjs'
+import {
+  phonePoster, phoneSettings, pauseCheck, runSetup, runPhoneCheck, INERT,
+  EDIT_RETRIES, CHANNEL_MAX_AGE_MS, SETTLE_MS, PHONE_TIMEOUT_MS,
+} from './wa-phone.mjs'
+import { postData, renderOpen, renderOver, edge, windowKey, channelTag, PAUSE_TITLE, OPEN_MAX_AGE_MS, REST_MS } from './wa-post.mjs'
+import { applyEnv } from './notify.mjs'
+import { fakeWhapi, LINKED_NUMBER } from './test-fakes.mjs'
+
+const HERE = dirname(fileURLToPath(import.meta.url))
+const fixture = JSON.parse(await readFile(join(HERE, 'fixtures', 'live-window-2026-09-15.json'), 'utf8'))
+
+const realFetch = globalThis.fetch
+globalThis.fetch = async (url, init) => {
+  const host = new URL(String(url)).hostname
+  if (host !== '127.0.0.1') throw new Error(`a test tried to reach ${host}`)
+  return realFetch(url, init)
+}
+
+const TOKEN = 'test-token-not-a-real-one-0123'
+const CHANNEL = '120363000000000001@newsletter'
+const OTHER = '120363000000000003@newsletter'
+const OWNED = '120363000000000004@newsletter'
+const REAL = { id: CHANNEL, name: 'CCBuddy Deals', user_role: 'admin', subscribers_count: 230 }
+const SECOND = { id: OTHER, name: 'Another', user_role: 'admin', subscribers_count: 4 }
+const MINE = { id: OWNED, name: 'Mine', user_role: 'owner', subscribers_count: 3 }
+const listed = (...newsletters) => ({ 'GET /newsletters': { body: { newsletters, count: 100, total: newsletters.length, offset: 0 } } })
+const SECRETS = [TOKEN, LINKED_NUMBER, ...[CHANNEL, OTHER, OWNED].flatMap((id) => [id, id.split('@')[0]])]
+const leaks = (text) => SECRETS.filter((s) => text.includes(s))
+const LIVE_CFG = { whapi: { token: TOKEN, dryRun: false } }
+const ISSUES_URL = 'https://api.github.com/repos/imsarthak/ccbuddy-rates/issues?state=open&per_page=100'
+const BOT_PAUSE = { number: 7, title: PAUSE_TITLE, user: { login: 'github-actions[bot]', type: 'Bot' }, author_association: 'NONE' }
+const MIN = 60 * 1000
+const ago = (ms) => new Date(Date.now() - ms).toISOString()
+const pause = (ms) => new Promise((r) => setTimeout(r, ms))
+const readJson = async (p) => {
+  try {
+    return JSON.parse(await readFile(p, 'utf8'))
+  } catch {
+    return null
+  }
+}
+
+// ---- Fakes ---------------------------------------------------------------------
+
+const LIVE = {
+  live: true, code: 'BLINKDEAL6', couponId: '135733', discountPct: 6,
+  source: fixture.source, totalCount: 207, skus: fixture.skus, knownIds: ['135733'],
+}
+const LIVE_B = { ...LIVE, code: 'BLINKDEAL', skus: fixture.skus.map((s) => ({ ...s, code: 'BLINKDEAL' })) }
+const QUIET = { live: false, knownIds: ['135733'] }
+const quiet = () => ({ generated: ago(MIN), checkedAt: ago(MIN), ok: true, live: false, knownIds: [] })
+const stale = (feed) => ({ ...feed, checkedAt: ago(3 * MIN) })
+
+/**
+ * A detect that behaves like the real one: the plain listing (onLive), the
+ * coupon's first page `firstPageMs` later (onFirstPage, with its first
+ * `first` coins), then `brands` brand pages of `brandMs` each. `events` gets
+ * the time of each.
+ */
+const fakeDetect = (result, { first = 12, firstPageMs = 0, brands = 0, brandMs = 0, events } = {}) => async (previous, onLive, onFirstPage) => {
+  if (result instanceof Error) throw result
+  if (result.live) {
+    await onLive({ code: result.code, couponId: result.couponId, source: result.source, skus: result.skus.slice(0, 3) })
+    if (firstPageMs) await pause(firstPageMs)
+    events?.push(['first page', Date.now()])
+    await onFirstPage({ code: result.code, couponId: result.couponId, source: result.source, totalCount: result.totalCount, skus: result.skus.slice(0, first) })
+    for (let i = 1; i <= brands; i++) {
+      await pause(brandMs)
+      events?.push([`brand ${i}`, Date.now()])
+    }
+    events?.push(['crawl done', Date.now()])
+  }
+  return result
+}
+
+/** GitHub's issues, answered without a network; every call recorded. */
+function github({ issues = [], fail = false, status = 200, delayMs = 0 } = {}) {
+  const g = { issues, fail, status, delayMs, calls: [] }
+  g.fetch = async (url, init = {}) => {
+    if (new URL(String(url)).hostname !== 'api.github.com') return globalThis.fetch(url, init)
+    g.calls.push({ url: String(url), headers: { ...(init.headers ?? {}) }, at: Date.now() })
+    if (g.delayMs) await pause(g.delayMs)
+    if (g.fail) throw new TypeError('fetch failed')
+    const body = g.status === 200 ? g.issues : { message: 'API rate limit exceeded' }
+    return new Response(JSON.stringify(body), { status: g.status, headers: { 'content-type': 'application/json' } })
+  }
+  return g
+}
+
+async function warmCache(dir, { token = TOKEN, channelId = CHANNEL, checkedAt = new Date().toISOString() } = {}) {
+  await writeFile(join(dir, 'channel.json'), JSON.stringify({ channelId, tag: channelTag(token, channelId), checkedAt }))
+}
+
+/**
+ * One fake Whapi, one fake GitHub, one ledger directory and one Telegram stub,
+ * shared by every tick in a test. Each tick gets a fresh poster, as each tick
+ * on the phone is a fresh node process. `advance` moves the poster's clock.
+ */
+async function phone(t, { routes = {}, gh = {}, cfg = LIVE_CFG, warm = true, timeoutMs = 1500, settleMs = 3000 } = {}) {
+  const wa = await fakeWhapi({ ...listed(REAL), ...routes })
+  t.after(() => wa.close())
+  const g = github(gh)
+  const dir = await mkdtemp(join(tmpdir(), 'wa-phone-'))
+  if (warm) await warmCache(dir)
+  const lines = []
+  const out = { alerts: [], posts: [] }
+  let offset = 0
+  const poster = (opt = {}) =>
+    phonePoster({
+      settings: phoneSettings(opt.cfg ?? cfg, { forceDry: !!opt.forced }),
+      dir, fetch: g.fetch, whapiBase: opt.base ?? wa.base, now: () => Date.now() + offset,
+      sleep: async () => {}, log: (s) => lines.push(String(s)), timeoutMs: opt.timeoutMs ?? timeoutMs, settleMs: opt.settleMs ?? settleMs,
+    })
+  const tick = async (previous, result, opt = {}) => {
+    const r = await step(previous, {
+      detect: fakeDetect(result, opt),
+      notify: async (text) => (out.alerts.push({ text, at: Date.now() }), { telegram: 'sent' }),
+      post: async (kind, w) => (out.posts.push({ kind, w, at: Date.now() }), { telegramChannel: 'sent' }),
+      wa: 'wa' in opt ? opt.wa : poster(opt),
+    })
+    return { ...r, feed: r.next ?? previous }
+  }
+  return {
+    wa, g, dir, lines, out, poster, tick,
+    advance: (ms) => (offset += ms),
+    ledger: (name) => readJson(join(dir, name)),
+    calls: () => wa.requests.length + g.calls.length,
+    fresh: () => wa.posts().filter((p) => !p.body.edit),
+    edits: () => wa.posts().filter((p) => p.body.edit),
+  }
+}
+
+/** What the phone posts at the first page: the window as the fake detect hands it over. */
+function firstPageBody(result, from, first = 12) {
+  const skus = result.skus.slice(0, first)
+  const page = { code: result.code, couponId: result.couponId, source: result.source, totalCount: result.totalCount, skus, discountPct: inferDiscountPct(result.code, skus) }
+  return renderOpen(postData({ ...page, lastLive: { code: result.code, from } }))
+}
+
+/** A post already on file, as an earlier tick left it. */
+async function seedOpen(dir, { code = 'BLINKDEAL6', from, postedAt = from, state = 'sent', messageId = 'PsqXn5SAD5v7HRA-wHN2ziQ0777' } = {}) {
+  const data = postData({ ...LIVE, code, lastLive: { code, from } })
+  const entry = { v: 1, key: `${code}-${Date.parse(from)}`, code, from, state, messageId, channelId: CHANNEL, channelTag: channelTag(TOKEN, CHANNEL), data, body: renderOpen(data), postedAt }
+  await writeFile(join(dir, 'open.json'), JSON.stringify(entry))
+  return entry
+}
+
+// ---- 1. Dormant ------------------------------------------------------------------
+
+test('dormant: no whapi block means no call of any kind, no waAt, and the very feed a run without the phone writes', async (t) => {
+  const h = await phone(t, { cfg: {}, warm: false })
+  const bare = await phone(t, { warm: false })
+  const same = (a, b) => {
+    // Each run stamps its own clock: compare everything but the times.
+    const norm = (r) => JSON.stringify(r.next).replace(/\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z/g, 'T')
+    assert.equal(norm(a), norm(b))
+  }
+  let a = quiet()
+  let b = quiet()
+  for (const result of [QUIET, LIVE, 'stale', new Error('HTTP 500'), LIVE, QUIET]) {
+    const ra = result === 'stale' ? await h.tick(stale(a), LIVE) : await h.tick(a, result)
+    const rb = result === 'stale' ? await bare.tick(stale(b), LIVE, { wa: undefined }) : await bare.tick(b, result, { wa: undefined })
+    same(ra, rb)
+    assert.equal(ra.feed.waAt, undefined)
+    ;[a, b] = [ra.feed, rb.feed]
+  }
+  assert.equal(h.calls(), 0, 'not one call')
+  assert.equal(h.out.alerts.length, 1)
+  assert.deepEqual((await readdir(h.dir)).length, 0, 'nothing written to the ledger')
+  assert.match(h.lines.join('\n'), /WA: not set up on this phone; the Actions poster posts this window/)
+  assert.deepEqual(phoneSettings({}).mode, 'dormant')
+  assert.deepEqual(phoneSettings({ whapi: { dryRun: false } }).mode, 'dormant')
+  assert.deepEqual(phoneSettings({ whapi: { token: '  ', dryRun: false } }).mode, 'dormant')
+})
+
+test('the default in step() is inert: an importer or a test can never reach Whapi', async () => {
+  for (const k of ['onLive', 'onFirstPage', 'settle', 'refresh', 'close', 'idle', 'marker']) assert.equal(typeof INERT[k], 'function')
+  assert.equal(await INERT.marker({ live: true }), null)
+  assert.ok(Object.isFrozen(INERT))
+})
+
+// ---- 2. Dry ---------------------------------------------------------------------------
+
+test('dry: a token without "dryRun": false prints the exact post and calls nothing', async (t) => {
+  for (const cfg of [{ whapi: { token: TOKEN } }, { whapi: { token: TOKEN, dryRun: true } }, { whapi: { token: TOKEN, dryRun: 'false' } }, { whapi: { token: TOKEN, dryRun: false, channelId: 'CCBuddy Deals' } }]) {
+    const h = await phone(t, { cfg })
+    const { next } = await h.tick(quiet(), LIVE)
+    assert.equal(next.waAt, undefined, JSON.stringify(cfg))
+    assert.ok(h.lines.join('\n').includes(`would post:\n${firstPageBody(LIVE, next.lastLive.from)}`), h.lines.join('\n'))
+    const { next: closed } = await h.tick(next, QUIET)
+    assert.equal(closed.waAt, undefined)
+    assert.equal(h.calls(), 0, JSON.stringify(cfg))
+    assert.equal(h.out.alerts.length, 1, 'Telegram as ever')
+    assert.deepEqual(await readdir(h.dir), ['channel.json'], 'no post, so no ledger')
+  }
+})
+
+test('--dry-run prints the post and the edit it would make, and writes nothing', async (t) => {
+  const h = await phone(t)
+  const from = ago(2 * MIN)
+  await seedOpen(h.dir, { from })
+  const before = await readFile(join(h.dir, 'open.json'), 'utf8')
+  const feed = { ...quiet(), live: true, code: 'BLINKDEAL6', ok: true, skus: fixture.skus, lastLive: { code: 'BLINKDEAL6', from, skuCount: 12, lastSeen: ago(MIN) } }
+  const { next } = await h.tick(feed, QUIET, { forced: true })
+  assert.match(h.lines.join('\n'), /DRY \(--dry-run\): would edit the post for BLINKDEAL6 to:\nOver at /)
+  const { next: opened } = await h.tick(quiet(), LIVE_B, { forced: true })
+  assert.match(h.lines.join('\n'), /DRY \(--dry-run\): would post:\nBLINKDEAL live on Myntra/)
+  assert.equal(opened.waAt, undefined)
+  assert.equal(next.waAt, undefined)
+  assert.equal(h.calls(), 0)
+  assert.equal(await readFile(join(h.dir, 'open.json'), 'utf8'), before, 'the ledger untouched')
+  assert.deepEqual((await readdir(h.dir)).sort(), ['channel.json', 'open.json'])
+})
+
+test('dry still ends a post the phone already made: dryRun stops new posts only', async (t) => {
+  const h = await phone(t, { cfg: { whapi: { token: TOKEN, dryRun: true } } })
+  const live = (await (await phone(t)).tick(quiet(), LIVE)).feed
+  await seedOpen(h.dir, { from: live.lastLive.from })
+  const { closedWindow, next } = await h.tick(live, QUIET)
+  assert.ok(closedWindow)
+  assert.equal(h.edits().length, 1)
+  assert.equal(h.edits()[0].body.body, renderOver(postData({ ...LIVE, lastLive: { code: 'BLINKDEAL6', from: live.lastLive.from } }), next.lastLive.to))
+})
+
+// ---- 3. A live opening ------------------------------------------------------------------
+
+test('a live opening: one post of the exact text, written ahead, the Telegram alert and post as ever, and waAt', async (t) => {
+  let during = null
+  const h = await phone(t, {
+    routes: {
+      'POST /messages/text': (req) => {
+        during = JSON.parse(readFileSync(join(h.dir, 'open.json'), 'utf8')).state
+        return { body: { sent: true, message: { id: 'PsqXn5SAD5v7HRA-wHN2ziQ0001' } } }
+      },
+    },
+  })
+  const { next } = await h.tick(quiet(), LIVE)
+  const [post] = h.wa.posts()
+  assert.equal(h.wa.posts().length, 1)
+  assert.deepEqual(post.body, { to: CHANNEL, body: renderOpen(postData(next)), no_link_preview: true })
+  assert.equal(post.body.body, firstPageBody(LIVE, next.lastLive.from))
+  assert.equal(post.auth, `Bearer ${TOKEN}`)
+  assert.equal(during, 'sending', 'open.json is on disk before the request')
+  const open = await h.ledger('open.json')
+  assert.equal(open.state, 'sent')
+  assert.equal(open.messageId, 'PsqXn5SAD5v7HRA-wHN2ziQ0001')
+  assert.equal(open.key, windowKey(next))
+  assert.equal(next.waAt, next.lastLive.from <= open.postedAt ? open.postedAt : next.lastLive.from)
+  assert.ok(Date.parse(next.waAt) >= Date.parse(next.lastLive.from), 'never before the window started')
+  assert.equal(h.out.alerts.length, 1)
+  assert.deepEqual(h.out.posts.map((p) => p.kind), ['open'])
+  assert.ok(next.alertedAt && next.postedAt)
+  assert.match(h.lines.join('\n'), /^WA open sent at /m)
+  // Actions, on this push: stands down.
+  const e = edge(quiet(), next, Date.now())
+  assert.equal(e.open, null)
+  assert.match(e.notes.join(' '), /the phone posted this window/)
+  assert.deepEqual(h.g.calls.map((c) => c.url), [ISSUES_URL])
+})
+
+test('the post goes out at the first page, before the crawl, while the crawl goes on', async (t) => {
+  const h = await phone(t)
+  const events = []
+  const started = Date.now()
+  const { next } = await h.tick(quiet(), LIVE, { brands: 4, brandMs: 150, events })
+  const at = Object.fromEntries(events)
+  const [post] = h.wa.posts()
+  assert.ok(post.at < at['brand 1'], `the post reached Whapi ${post.at - at['first page']} ms after the first page, before the first brand page came back`)
+  assert.ok(post.at < at['crawl done'])
+  assert.ok(h.out.posts[0].at <= at['brand 1'], 'and the Telegram channel post was not held up by it')
+  assert.ok(Date.now() - started < 600 + 1000, 'the tick took the crawl, not the crawl plus the post')
+  assert.ok(next.waAt)
+})
+
+// ---- 4. Whapi slow, hung or throwing ---------------------------------------------------------
+
+test('Whapi hangs: the alert, the Telegram post and the crawl are untouched, the tick ends at the timeout, and it is never sent again', async (t) => {
+  const h = await phone(t, { routes: { 'POST /messages/text': { hang: true } }, timeoutMs: 400 })
+  const events = []
+  const started = Date.now()
+  const { next } = await h.tick(quiet(), LIVE, { brands: 2, brandMs: 50, events })
+  const took = Date.now() - started
+  assert.ok(took >= 400 && took < 400 + 1200, `the tick took ${took} ms: the timeout and some slack`)
+  assert.equal(h.out.alerts.length, 1)
+  assert.ok(h.out.alerts[0].at - started < 200, 'the alert went at once')
+  assert.ok(h.out.posts[0].at - started < 200, 'the Telegram channel post went at once')
+  assert.ok(events.find(([e]) => e === 'crawl done')[1] - started < 400, 'the crawl ran beside it')
+  assert.equal(next.live, true)
+  assert.ok(next.waAt, 'it may have gone out: Actions must not post it too')
+  assert.equal((await h.ledger('open.json')).state, 'unknown')
+  assert.match(h.lines.join('\n'), /WA open may have gone out \(Whapi send: no answer \(timed out\)\)/)
+  // The next ticks never try again.
+  await h.tick(stale(next), LIVE)
+  await h.tick(next, new Error('fetch failed'))
+  assert.equal(h.wa.posts().length, 1)
+})
+
+test('Whapi slow: the publish waits for the send, no longer', async (t) => {
+  const h = await phone(t, { routes: { 'POST /messages/text': { delay: 300, body: { sent: true, message: { id: 'PsqXn5SAD5v7HRA-wHN2ziQ0001' } } } } })
+  const started = Date.now()
+  const { next } = await h.tick(quiet(), LIVE)
+  assert.ok(Date.now() - started >= 300)
+  assert.ok(Date.now() - started < 300 + 1000)
+  assert.ok(next.waAt)
+  assert.equal((await h.ledger('open.json')).state, 'sent')
+})
+
+test('a post not at its send by the end of the crawl is left to Actions, and never sent after the feed is written', async (t) => {
+  const h = await phone(t, { gh: { delayMs: 600 }, settleMs: 100 })
+  const started = Date.now()
+  const { next } = await h.tick(quiet(), LIVE)
+  assert.ok(Date.now() - started < 500, 'the tick did not wait for the slow pause check')
+  assert.equal(next.waAt, undefined, 'so the feed says Actions posts it')
+  assert.ok(edge(quiet(), next, Date.now()).open, 'and Actions does')
+  await pause(900)
+  assert.equal(h.wa.posts().length, 0, 'and the phone never does')
+  assert.match(h.lines.join('\n'), /not at the send by the end of the crawl/)
+})
+
+test('a WhatsApp poster that throws everywhere costs the tick nothing', async (t) => {
+  const h = await phone(t)
+  const boom = () => {
+    throw new Error('boom')
+  }
+  const wa = { onLive: boom, onFirstPage: boom, settle: async () => boom(), refresh: async () => boom(), close: async () => boom(), idle: async () => boom(), marker: async () => boom() }
+  const { next } = await h.tick(quiet(), LIVE, { wa })
+  assert.equal(next.live, true)
+  assert.equal(next.ok, true)
+  assert.equal(next.waAt, undefined)
+  assert.equal(h.out.alerts.length, 1)
+  assert.equal(h.out.posts.length, 1)
+  const { closedWindow, next: closed } = await h.tick(next, QUIET, { wa })
+  assert.ok(closedWindow.postedAt, 'the Telegram close still posts')
+  assert.equal(closed.live, false)
+  assert.ok((await h.tick(closed, QUIET, { wa })).feed)
+})
+
+// ---- 5 and 6. Sent or not ----------------------------------------------------------------------
+
+const refuse = (status) => ({ status, body: { error: { code: status, message: `no ${TOKEN} ${LINKED_NUMBER} ${CHANNEL}` } } })
+
+test('a code no ledger can name is not posted, as Actions would not post it: no call, no waAt, nothing on file', async (t) => {
+  const h = await phone(t)
+  const odd = { ...LIVE, code: 'BLINK_DEAL6', skus: fixture.skus.map((s) => ({ ...s, code: 'BLINK_DEAL6' })) }
+  const { next } = await h.tick(quiet(), odd)
+  assert.equal(h.wa.requests.length, 0)
+  assert.equal(next.waAt, undefined)
+  assert.equal(await h.ledger('open.json'), null)
+  assert.match(h.lines.join('\n'), /cannot name a window; not posting/)
+  assert.equal(h.out.alerts.length, 1, 'the Telegram alert as ever')
+  assert.equal(edge(quiet(), next, Date.now()).open, null, 'Actions refuses it too')
+})
+
+test('definitely not sent (401, 402, 403, 404, or no connection at all): no retry, no waAt, nothing on file, Actions posts', async (t) => {
+  for (const status of [401, 402, 403, 404]) {
+    const h = await phone(t, { routes: { 'POST /messages/text': refuse(status) } })
+    const { next } = await h.tick(quiet(), LIVE)
+    assert.equal(h.wa.posts().length, 1, `${status}: never retried`)
+    assert.equal(next.waAt, undefined, String(status))
+    assert.equal(await h.ledger('open.json'), null)
+    assert.ok(edge(quiet(), next, Date.now()).open, 'Actions takes the window')
+    assert.match(h.lines.join('\n'), new RegExp(`WA open not sent \\(Whapi send: HTTP ${status}`))
+    assert.deepEqual(leaks(h.lines.join('\n')), [])
+    assert.equal(await h.ledger('hold.json'), null)
+  }
+  // Whapi not even reachable: the request never left the phone.
+  const closed = await fakeWhapi()
+  const base = closed.base
+  await closed.close()
+  const h = await phone(t)
+  const { next } = await h.tick(quiet(), LIVE, { base })
+  assert.equal(next.waAt, undefined)
+  assert.equal(await h.ledger('open.json'), null)
+})
+
+test('429: not retried, no waAt, the number rests 2 days: the next window makes no call at all', async (t) => {
+  const h = await phone(t, { routes: { 'POST /messages/text': [refuse(429), { body: { sent: true, message: { id: 'PsqXn5SAD5v7HRA-wHN2ziQ0002' } } }] } })
+  const { next } = await h.tick(quiet(), LIVE)
+  assert.equal(h.wa.posts().length, 1)
+  assert.equal(next.waAt, undefined)
+  const hold = await h.ledger('hold.json')
+  assert.ok(Math.abs(Date.parse(hold.until) - (Date.now() + REST_MS)) < 5000)
+  const calls = h.calls()
+  const { next: over } = await h.tick(next, QUIET)
+  const { next: again } = await h.tick(over, LIVE_B)
+  assert.equal(h.calls(), calls, 'no Whapi call and no GitHub call')
+  assert.equal(again.waAt, undefined)
+  assert.match(h.lines.join('\n'), /resting the number after a 429; the Actions poster takes this window/)
+  // Two days on, it posts again.
+  h.advance(REST_MS + MIN)
+  const { next: later } = await h.tick((await h.tick(again, QUIET)).feed, LIVE)
+  assert.ok(later.waAt)
+  assert.equal(h.fresh().length, 2)
+})
+
+test('a 5xx may have gone out: no retry, waAt set, and its end cannot be edited in', async (t) => {
+  const h = await phone(t, { routes: { 'POST /messages/text': refuse(503) } })
+  const { next } = await h.tick(quiet(), LIVE)
+  assert.equal(h.wa.posts().length, 1)
+  assert.ok(next.waAt)
+  assert.equal((await h.ledger('open.json')).state, 'unknown')
+  const calls = h.calls()
+  const { next: over } = await h.tick(next, QUIET)
+  assert.equal(h.calls(), calls, 'no edit, no check, no call')
+  assert.equal(over.waAt, undefined)
+  assert.equal((await h.ledger(`${windowKey(next)}.json`)).edit.state, 'none')
+  assert.equal(await h.ledger('open.json'), null)
+})
+
+// ---- 7. The pause issue ----------------------------------------------------------------------------
+
+test('an open pause issue (the bot\'s or the owner\'s) stops the phone: no Whapi call, no waAt', async (t) => {
+  const owner = { ...BOT_PAUSE, user: { login: 'someone', type: 'User' }, author_association: 'OWNER' }
+  for (const issue of [BOT_PAUSE, owner]) {
+    const h = await phone(t, { gh: { issues: [issue] } })
+    const { next } = await h.tick(quiet(), LIVE)
+    assert.equal(h.wa.requests.length, 0)
+    assert.equal(next.waAt, undefined)
+    assert.ok(edge(quiet(), next, Date.now()).open, 'Actions meets the same issue and notes the window')
+    assert.match(h.lines.join('\n'), /the poster is paused/)
+    assert.equal(h.g.calls.filter((c) => c.headers?.authorization).length, 0)
+  }
+  // A stranger's issue with the same title is not the switch.
+  const h = await phone(t, { gh: { issues: [{ ...BOT_PAUSE, user: { login: 'someone', type: 'User' }, author_association: 'NONE' }] } })
+  assert.ok((await h.tick(quiet(), LIVE)).next.waAt)
+  assert.equal(h.fresh().length, 1)
+})
+
+test('a pause check that fails leaves the window to Actions: no Whapi call, no waAt', async (t) => {
+  for (const gh of [{ fail: true }, { status: 403 }, { status: 404 }]) {
+    const h = await phone(t, { gh })
+    const { next } = await h.tick(quiet(), LIVE)
+    assert.equal(h.wa.requests.length, 0, JSON.stringify(gh))
+    assert.equal(next.waAt, undefined)
+    assert.match(h.lines.join('\n'), /could not read the pause issue/)
+  }
+})
+
+test('the pause check starts beside the alert, uses no credential, and never runs on a quiet tick', async (t) => {
+  const h = await phone(t)
+  let feed = (await h.tick(quiet(), QUIET)).feed
+  feed = (await h.tick(stale(feed), QUIET)).feed
+  assert.equal(h.g.calls.length, 0, 'quiet ticks ask nothing')
+  const events = []
+  await h.tick(feed, LIVE, { firstPageMs: 150, events })
+  assert.equal(h.g.calls.length, 1)
+  assert.ok(h.g.calls[0].at < Object.fromEntries(events)['first page'], 'asked at onLive, read at the first page')
+  assert.equal(h.g.calls[0].url, ISSUES_URL)
+  assert.equal(h.g.calls[0].headers.authorization, undefined)
+  // pauseCheck itself, through findPause.
+  assert.equal(await pauseCheck({ fetch: github({ issues: [BOT_PAUSE] }).fetch }), 'paused')
+  assert.equal(await pauseCheck({ fetch: github().fetch }), 'clear')
+  await assert.rejects(pauseCheck({ fetch: github({ status: 500 }).fetch }), /HTTP 500/)
+})
+
+// ---- 8. Restarts and lost writes ------------------------------------------------------------------
+
+test('a lost feed write: the same window seen again is not posted again, and the feed says the phone took it', async (t) => {
+  const h = await phone(t)
+  const { next: first } = await h.tick(quiet(), LIVE)
+  assert.equal(h.fresh().length, 1)
+  await pause(5)
+  // The push never happened (a failed rebase reset the clone): the next tick reads the old quiet feed.
+  const { next } = await h.tick(quiet(), LIVE)
+  assert.equal(h.fresh().length, 1, 'no second post')
+  const open = await h.ledger('open.json')
+  assert.equal(open.key, windowKey(next), 'adopted under the new key')
+  assert.equal(open.messageId, 'PsqXn5SAD5v7HRA-wHN2ziQ0001')
+  assert.ok(next.waAt)
+  assert.ok(Date.parse(next.waAt) >= Date.parse(next.lastLive.from), 'not mistaken by Actions for a left-over one')
+  assert.equal(edge(quiet(), next, Date.now()).open, null, 'Actions stands down')
+  assert.notEqual(windowKey(first), windowKey(next))
+  assert.match(h.lines.join('\n'), /was posted at .* by an earlier tick whose feed was lost; not posting it again/)
+  // And its end is still edited in.
+  await h.tick(next, QUIET)
+  assert.equal(h.edits().length, 1)
+})
+
+test('a send the phone died in (sending left on file) is never sent again', async (t) => {
+  const h = await phone(t)
+  await seedOpen(h.dir, { from: ago(MIN), state: 'sending', messageId: null })
+  const { next } = await h.tick(quiet(), LIVE)
+  assert.equal(h.wa.posts().length, 0)
+  assert.ok(next.waAt, 'it may have gone out')
+  await h.tick(next, QUIET)
+  assert.equal(h.wa.posts().length, 0, 'and with no id there is nothing to edit')
+})
+
+test('a post on file older than 15 min is a window that ended unseen: the new one is posted, then the old one ended with no time', async (t) => {
+  const h = await phone(t)
+  const old = await seedOpen(h.dir, { from: ago(OPEN_MAX_AGE_MS + 5 * MIN), postedAt: ago(OPEN_MAX_AGE_MS + 5 * MIN) })
+  const { next } = await h.tick(quiet(), LIVE)
+  const posts = h.wa.posts()
+  assert.equal(posts.length, 2)
+  assert.equal(posts[0].body.edit, undefined, 'the news first')
+  assert.equal(posts[0].body.body, renderOpen(postData(next)))
+  assert.deepEqual(posts[1].body, { to: CHANNEL, edit: old.messageId, body: renderOver(old.data, null), no_link_preview: true })
+  assert.match(posts[1].body.body, /^Over\. These prices no longer apply\./)
+  assert.ok(next.waAt)
+  assert.equal((await h.ledger(`${old.key}.json`)).edit.state, 'done')
+  assert.equal((await h.ledger('open.json')).key, windowKey(next))
+})
+
+test('two watcher loops on one clone post a window once', async (t) => {
+  const h = await phone(t)
+  const from = new Date().toISOString()
+  const page = { code: 'BLINKDEAL6', couponId: '135733', source: fixture.source, totalCount: 207, skus: fixture.skus, discountPct: 6, from }
+  const [a, b] = [h.poster(), h.poster()]
+  a.onLive()
+  b.onLive()
+  a.onFirstPage(page)
+  b.onFirstPage(page)
+  await Promise.all([a.settle(), b.settle()])
+  assert.equal(h.wa.posts().length, 1)
+  const feed = { live: true, code: 'BLINKDEAL6', lastLive: { code: 'BLINKDEAL6', from } }
+  assert.ok(await a.marker(feed))
+  assert.ok(await b.marker(feed))
+})
+
+// ---- 9 and 10. Mid-window ticks and the end ------------------------------------------------------------
+
+test('mid-window ticks make no call; waAt is on every live feed written, and in no history row or lastLive', async (t) => {
+  const h = await phone(t)
+  let { feed } = await h.tick(quiet(), LIVE)
+  assert.ok(feed.waAt)
+  const calls = h.calls()
+  const r1 = await h.tick(feed, LIVE)
+  assert.equal(r1.next, null, 'nothing new: not written')
+  const beat = (await h.tick(stale(feed), LIVE)).next
+  assert.ok(beat.waAt, 'the heartbeat carries it')
+  const failed = (await h.tick(beat, new Error('fetch failed'))).next
+  assert.equal(failed.ok, false)
+  assert.ok(failed.waAt, 'so does a failed read')
+  const back = (await h.tick(failed, LIVE)).next
+  assert.ok(back.waAt, 'and the recovery')
+  assert.equal(h.calls(), calls, 'not one call in between')
+  for (const f of [feed, beat, failed, back]) assert.equal('waAt' in (f.lastLive ?? {}), false)
+  const { next: over, closedWindow } = await h.tick(back, QUIET)
+  assert.equal(over.waAt, undefined, 'gone with the window')
+  assert.equal('waAt' in closedWindow, false)
+  assert.equal('waAt' in over.lastLive, false)
+  assert.equal(edge(back, over, Date.now()).close, null, 'Actions leaves the end to the phone')
+  const quietAgain = (await h.tick({ ...over, checkedAt: ago(30 * MIN) }, QUIET)).next
+  assert.equal(quietAgain.waAt, undefined)
+})
+
+test('the end: exactly one edit, "Over at …" with the watched end time', async (t) => {
+  const h = await phone(t)
+  const { feed } = await h.tick(quiet(), LIVE)
+  const open = await h.ledger('open.json')
+  await pause(5)
+  const { next } = await h.tick(feed, QUIET)
+  const [edit] = h.edits()
+  assert.equal(h.edits().length, 1)
+  assert.deepEqual(edit.body, { to: CHANNEL, edit: open.messageId, body: renderOver(open.data, next.lastLive.to), no_link_preview: true })
+  assert.match(edit.body.body, /^Over at \d+:\d\d [ap]m, after 0 min\. These prices no longer apply\./)
+  assert.equal(await h.ledger('open.json'), null)
+  assert.equal((await h.ledger(`${open.key}.json`)).edit.state, 'done')
+  assert.match(h.lines.join('\n'), /WA edit made at .*: BLINKDEAL6 is over/)
+  // Quiet ticks after it: nothing.
+  const calls = h.calls()
+  await h.tick(stale(next), QUIET)
+  await h.tick(next, QUIET)
+  assert.equal(h.calls(), calls)
+})
+
+test('an end nobody watched (the phone was off) is edited to "Over." with no time', async (t) => {
+  const h = await phone(t)
+  const from = ago(400 * MIN)
+  const seen = ago(390 * MIN)
+  const open = await seedOpen(h.dir, { from })
+  const previous = { generated: seen, checkedAt: seen, ok: true, heartbeatMs: 2 * MIN, live: true, code: 'BLINKDEAL6', couponId: '135733', skus: fixture.skus, knownIds: ['135733'], lastLive: { code: 'BLINKDEAL6', couponId: '135733', from, skuCount: 12, lastSeen: seen } }
+  const { closedWindow } = await h.tick(previous, QUIET)
+  assert.equal(closedWindow.approx, true)
+  const [edit] = h.edits()
+  assert.equal(edit.body.body, renderOver(open.data, null))
+  assert.match(edit.body.body, /^Over\. These prices no longer apply\./)
+})
+
+test('a code change mid-window: the new code is posted, then the old post is ended with no time, as Actions would', async (t) => {
+  const h = await phone(t)
+  const { feed } = await h.tick(quiet(), LIVE)
+  const old = await h.ledger('open.json')
+  const { next } = await h.tick(feed, LIVE_B)
+  const posts = h.wa.posts()
+  assert.equal(posts.length, 3)
+  assert.match(posts[1].body.body, /^BLINKDEAL live on Myntra/)
+  assert.equal(posts[1].body.edit, undefined)
+  assert.deepEqual(posts[2].body, { to: CHANNEL, edit: old.messageId, body: renderOver(old.data, null), no_link_preview: true })
+  assert.ok(next.waAt)
+  assert.equal((await h.ledger('open.json')).code, 'BLINKDEAL')
+  // What Actions makes of the same push: nothing, both were the phone's.
+  const e = edge(feed, next, Date.now())
+  assert.deepEqual([e.open, e.close], [null, null])
+  // Telegram as before: one open post per code.
+  assert.deepEqual(h.out.posts.map((p) => `${p.kind} ${p.w.code}`), ['open BLINKDEAL6', 'open BLINKDEAL'])
+})
+
+// ---- 11. An edit that fails ----------------------------------------------------------------------
+
+const editFails = (answer) => ({
+  'POST /messages/text': (req) => (req.body.edit ? answer : { body: { sent: true, message: { id: 'PsqXn5SAD5v7HRA-wHN2ziQ0001' } } }),
+})
+
+test('an edit that fails for a moment is tried again on later ticks: 3 more tries at most, 20 s apart, each after a pause check', async (t) => {
+  const h = await phone(t, { routes: editFails({ status: 502, body: {} }) })
+  const { feed } = await h.tick(quiet(), LIVE)
+  let { feed: q } = await h.tick(feed, QUIET)
+  assert.equal(h.edits().length, 1)
+  assert.deepEqual(await h.ledger('due.json'), [windowKey(feed)])
+  const gh = h.g.calls.length
+  h.advance(5000)
+  q = (await h.tick(q, QUIET)).feed
+  assert.equal(h.edits().length, 1, 'not before 20 s')
+  assert.equal(h.g.calls.length, gh, 'and no pause check either')
+  for (let i = 2; i <= 1 + EDIT_RETRIES; i++) {
+    h.advance(21000)
+    q = (await h.tick(q, QUIET)).feed
+    assert.equal(h.edits().length, i)
+  }
+  assert.equal(h.g.calls.length, gh + EDIT_RETRIES, 'one pause check before each')
+  h.advance(21000)
+  await h.tick(q, QUIET)
+  assert.equal(h.edits().length, 1 + EDIT_RETRIES, 'then it stops')
+  assert.equal((await h.ledger(`${windowKey(feed)}.json`)).edit.state, 'failed')
+  assert.equal(await h.ledger('due.json'), null)
+})
+
+test('an edit refused with a 4xx is not tried again', async (t) => {
+  const h = await phone(t, { routes: editFails(refuse(403)) })
+  const { feed } = await h.tick(quiet(), LIVE)
+  let { feed: q } = await h.tick(feed, QUIET)
+  for (let i = 0; i < 3; i++) {
+    h.advance(21000)
+    q = (await h.tick(q, QUIET)).feed
+  }
+  assert.equal(h.edits().length, 1)
+  assert.equal((await h.ledger(`${windowKey(feed)}.json`)).edit.state, 'failed')
+  assert.deepEqual(leaks(h.lines.join('\n')), [])
+})
+
+test('while paused no edit is made and no call is spent on it; the first edge after the issue closes makes it', async (t) => {
+  const h = await phone(t)
+  const { feed } = await h.tick(quiet(), LIVE)
+  h.g.issues.push(BOT_PAUSE)
+  const whapiCalls = h.wa.requests.length
+  let { feed: q } = await h.tick(feed, QUIET)
+  assert.equal(h.wa.requests.length, whapiCalls, 'no edit, and no channel check, while paused')
+  const gh = h.g.calls.length
+  for (let i = 0; i < 3; i++) {
+    h.advance(21000)
+    q = (await h.tick(q, QUIET)).feed
+  }
+  h.g.issues.length = 0 // the owner closes it
+  h.advance(21000)
+  q = (await h.tick(q, QUIET)).feed
+  assert.equal(h.wa.requests.length, whapiCalls, 'off an edge it keeps waiting')
+  assert.equal(h.g.calls.length, gh, 'and asks GitHub nothing')
+  const { next } = await h.tick(q, LIVE_B)
+  const posts = h.wa.posts()
+  assert.equal(posts.at(-2).body.edit, undefined, 'the new window first')
+  assert.equal(posts.at(-1).body.edit, 'PsqXn5SAD5v7HRA-wHN2ziQ0001', 'then the end owed from before the pause')
+  assert.ok(next.waAt)
+})
+
+test('an edit still owed after 24 h is dropped without a call', async (t) => {
+  const h = await phone(t)
+  const { feed } = await h.tick(quiet(), LIVE)
+  h.g.issues.push(BOT_PAUSE)
+  const { feed: q } = await h.tick(feed, QUIET)
+  const calls = h.calls()
+  h.advance(25 * 3600 * 1000)
+  await h.tick(q, QUIET)
+  assert.equal(h.calls(), calls)
+  assert.equal((await h.ledger(`${windowKey(feed)}.json`)).edit.state, 'dropped')
+})
+
+// ---- 12. The channel cache -------------------------------------------------------------------------
+
+test('the channel: found once (session + list), then one call a post; looked at again after each end', async (t) => {
+  const h = await phone(t, { warm: false })
+  const routes = () => h.wa.requests.map((r) => r.route)
+  const { feed } = await h.tick(quiet(), LIVE)
+  assert.deepEqual(routes(), ['GET /health', 'GET /newsletters', 'POST /messages/text'])
+  assert.equal(h.wa.requests[0].url, '/health', 'a post wakes the session')
+  const cache = await h.ledger('channel.json')
+  assert.equal(cache.channelId, CHANNEL)
+  assert.equal(cache.tag, channelTag(TOKEN, CHANNEL))
+  const { feed: q } = await h.tick(feed, QUIET)
+  assert.deepEqual(routes().slice(3), ['POST /messages/text', 'GET /newsletters'])
+  await h.tick(q, LIVE_B)
+  assert.deepEqual(routes().slice(5), ['POST /messages/text'])
+})
+
+test('a new token, or a cache a day old, finds the channel again', async (t) => {
+  for (const warm of [{ token: 'another-token-that-is-long-enough' }, { checkedAt: new Date(Date.now() - CHANNEL_MAX_AGE_MS - MIN).toISOString() }]) {
+    const h = await phone(t, { warm: false })
+    await warmCache(h.dir, warm)
+    const { next } = await h.tick(quiet(), LIVE)
+    assert.deepEqual(h.wa.requests.map((r) => r.route), ['GET /health', 'GET /newsletters', 'POST /messages/text'], JSON.stringify(warm))
+    assert.ok(next.waAt)
+    assert.equal((await h.ledger('channel.json')).tag, channelTag(TOKEN, CHANNEL))
+  }
+})
+
+test('a number that owns a Channel, admins two, or admins none: no post, no cache, no waAt', async (t) => {
+  for (const newsletters of [[MINE], [REAL, MINE], [REAL, SECOND], [], [{ ...REAL, user_role: 'subscriber' }]]) {
+    const h = await phone(t, { warm: false, routes: listed(...newsletters) })
+    const { next } = await h.tick(quiet(), LIVE)
+    assert.equal(h.wa.posts().length, 0, JSON.stringify(newsletters))
+    assert.equal(next.waAt, undefined)
+    assert.equal(await h.ledger('channel.json'), null)
+    assert.match(h.lines.join('\n'), /no channel to post to .*; the Actions poster takes this window/)
+    assert.deepEqual(leaks(h.lines.join('\n')), [])
+  }
+  // A session that is not connected: the same.
+  const h = await phone(t, { warm: false, routes: { 'GET /health': { body: { status: { code: 2, text: 'QR' } } } } })
+  const { next } = await h.tick(quiet(), LIVE)
+  assert.equal(h.wa.posts().length, 0)
+  assert.equal(next.waAt, undefined)
+})
+
+test('the look after an end drops a cache that no longer holds, and the next opening is left to Actions', async (t) => {
+  let channels = [REAL]
+  const h = await phone(t, { routes: { 'GET /newsletters': () => ({ body: { newsletters: channels, count: 100, total: channels.length } }) } })
+  const { feed } = await h.tick(quiet(), LIVE)
+  channels = [REAL, SECOND]
+  const { feed: q } = await h.tick(feed, QUIET)
+  assert.equal(h.edits().length, 1, 'the end is still edited in, where the post went')
+  assert.equal(await h.ledger('channel.json'), null)
+  const { next } = await h.tick(q, LIVE_B)
+  assert.equal(h.fresh().length, 1)
+  assert.equal(next.waAt, undefined)
+})
+
+test('a pinned whapi.channelId is checked with its own role call, and an owner there never posts', async (t) => {
+  const cfg = { whapi: { token: TOKEN, dryRun: false, channelId: CHANNEL } }
+  const h = await phone(t, { warm: false, cfg })
+  const { next } = await h.tick(quiet(), LIVE)
+  assert.deepEqual(h.wa.requests.map((r) => r.route), ['GET /health', 'GET /newsletters/:id', 'POST /messages/text'])
+  assert.ok(next.waAt)
+  const own = await phone(t, { warm: false, cfg, routes: { 'GET /newsletters/:id': { body: { id: CHANNEL, user_role: 'owner' } } } })
+  assert.equal((await own.tick(quiet(), LIVE)).next.waAt, undefined)
+  assert.equal(own.wa.posts().length, 0)
+})
+
+// ---- D1: the full crawl's rows ------------------------------------------------------------------------
+
+test('the post from the first page is edited once, silently, with the full crawl, only when its rows differ', async (t) => {
+  const h = await phone(t)
+  const { next } = await h.tick(quiet(), LIVE, { first: 3 })
+  const posts = h.wa.posts()
+  assert.equal(posts.length, 2)
+  assert.equal(posts[0].body.body, firstPageBody(LIVE, next.lastLive.from, 3))
+  assert.deepEqual(posts[1].body, { to: CHANNEL, edit: 'PsqXn5SAD5v7HRA-wHN2ziQ0001', body: renderOpen(postData(next)), no_link_preview: true })
+  assert.notEqual(posts[0].body.body, posts[1].body.body)
+  assert.deepEqual((await h.ledger('open.json')).data, postData(next), 'its end shows the same rows')
+  await h.tick(next, QUIET)
+  assert.equal(h.edits().at(-1).body.body, renderOver(postData(next), (await h.ledger(`${windowKey(next)}.json`)).edit.to))
+  // The same rows: no edit.
+  const same = await phone(t)
+  await same.tick(quiet(), LIVE)
+  assert.equal(same.wa.posts().length, 1)
+})
+
+// ---- 13. Never in the output -----------------------------------------------------------------------------
+
+test('the token, the channel id, the linked number and the message id never reach the log, the console or the feed', async (t) => {
+  const printed = []
+  const [log, error] = [console.log, console.error]
+  console.log = (...a) => printed.push(a.join(' '))
+  console.error = (...a) => printed.push(a.join(' '))
+  const feeds = []
+  try {
+    const echo = { status: 403, body: { error: { code: 403, message: `token ${TOKEN} from ${LINKED_NUMBER} to ${CHANNEL}` } } }
+    const h = await phone(t, { warm: false, routes: editFails(echo) })
+    let { feed } = await h.tick(quiet(), LIVE, { first: 3 })
+    feeds.push(feed)
+    const r = await h.tick(feed, QUIET)
+    feeds.push(r.feed, r.closedWindow)
+    const bad = await phone(t, { warm: false, routes: { 'POST /messages/text': echo } })
+    feeds.push((await bad.tick(quiet(), LIVE)).feed)
+    const dry = await phone(t, { cfg: { whapi: { token: TOKEN } } })
+    feeds.push((await dry.tick(quiet(), LIVE)).feed)
+    printed.push(...h.lines, ...bad.lines, ...dry.lines)
+  } finally {
+    console.log = log
+    console.error = error
+  }
+  const all = [...printed, ...feeds.map((f) => JSON.stringify(f))].join('\n')
+  assert.ok(all.includes('WA open sent'), 'the log was captured')
+  assert.deepEqual(leaks(all), [])
+  assert.ok(!all.includes('PsqXn5SAD5v7HRA'), 'no message id')
+})
+
+// ---- Setup and check on the phone ---------------------------------------------------------------------------
+
+async function setupHarness(t, { routes = {}, file } = {}) {
+  const wa = await fakeWhapi({ ...listed(REAL), ...routes })
+  t.after(() => wa.close())
+  const dir = await mkdtemp(join(tmpdir(), 'wa-setup-'))
+  const configPath = join(dir, '.notify.env')
+  if (file !== undefined) await writeFile(configPath, typeof file === 'string' ? file : JSON.stringify(file))
+  const lines = []
+  const opts = (clip = `${TOKEN}\n`) => ({ readClipboard: async () => clip, configPath, dir: join(dir, '.wa-ledger'), base: wa.base, sleep: async () => {}, log: (s) => lines.push(String(s)) })
+  return { wa, dir, configPath, lines, opts, config: () => readJson(configPath), ledger: (n) => readJson(join(dir, '.wa-ledger', n)) }
+}
+
+test('--setup: the token from the clipboard, checked, saved with posting on only when Ready; every other key kept', async (t) => {
+  const telegram = { token: '123456:ABC', chatId: '987654321' }
+  const h = await setupHarness(t, { file: { telegram } })
+  assert.equal(await runSetup(h.opts()), true)
+  assert.deepEqual(await h.config(), { telegram, whapi: { token: TOKEN, dryRun: false } })
+  assert.equal((await h.ledger('channel.json')).channelId, CHANNEL)
+  const said = h.lines.join('\n')
+  assert.match(said, /^Token read from the clipboard\.$/m)
+  assert.match(said, /^session: AUTH$/m)
+  assert.match(said, /^channel: "CCBuddy Deals" \(found by itself\), this number's role: admin$/m)
+  assert.match(said, /^Ready: connected, and an admin of the channel\.$/m)
+  assert.match(said, /posting on: this phone posts the next window/)
+  assert.ok(h.wa.requests.every((r) => r.route.startsWith('GET ')), 'read-only')
+  assert.deepEqual(leaks(said), [])
+  // What the watcher then reads.
+  assert.equal(phoneSettings(await h.config()).mode, 'live')
+  // Swapped in whole: no temporary copy of the token is left beside it.
+  assert.deepEqual((await readdir(h.dir)).sort(), ['.notify.env', '.wa-ledger'])
+})
+
+test('--setup when not ready: saved dry, says why and how to pin the channel on the phone', async (t) => {
+  const h = await setupHarness(t, { routes: listed(REAL, SECOND), file: {} })
+  assert.equal(await runSetup(h.opts()), false)
+  assert.deepEqual(await h.config(), { whapi: { token: TOKEN, dryRun: true } })
+  const said = h.lines.join('\n')
+  assert.match(said, /admin of 2 WhatsApp Channels/)
+  assert.match(said, /whapi\.channelId/)
+  assert.match(said, /posting off/)
+  assert.equal(await h.ledger('channel.json'), null)
+  assert.deepEqual(leaks(said), [])
+  assert.equal(phoneSettings(await h.config()).mode, 'dry')
+})
+
+test('--setup with whapi.channelId already pinned checks that channel', async (t) => {
+  const h = await setupHarness(t, { file: { whapi: { channelId: CHANNEL, dryRun: true } } })
+  assert.equal(await runSetup(h.opts()), true)
+  assert.deepEqual(h.wa.requests.map((r) => r.route), ['GET /health', 'GET /newsletters/:id'])
+  assert.deepEqual(await h.config(), { whapi: { channelId: CHANNEL, dryRun: false, token: TOKEN } })
+})
+
+test('--setup refuses an empty clipboard or a broken .notify.env, and writes nothing', async (t) => {
+  const h = await setupHarness(t, { file: { telegram: { chatId: '1' } } })
+  for (const clip of ['', '  \n', 'hello', 'x'.repeat(10)]) assert.equal(await runSetup(h.opts(clip)), false)
+  assert.deepEqual(await h.config(), { telegram: { chatId: '1' } })
+  assert.match(h.lines.join('\n'), /The clipboard holds no Whapi token/)
+  const broken = await setupHarness(t, { file: '{ "telegram": ' })
+  assert.equal(await runSetup(broken.opts()), false)
+  assert.equal(await readFile(broken.configPath, 'utf8'), '{ "telegram": ')
+  assert.equal(broken.wa.requests.length, 0)
+})
+
+test('--check: the saved token, the same read-only check, and whether the pause issue is open', async (t) => {
+  const h = await setupHarness(t)
+  const gh = github({ issues: [BOT_PAUSE] })
+  const ready = await runPhoneCheck({ cfg: LIVE_CFG, ...h.opts(), fetch: gh.fetch })
+  assert.equal(ready, true)
+  const said = h.lines.join('\n')
+  assert.match(said, /^Posting: on\.$/m)
+  assert.match(said, /The pause issue is open/)
+  assert.deepEqual(leaks(said), [])
+  const none = await setupHarness(t)
+  assert.equal(await runPhoneCheck({ cfg: {}, ...none.opts() }), false)
+  assert.match(none.lines.join('\n'), /run node scraper\/wa-phone\.mjs --setup/)
+  assert.equal(none.wa.requests.length, 0)
+})
+
+// ---- Config ---------------------------------------------------------------------------------------------
+
+test('the whapi block from the environment: only 0 posts', () => {
+  assert.deepEqual(applyEnv({}, { BLINKDEAL_WHAPI_TOKEN: TOKEN, BLINKDEAL_WA_DRY_RUN: '0' }).whapi, { token: TOKEN, dryRun: false })
+  assert.equal(applyEnv({ whapi: { token: TOKEN, dryRun: false } }, { BLINKDEAL_WA_DRY_RUN: '1' }).whapi.dryRun, true)
+  assert.equal(applyEnv({ whapi: { token: TOKEN, dryRun: false } }, { BLINKDEAL_WA_DRY_RUN: '' }).whapi.dryRun, true)
+  assert.equal(applyEnv({}, { BLINKDEAL_WHAPI_CHANNEL_ID: CHANNEL }).whapi.channelId, CHANNEL)
+  assert.equal(applyEnv({ telegram: { token: 't' } }, {}).whapi, undefined)
+  assert.equal(phoneSettings(applyEnv({ whapi: { token: TOKEN, dryRun: false } }, {})).mode, 'live')
+  assert.equal(phoneSettings({ whapi: { token: TOKEN, dryRun: false } }, { forceDry: true }).mode, 'dry')
+  assert.ok(PHONE_TIMEOUT_MS <= 8000 && SETTLE_MS <= 8000, 'the stated bounds')
+})

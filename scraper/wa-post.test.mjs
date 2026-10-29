@@ -10,7 +10,6 @@
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createServer } from 'node:http'
 import { readFile, writeFile, mkdtemp } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -19,9 +18,10 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import {
   edge, windowKey, postData, renderOpen, renderOver, runEdge, runHealth, runCheck, runTestPost,
-  settings, redact, readLedger, whapi, waitForEarlier, OPEN_MAX_AGE_MS, PAUSE_TITLE, WHAPI,
+  settings, redact, readLedger, whapi, waitForEarlier, phoneTook, OPEN_MAX_AGE_MS, PAUSE_TITLE, WHAPI,
 } from './wa-post.mjs'
 import { bestByWeight, brandName, istClock, TEMPLATES, WA_LINK } from './notify.mjs'
+import { fakeWhapi, LINKED_NUMBER } from './test-fakes.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const fixture = JSON.parse(await readFile(join(HERE, 'fixtures', 'live-window-2026-09-15.json'), 'utf8'))
@@ -37,49 +37,11 @@ globalThis.fetch = async (url, init) => {
 const TOKEN = 'test-token-not-a-real-one'
 const CHANNEL = '120363000000000001@newsletter'
 const TEST_CHANNEL = '120363000000000002@newsletter'
-// The fake session's own number, as /health reports it. It must never be printed.
-const LINKED_NUMBER = '919800000000'
 
 // ---- Fakes --------------------------------------------------------------------
-
-/**
- * A local Whapi. `routes` maps 'METHOD /path' (ids collapsed to :id) to one
- * answer or a list served in order, the last repeating. An answer is
- * { status, body }, a function of the request, or { hang: true }.
- */
-async function fakeWhapi(routes = {}) {
-  const requests = []
-  let sent = 0
-  const defaults = {
-    'GET /health': { body: { status: { code: 4, text: 'AUTH' }, user: { id: LINKED_NUMBER, name: 'Spare' }, uptime: 9, start_at: 1 } },
-    'GET /newsletters/:id': (req) => ({ body: { id: req.url.split('/')[2], name: 'CCBuddy Deals', user_role: 'admin' } }),
-    'GET /newsletters': { body: { newsletters: [], count: 0, total: 0 } },
-    'POST /messages/text': (req) => ({
-      body: { sent: true, message: { id: req.body.edit ?? `PsqXn5SAD5v7HRA-wHN2ziQ${String(++sent).padStart(4, '0')}`, chat_id: req.body.to, from_me: true } },
-    }),
-    'GET /messages/:id': { body: { id: 'x', status: 'sent' } },
-  }
-  const server = createServer(async (req, res) => {
-    let raw = ''
-    for await (const c of req) raw += c
-    const path = req.url.split('?')[0].replace(/^\/newsletters\/[^/]+$/, '/newsletters/:id').replace(/^\/messages\/(?!text$)[^/]+$/, '/messages/:id')
-    const rec = { route: `${req.method} ${path}`, url: req.url, auth: req.headers.authorization, body: raw ? JSON.parse(raw) : null }
-    requests.push(rec)
-    let r = routes[rec.route] ?? defaults[rec.route]
-    if (Array.isArray(r)) r = r.length > 1 ? r.shift() : r[0]
-    if (typeof r === 'function') r = r(rec)
-    if (r?.hang) return
-    res.writeHead(r ? r.status ?? 200 : 404, { 'content-type': 'application/json' })
-    res.end(JSON.stringify(r ? r.body ?? {} : { error: { code: 404, message: 'no such route' } }))
-  })
-  await new Promise((ok) => server.listen(0, '127.0.0.1', ok))
-  return {
-    base: `http://127.0.0.1:${server.address().port}`,
-    requests,
-    posts: () => requests.filter((r) => r.route === 'POST /messages/text'),
-    close: () => new Promise((ok) => (server.closeAllConnections(), server.close(ok))),
-  }
-}
+//
+// The local Whapi (fakeWhapi) and the linked number it reports are in
+// test-fakes.mjs, shared with wa-phone.test.mjs.
 
 /**
  * The repo's issues, master's feed and this workflow's runs: what wa-post.mjs
@@ -1266,4 +1228,96 @@ test('BLINKDEAL60 with no measured discount posts no percentage', () => {
   const data = postData(sixty)
   assert.equal(data.pct, null)
   assert.equal(renderOpen(data).split('\n')[0], 'BLINKDEAL60 live on Myntra')
+})
+
+// ---- The phone posted it: `waAt` --------------------------------------------------------
+//
+// The watcher phone posts a window itself when it can (wa-phone.mjs), and then
+// every feed of that window carries `waAt`. This job is the fallback: it posts
+// only a window without it, and ends only its own.
+
+const took = (feed, waAt) => ({ ...feed, waAt })
+
+test('a window the phone posted is not posted from here, and its end is left to the phone', () => {
+  const open = edge(quietFeed(), took(liveFeed(W1), W1), NOW)
+  assert.equal(open.open, null)
+  assert.match(open.notes.join(' '), /the phone posted this window \(or may have\); not posting it from here/)
+  const close = edge(took(liveTill(W1, W1_END), W1), ended(liveFeed(W1), W1_END), after(W1_END, 20))
+  assert.equal(close.close, null)
+  assert.match(close.notes.join(' '), /the phone ends its own post/)
+  // Without it, exactly as before.
+  assert.ok(edge(quietFeed(), liveFeed(W1), NOW).open)
+  assert.ok(edge(liveTill(W1, W1_END), ended(liveFeed(W1), W1_END), after(W1_END, 20)).close)
+})
+
+test('a waAt from before the window started is left over, and posts as before; a malformed one counts as taken', () => {
+  const old = '2026-10-29T11:00:00.000Z' // half an hour before W1
+  assert.equal(phoneTook(took(liveFeed(W1), old)), false)
+  assert.ok(edge(quietFeed(), took(liveFeed(W1), old), NOW).open, 'left over: posted from here')
+  assert.ok(edge(took(liveTill(W1, W1_END), old), ended(liveFeed(W1), W1_END), after(W1_END, 20)).close, 'left over: ended from here')
+  for (const bad of ['soon', 1, true, {}, '', 'not a date']) {
+    assert.equal(phoneTook(took(liveFeed(W1), bad)), true, JSON.stringify(bad))
+    assert.equal(edge(quietFeed(), took(liveFeed(W1), bad), NOW).open, null, JSON.stringify(bad))
+  }
+  // At the start, or after it: taken.
+  assert.equal(phoneTook(took(liveFeed(W1), W1)), true)
+  assert.equal(phoneTook(took(liveFeed(W1), '2026-10-29T11:30:03.000Z')), true)
+  assert.equal(phoneTook(liveFeed(W1)), false)
+  assert.equal(phoneTook(took(liveFeed(W1), null)), false)
+})
+
+test('a push jumping between windows: each end goes to whoever posted it', () => {
+  const history = { windows: [{ code: 'BLINKDEAL6', couponId: '135733', from: W1, to: W1_END }] }
+  // W1 was the phone's, W2 is left to this job.
+  const a = edge(took(liveTill(W1, W1_END), W1), liveFeed(W2), after(W2, 40), history)
+  assert.equal(a.close, null)
+  assert.equal(a.open.key, `BLINKDEAL6-${Date.parse(W2)}`)
+  // W1 was this job's, W2 the phone's.
+  const b = edge(liveTill(W1, W1_END), took(liveFeed(W2), W2), after(W2, 40), history)
+  assert.equal(b.close.key, `BLINKDEAL6-${Date.parse(W1)}`)
+  assert.equal(b.open, null)
+})
+
+test('a heartbeat, a failed read and a push of two commits of a phone window are no edge either', () => {
+  const live = took(liveFeed(W1), W1)
+  assert.deepEqual([edge(live, took(liveFeed(W1, { checkedAt: 'hb' }), W1), NOW).open, null], [null, null])
+  const failed = { ...live, ok: false, stale: true }
+  assert.equal(edge(live, failed, NOW).open, null)
+  assert.equal(edge(failed, took(liveFeed(W1, { checkedAt: 'later' }), W1), NOW).open, null)
+})
+
+test('the --edge step: open_key empty and any=0 when the phone took the window', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'wa-cli-'))
+  const files = { before: join(dir, 'before.json'), after: join(dir, 'after.json'), out: join(dir, 'gh-output'), edge: join(dir, 'edge.json') }
+  const from = new Date(Date.now() - 30000).toISOString()
+  await writeFile(files.before, JSON.stringify(quietFeed()))
+  await writeFile(files.after, JSON.stringify(took(liveFeed(from), from)))
+  await writeFile(files.out, '')
+  const env = { PATH: process.env.PATH, SYSTEMROOT: process.env.SYSTEMROOT, GITHUB_OUTPUT: files.out }
+  const e = await run(process.execPath, [join(HERE, 'wa-post.mjs'), '--edge', '--before', files.before, '--after', files.after, '--out', files.edge], { env })
+  assert.match(e.stdout, /the phone posted this window/)
+  assert.match(e.stdout, /edge: none/)
+  const outputs = await readFile(files.out, 'utf8')
+  assert.match(outputs, /^open_key=$/m)
+  assert.match(outputs, /^close_key=$/m)
+  assert.match(outputs, /^any=0$/m)
+})
+
+test('the phone client: a 401 is not retried when retries401 is 0, and a refused connection is known unsent', async (t) => {
+  const wa = await fakeWhapi({ 'POST /messages/text': { status: 401, body: { error: { code: 401, message: 'no' } } } })
+  t.after(() => wa.close())
+  const slept = []
+  const call = whapi({ token: TOKEN, base: wa.base, sleep: async (ms) => void slept.push(ms), retries401: 0 })
+  await assert.rejects(call('send', 'POST', '/messages/text', { to: CHANNEL, body: 'x' }), (e) => e.status === 401 && e.unsent === false)
+  assert.equal(wa.posts().length, 1)
+  assert.deepEqual(slept, [])
+  // Nothing listening: the request was never sent.
+  const closed = await fakeWhapi()
+  const base = closed.base
+  await closed.close()
+  await assert.rejects(whapi({ token: TOKEN, base })('send', 'POST', '/messages/text', {}), (e) => e.status === 0 && e.unsent === true)
+  // No answer in time: it may have gone out.
+  const hung = await fakeWhapi({ 'POST /messages/text': { hang: true } })
+  t.after(() => hung.close())
+  await assert.rejects(whapi({ token: TOKEN, base: hung.base, timeoutMs: 200 })('send', 'POST', '/messages/text', {}), (e) => e.status === 0 && e.unsent === false)
 })

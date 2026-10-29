@@ -12,12 +12,23 @@
 //     "sms":      { "to": "+919876543210" },
 //     "whatsapp": { "phone": "+919876543210", "apikey": "123456" },
 //     "whatsappChannel": { "url": "https://whatsapp.com/channel/0029Va...",
-//                          "autopost": false }
+//                          "autopost": false },
+//     "whapi":    { "token": "…the WHAPI_TOKEN secret's value…", "dryRun": false }
 //   }
 //
 // Environment variables override the file, for a host that would rather not
 // keep one: BLINKDEAL_TELEGRAM_TOKEN, BLINKDEAL_TELEGRAM_CHANNEL,
-// BLINKDEAL_WHATSAPP_CHANNEL_URL, BLINKDEAL_WHATSAPP_AUTOPOST=1.
+// BLINKDEAL_WHATSAPP_CHANNEL_URL, BLINKDEAL_WHATSAPP_AUTOPOST=1,
+// BLINKDEAL_WHAPI_TOKEN, BLINKDEAL_WHAPI_CHANNEL_ID, BLINKDEAL_WA_DRY_RUN
+// (0 posts; anything else is dry).
+//
+// whapi makes the phone post each window's opening to the WhatsApp Channel
+// itself, through Whapi.Cloud, seconds after the Telegram alert, and edit it
+// "Over" at the end (scraper/wa-phone.mjs). It is dry unless dryRun is false;
+// without the block the phone does nothing for WhatsApp and the GitHub
+// Actions poster posts instead, as it always has. `node scraper/wa-phone.mjs
+// --setup` writes the block. Optional whapi.channelId (…@newsletter) pins the
+// channel, as the WHAPI_CHANNEL_ID secret does for Actions.
 //
 // whatsappChannel.autopost (off by default) additionally broadcasts an Android
 // intent on each edge for a Tasker profile on the phone to pick up and post
@@ -37,9 +48,10 @@
 // "Post to channel" button that copies the post and opens the channel
 // (whatsappChannel.url); an admin pastes and sends.
 //
-// The WhatsApp Channel can also be posted unattended by scraper/wa-post.mjs,
-// from GitHub Actions on each phone push, as a spare admin number linked to
-// Whapi.Cloud (docs/whatsapp-poster.md). Its words are TEMPLATES.wa*, below.
+// The WhatsApp Channel can also be posted unattended through Whapi.Cloud, as a
+// spare admin number: by this phone itself (scraper/wa-phone.mjs, the `whapi`
+// block above), and otherwise by scraper/wa-post.mjs from GitHub Actions on
+// each phone push (docs/whatsapp-poster.md). Its words are TEMPLATES.wa*, below.
 //
 // Channel notes:
 //   telegram  Free and instant, reaches any device. Make a bot with
@@ -66,7 +78,8 @@ const execFileAsync = promisify(execFile)
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const TIMEOUT_MS = 15000
 
-async function loadConfig() {
+/** .notify.env with the environment on top. Shared with wa-phone.mjs. */
+export async function loadConfig() {
   let cfg = {}
   try {
     cfg = JSON.parse(await readFile(join(ROOT, '.notify.env'), 'utf8'))
@@ -89,6 +102,13 @@ export function applyEnv(cfg, env) {
   }
   if (env.BLINKDEAL_WHATSAPP_AUTOPOST != null) {
     out.whatsappChannel = { ...out.whatsappChannel, autopost: env.BLINKDEAL_WHATSAPP_AUTOPOST === '1' }
+  }
+  if (env.BLINKDEAL_WHAPI_TOKEN || env.BLINKDEAL_WHAPI_CHANNEL_ID || env.BLINKDEAL_WA_DRY_RUN != null) {
+    out.whapi = { ...out.whapi }
+    if (env.BLINKDEAL_WHAPI_TOKEN) out.whapi.token = env.BLINKDEAL_WHAPI_TOKEN
+    if (env.BLINKDEAL_WHAPI_CHANNEL_ID) out.whapi.channelId = env.BLINKDEAL_WHAPI_CHANNEL_ID
+    // As WA_DRY_RUN for Actions: only 0 posts.
+    if (env.BLINKDEAL_WA_DRY_RUN != null) out.whapi.dryRun = env.BLINKDEAL_WA_DRY_RUN.trim() !== '0'
   }
   return out
 }

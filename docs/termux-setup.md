@@ -174,9 +174,13 @@ whatever you leave out is skipped. The file is gitignored.
 {
   "telegram": { "token": "123456:ABC...", "chatId": "987654321" },
   "sms":      { "to": "+919876543210" },
-  "whatsapp": { "phone": "+919876543210", "apikey": "123456" }
+  "whatsapp": { "phone": "+919876543210", "apikey": "123456" },
+  "whapi":    { "token": "…", "dryRun": false }
 }
 ```
+
+The `whapi` block posts to the WhatsApp Channel; one command writes it for
+you: see [WhatsApp Channel — unattended](#whatsapp-channel--unattended).
 
 Test it before you rely on it:
 
@@ -301,9 +305,9 @@ which needs nothing linked. On both edges the phone's own notification carries
 a **Post to channel** button. Tapping it copies the post to the clipboard and
 opens the channel; whoever holds the phone pastes and sends.
 
-**While the Whapi poster is live (`WA_DRY_RUN` = `0`), don't tap the
-button.** The window has already been posted, and tapping would post it a
-second time.
+**While the Whapi poster is live (`WA_DRY_RUN` = `0`, or this phone set up
+to post), don't tap the button.** The window has already been posted, and
+tapping would post it a second time.
 
 Add the channel's invite link (Channel info → share icon, or the link under
 Channel info → Invite link):
@@ -342,9 +346,41 @@ until you press send.
 
 ## WhatsApp Channel — unattended
 
-The route chosen on 2026-10-28 is the **Whapi poster**. It runs in GitHub
-Actions, posts as a spare admin number, and needs nothing on this phone
-beyond the watcher: [whatsapp-poster.md](whatsapp-poster.md).
+The route chosen on 2026-10-28 is the **Whapi poster**, as a spare admin
+number: [whatsapp-poster.md](whatsapp-poster.md). This phone posts each
+window itself, about 3 seconds after the Telegram alert, and GitHub Actions
+posts any window it did not take. The phone's part is one command, once the
+spare number is linked on Whapi (steps 2-5 there). Copy the token in the
+Whapi dashboard (the copy icon after `Token:`), then:
+
+```bash
+cd ~/ccbuddy-rates && node scraper/wa-phone.mjs --setup
+```
+
+It reads the token from the clipboard (the Termux:API app, step 1), checks
+the session and the channel, read-only, and adds a `whapi` block to
+`.notify.env`. `"dryRun": false` is written only when the check says
+`Ready`; the watcher picks it up at its next tick. The block, which you can
+also write by hand:
+
+```json
+{
+  "whapi": { "token": "…", "dryRun": false }
+}
+```
+
+`"channelId": "…@newsletter"` goes in it only if the spare number admins
+more than one Channel. Environment variables work instead of the file:
+`BLINKDEAL_WHAPI_TOKEN`, `BLINKDEAL_WHAPI_CHANNEL_ID`, and
+`BLINKDEAL_WA_DRY_RUN=0` to post. `node scraper/wa-phone.mjs --check` shows
+the saved state, the same check, and whether the pause issue is open.
+
+The phone keeps its record of each post in `.wa-ledger/` in the clone
+(gitignored, like `.notify.env`). It is what ends each post with "Over" and
+stops a window being posted twice, so it must survive a re-clone: copy it
+into the new clone, and don't re-clone while a window is live.
+Once the token is saved, `node scraper/blinkdeal.mjs --dry-run` prints the
+WhatsApp post with the others and calls nothing.
 
 The older alternative drives the WhatsApp app with a robot thumb
 (Tasker + AutoInput), as a spare admin number. It is optional and off by
