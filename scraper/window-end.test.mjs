@@ -126,9 +126,14 @@ test('a feed from before lastSeen: a good live read stands in for it', () => {
 })
 
 test('a feed from before lastSeen whose last read failed knows no sighting, so it closes as it always did', () => {
-  const legacy = liveFeed({ ok: false, stale: true, checkedAt: plus(BACK, -MIN) })
-  delete legacy.lastLive.lastSeen
-  assert.deepEqual(closeWindow(legacy, BACK), { code: 'BLINKDEAL6', couponId: '135733', from: FROM, skuCount: 207, to: BACK })
+  // A minute before the close, and hours before it: a failed read's time is
+  // never taken for a sighting, or the second would record an end at a
+  // moment nobody saw the window live.
+  for (const failedAt of [plus(BACK, -MIN), plus(SEEN, 20 * MIN)]) {
+    const legacy = liveFeed({ ok: false, stale: true, checkedAt: failedAt })
+    delete legacy.lastLive.lastSeen
+    assert.deepEqual(closeWindow(legacy, BACK), { code: 'BLINKDEAL6', couponId: '135733', from: FROM, skuCount: 207, to: BACK }, failedAt)
+  }
 })
 
 test('last seen is never before first seen', () => {

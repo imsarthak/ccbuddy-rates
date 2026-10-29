@@ -219,9 +219,10 @@ local notification on the phone itself.
 The alert above is private. The watcher also posts publicly, twice per
 window: when it opens (code, discount, how many coins it covers, the cheapest
 ₹/g on the first page, the coupon page, the app link) and when it closes (how
-long it lasted, how many coins). Once each — a heartbeat rewrite, a failed
-read mid-window or a restart never repeats a post, because both edges are
-keyed on what the previous feed said.
+long it lasted, how many coins; if the phone was off or offline when it
+ended, only that it is over, because its length is not known). Once each —
+a heartbeat rewrite, a failed read mid-window or a restart never repeats a
+post, because both edges are keyed on what the previous feed said.
 
 To see the exact wording without sending anything:
 
