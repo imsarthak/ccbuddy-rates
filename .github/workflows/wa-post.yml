@@ -7,9 +7,12 @@ name: BLINKDEAL to WhatsApp Channel
 # Whapi.Cloud, a window ending edits that post, and anything else (a
 # heartbeat, ~90 a day) is done in seconds.
 #
-# Posting is OFF until the repo variable WA_DRY_RUN is 0 and the secrets
-# WHAPI_TOKEN and WHAPI_CHANNEL_ID exist. Until then each run prints the post
-# it would send. Code: scraper/wa-post.mjs. Setup: docs/whatsapp-poster.md.
+# Posting is OFF until the repo variable WA_DRY_RUN is 0 and the secret
+# WHAPI_TOKEN exists. Until then each run prints the post it would send. The
+# token is the only secret it needs: the channel is the one the linked number
+# admins, found at post time. WHAPI_CHANNEL_ID is optional, only for a number
+# that admins more than one Channel. Code: scraper/wa-post.mjs. Setup:
+# docs/whatsapp-poster.md.
 on:
   push:
     branches: [master]
@@ -93,7 +96,11 @@ jobs:
         run: node scraper/wa-post.mjs --post --edge-file "$RUNNER_TEMP/edge.json"
         env:
           WHAPI_TOKEN: ${{ secrets.WHAPI_TOKEN }}
+          # Optional: unset, the channel is found from the token.
           WHAPI_CHANNEL_ID: ${{ secrets.WHAPI_CHANNEL_ID }}
+          # Left out when the channel is found, so a test channel the spare
+          # number also admins never makes it two. A secret, as below.
+          WA_TEST_CHANNEL_ID: ${{ secrets.WA_TEST_CHANNEL_ID }}
           WA_DRY_RUN: ${{ vars.WA_DRY_RUN }}
           WA_CLOSE: ${{ vars.WA_CLOSE }}
           # Also reads master's feed once, just before posting an opening.

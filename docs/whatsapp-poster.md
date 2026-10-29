@@ -66,9 +66,15 @@ apply.` with no time.
 
 ## How it stays safe
 
-- **Your number is never linked.** Before every post the job asks Whapi what
-  role the linked number has in the channel. `owner` means your own number got
-  linked: it posts nothing and opens an issue telling you to unlink it.
+- **It finds the channel itself.** You give it only the Whapi token. Before
+  every post it asks Whapi which Channels the linked number is in, and posts to
+  the one where it is an admin (your test channel aside, if you made one). If
+  it is an admin of none, or of more than one, it posts nothing and opens an
+  issue saying what to do. The `WHAPI_CHANNEL_ID` secret pins the channel
+  instead; you need it only if the spare number admins more than one Channel.
+- **Your number is never linked.** The same question tells it the linked
+  number's role. If that number owns any Channel, it may be your own number:
+  it posts nothing and opens an issue telling you to unlink it.
 - **Once per window.** A window is its code plus its start time, never the
   coupon id (Myntra reuses one id across windows, even twice in a day). Each
   opening is in exactly one phone push. A record of each real post is kept in
@@ -116,12 +122,14 @@ and use it normally for 3 to 10 days: a few real chats. New numbers that go
 straight onto an API get banned first.
 
 **3. Make it an admin.** Never use your own number for anything below except
-these invitations.
+this invitation.
 
-1. From your own number, create a private **test channel**.
-2. In the real channel and in the test channel: Channel info → Invite admins
-   → the spare number. It has to be one of your contacts or a follower.
-3. On the spare phone, accept both invitations within 7 days.
+1. In the channel: Channel info → Invite admins → the spare number. It has
+   to be one of your contacts or a follower.
+2. On the spare phone, accept the invitation within 7 days.
+
+Make the spare number an admin of this one Channel only: that is how the
+poster knows where to post. (A test channel is optional; see step 6.)
 
 Admins and the owner can see each other's numbers, so the spare account (and
 through it, Whapi) will be able to see yours. Followers never see either.
@@ -130,52 +138,67 @@ through it, Whapi) will be able to see yours. Followers never see either.
 "channel".
 
 - Plan: the free **Sandbox** may not post to WhatsApp Channels (its page does
-  not say), so the step 6 test settles it. **Developer Premium** lists Channels
-  and has a 5-day trial: $35 a month, or $29 a month billed yearly. Its India
-  page shows ₹2,900 / ₹2,400.
+  not say), so a `test-post` (step 6) settles it, or, with no test channel,
+  the first real post. **Developer Premium** lists Channels and has a 5-day
+  trial: $35 a month, or $29 a month billed yearly. Its India page shows
+  ₹2,900 / ₹2,400.
 - Optional: set an Indian proxy in the channel settings **before** scanning.
   That avoids WhatsApp's "This may be a scam" warning about a device abroad.
 - On the **spare** phone: WhatsApp → Linked devices → Link a device, then scan
   the QR in the Whapi dashboard. If WhatsApp asks for a passkey, follow
   Whapi's "Manual Paste" steps in Chrome.
 
-**5. Secrets and variables.** On GitHub, open ccbuddy-rates → Settings →
-Secrets and variables → Actions.
+**5. The token: the one secret.** In the Whapi dashboard
+(panel.whapi.cloud), open the channel the spare number is linked to. The
+token is on that page, in the middle card: the `Token:` line under
+`API URL:`. Click the copy icon after it.
 
-Secrets tab, three **repository secrets** (New repository secret, once each):
+On GitHub, open ccbuddy-rates → Settings → Secrets and variables → Actions →
+Secrets tab → New repository secret. Name:
 
 ```
 WHAPI_TOKEN
 ```
 
-The token from the Whapi dashboard.
+Value: the token you copied. That is all the poster needs: it finds the
+channel by itself (step 6 shows which one it found).
+
+Do **not** create the variable `WA_DRY_RUN` yet.
+
+Only if the spare number admins more than one Channel (a test channel with
+its own secret, step 6, does not count), also add the secret below, with the
+real channel's id, ending `@newsletter`. Whapi's API docs (API Docs, at the
+top of its dashboard) can run GET /newsletters for you: each Channel's `id`
+is in the answer.
 
 ```
 WHAPI_CHANNEL_ID
 ```
 
-The real channel's id, ending `@newsletter`. It is in the dashboard's
-Newsletters list, or under GET /newsletters in Whapi's API page.
+**6. Check it.** Open Actions → **BLINKDEAL to WhatsApp Channel** → Run
+workflow, mode `check`. It only reads. Expect `session: AUTH`, a count of
+`1` Channels this number admins, and your channel's name with
+`(found by itself), this number's role: admin`. If it found none, or more
+than one, it says what to do. It never prints an id.
+
+Optional, to watch a post land before going live: a **test channel**.
+
+1. From your own number, create a private channel, invite the spare number
+   as its admin, and accept on the spare phone.
+2. Add its id, ending `@newsletter`, as the secret below. Do this as soon as
+   the spare number is its admin: without it the poster sees two Channels and
+   posts to neither. With it, the poster leaves the test channel out.
 
 ```
 WA_TEST_CHANNEL_ID
 ```
 
-The test channel's id, ending `@newsletter`. A secret rather than a variable,
-so it never shows in the public run logs.
-
-Do **not** create the variable `WA_DRY_RUN` yet.
-
-**6. Merge, then test on the test channel.** After this branch is on master,
-open Actions → **BLINKDEAL to WhatsApp Channel** → Run workflow:
-
-- mode `check`: expect `session: AUTH`, the channel name, and
-  `this number's role: admin`. It only reads.
-- mode `test-post`: open the test channel on your phone. A post headed
-  `TEST POST — not a live deal` appears, and about 35 seconds later it is
-  edited to the "Over" version. This is the first proof that an admin can post
-  through Whapi. It refuses to run if the test channel id is the real one, or
-  if `WHAPI_CHANNEL_ID` is missing (then it could not tell them apart).
+3. Run the workflow with mode `test-post` and open the test channel on your
+   phone. A post headed `TEST POST — not a live deal` appears, and about 35
+   seconds later it is edited to the "Over" version. It never posts to the
+   real channel: it refuses if the test channel id is the real one, or if the
+   test channel does not have fewer followers than the real one (ids put in
+   the wrong secrets).
 
 **7. One real window, still dry.** When the next window opens, open that
 push's run and read the **Post** step. It shows the exact post, then the edit
@@ -213,11 +236,12 @@ To switch it off again, delete the variable or set it to anything else.
 | logged out (QR) | Re-link: spare phone → Linked devices → Link a device → scan the QR in the Whapi dashboard. |
 | stopped (STOP) | The Whapi plan or trial ended. Renew it. |
 | banned (BANNED) | From your own number, dismiss the spare number as admin, then set up a new spare SIM (steps 2-5). |
-| the OWNER is linked | Log out the Whapi device on your own phone **now**. Link the spare number instead. |
-| not an admin | Invite the spare number as admin again and accept on the spare phone. |
+| the OWNER is linked | Log out the Whapi device on your own phone **now**. Link the spare number instead. (If the linked number really is the spare one and it owns a Channel of its own, set `WHAPI_CHANNEL_ID`.) |
+| not an admin | Invite the spare number as admin (again) and accept on the spare phone. |
+| admin of 2 or more Channels, or follows too many | Add the `WHAPI_CHANNEL_ID` secret (step 5). If the other one is your test channel, its `WA_TEST_CHANNEL_ID` secret (step 6) does instead. |
 | 401 | Check `WHAPI_TOKEN` matches the dashboard. If it does, re-link (QR). |
 | 402 | The plan's limit is used up. Check the plan. |
-| 403 / 404 | Check the spare number is still an admin and that `WHAPI_CHANNEL_ID` is right. |
+| 403 / 404 | Check the spare number is still an admin, and that `WHAPI_CHANNEL_ID` is right if you set it. |
 | marked failed | Look at the channel. If the post is missing, wait a day and run `test-post`. |
 
 Closing the issue is the only way to resume. That is deliberate: after a 429
@@ -229,12 +253,20 @@ only a person knows when the number has rested.
 |---|---|
 | Variable `WA_DRY_RUN` = `0` | Posts for real. Unset or anything else: prints only. |
 | Variable `WA_CLOSE` = `off` | No "Over" edit. The open post stays as it is. |
-| Secret `WA_TEST_CHANNEL_ID` | Where `test-post` posts. Never the real channel. |
+| Secret `WHAPI_CHANNEL_ID` | Optional. Only if the spare number admins more than one Channel: the one to post to. Unset, it posts to the one Channel the spare number admins. |
+| Secret `WA_TEST_CHANNEL_ID` | Where `test-post` posts. Never the real channel. Also left out when the poster looks for the real one. |
 
 ## Not yet known
 
-- Whether an admin, rather than the owner, can post through Whapi. Step 6
-  settles it before anything goes live.
+- Whether an admin, rather than the owner, can post through Whapi. A
+  `test-post` (step 6) settles it before anything goes live; without a test
+  channel, the first real post does, and a refusal pauses the poster.
+- Whether Whapi's channel list shows a Channel the number admins (but does not
+  own) with the role `admin`. Its API reference says the list holds "your own
+  WhatsApp Channel and followed Channels"; its blog says it lists the Channels
+  the number administers. `check` shows which: if it reports
+  `Channels this number admins: 0` though the spare number is an admin, set
+  `WHAPI_CHANNEL_ID`.
 - Whether the free Sandbox plan can post to Channels, and whether the session
   checks count against its 1,000 requests a month (about 4 per window, plus
   the watchdog's check 5-7 times a day).

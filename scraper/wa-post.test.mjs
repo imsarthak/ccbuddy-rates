@@ -367,14 +367,15 @@ test('dry is the default: no WA_DRY_RUN means it prints the post and calls nothi
   assert.equal(await readLedger(h.dir, `BLINKDEAL6-${Date.parse(W1)}`), null, 'a dry run never records a post')
 })
 
-test('missing or broken secrets mean a dry run, whatever WA_DRY_RUN says', async (t) => {
+test('a missing token or a mistyped channel id means a dry run, whatever WA_DRY_RUN says', async (t) => {
+  // A missing WHAPI_CHANNEL_ID is not one: the channel is then found (below).
   const h = await harness(t)
   const e = edge(quietFeed(), liveFeed(W1), NOW)
   for (const [extra, why] of [
     [{ WHAPI_TOKEN: undefined }, /WHAPI_TOKEN/],
     [{ WHAPI_TOKEN: '  ' }, /WHAPI_TOKEN/],
-    [{ WHAPI_CHANNEL_ID: undefined }, /WHAPI_CHANNEL_ID/],
     [{ WHAPI_CHANNEL_ID: 'my channel' }, /WHAPI_CHANNEL_ID/],
+    [{ WHAPI_CHANNEL_ID: '120363000000000001' }, /WHAPI_CHANNEL_ID/],
     [{ WA_DRY_RUN: '1' }, /WA_DRY_RUN/],
     [{ GITHUB_EVENT_NAME: 'workflow_dispatch' }, /push/],
     [{ GITHUB_RUN_ATTEMPT: '2' }, /re-run/],
@@ -721,14 +722,199 @@ test('test-post refuses the real channel, a missing test channel, and a paused p
   const h = await harness(t)
   assert.equal(await runTestPost({ env: h.env({ WA_TEST_CHANNEL_ID: CHANNEL }), deps: h.deps }), false)
   assert.equal(await runTestPost({ env: h.env({ WA_TEST_CHANNEL_ID: undefined }), deps: h.deps }), false)
-  // The real id missing or mistyped: the guard above would have nothing to compare with.
-  for (const WHAPI_CHANNEL_ID of [undefined, '', 'CCBuddy Deals']) {
-    assert.equal(await runTestPost({ env: h.env({ WA_TEST_CHANNEL_ID: CHANNEL, WHAPI_CHANNEL_ID }), deps: h.deps }), false)
-  }
-  assert.match(h.lines.join('\n'), /set the WHAPI_CHANNEL_ID secret/)
+  // The real id mistyped: refused before any call. (Missing, it is found: below.)
+  assert.equal(await runTestPost({ env: h.env({ WA_TEST_CHANNEL_ID: TEST_CHANNEL, WHAPI_CHANNEL_ID: 'CCBuddy Deals' }), deps: h.deps }), false)
+  assert.match(h.lines.join('\n'), /the WHAPI_CHANNEL_ID secret is set but is not a …@newsletter id/)
   const paused = await harness(t, { issues: [{ number: 3, title: PAUSE_TITLE }] })
   assert.equal(await runTestPost({ env: paused.env({ WA_TEST_CHANNEL_ID: TEST_CHANNEL }), deps: paused.deps }), false)
   assert.equal(h.wa.requests.length + paused.wa.requests.length, 0)
+})
+
+// ---- No WHAPI_CHANNEL_ID: the channel finds itself ----------------------------------------
+//
+// GET /newsletters lists every Channel the linked number is in, with its role
+// there. Unset, the channel is the one it admins, the test channel aside.
+
+const OTHER = '120363000000000003@newsletter'
+const OWNED = '120363000000000004@newsletter'
+const REAL = { id: CHANNEL, name: 'CCBuddy Deals', user_role: 'admin', subscribers_count: 230 }
+const TESTING = { id: TEST_CHANNEL, name: 'CCBuddy test', user_role: 'admin', subscribers_count: 1 }
+const FOLLOWED = { id: OTHER, name: 'Gold news', role: 'subscriber', subscribers_count: 90000 }
+const MINE = { id: OWNED, name: 'Mine', user_role: 'owner', subscribers_count: 3 }
+const listed = (...newsletters) => ({ 'GET /newsletters': { body: { newsletters, count: 100, total: newsletters.length, offset: 0 } } })
+const FIND = { WHAPI_CHANNEL_ID: undefined }
+// Everything that must never be published, digits alone included.
+const SECRETS = [TOKEN, LINKED_NUMBER, ...[CHANNEL, TEST_CHANNEL, OTHER, OWNED].flatMap((id) => [id, id.split('@')[0]])]
+const leaks = (text) => SECRETS.filter((s) => text.includes(s))
+
+test('no channel id: it posts to the one Channel this number admins, one list call in place of the role call', async (t) => {
+  // The role read from user_role or from role, as Whapi has named it both ways.
+  for (const real of [REAL, { ...REAL, user_role: undefined, role: 'admin' }]) {
+    const h = await harness(t, { env: FIND, routes: listed(FOLLOWED, real) })
+    const res = await h.run(edge(quietFeed(), liveFeed(W1), NOW))
+    assert.deepEqual(h.wa.requests.map((r) => r.route), ['GET /health', 'GET /newsletters', 'POST /messages/text', 'GET /messages/:id'])
+    assert.equal(h.wa.requests[1].url, '/newsletters?count=100')
+    assert.deepEqual(h.wa.posts()[0].body, { to: CHANNEL, body: OPEN_TEXT, no_link_preview: true })
+    assert.equal(res.posted, `BLINKDEAL6-${Date.parse(W1)}`)
+    assert.match(h.lines.join('\n'), /session AUTH, role admin in "CCBuddy Deals" \(found by itself/)
+    assert.deepEqual(leaks(h.published()), [])
+  }
+})
+
+test('no channel id: the end edits the post in the channel found, with no extra call', async (t) => {
+  const h = await harness(t, { env: FIND, routes: listed(REAL, FOLLOWED) })
+  const open = await h.run(edge(quietFeed(), liveFeed(W1), NOW))
+  const id = (await readLedger(h.dir, open.posted)).messageId
+  const before = h.wa.requests.length
+  const res = await h.run(edge(liveTill(W1, W1_END), ended(liveFeed(W1), W1_END), after(W1_END, 20)))
+  assert.equal(res.edited, id)
+  assert.deepEqual(h.wa.requests.slice(before).map((r) => r.route), ['GET /health', 'GET /newsletters', 'POST /messages/text'])
+  assert.deepEqual(h.wa.posts()[1].body, { to: CHANNEL, edit: id, body: renderOver(postData(liveFeed(W1)), W1_END), no_link_preview: true })
+})
+
+test('no channel id, and the number owns a Channel: nothing posted, the owner pause, even if it admins one too', async (t) => {
+  // "creator" is the changelog's word for the owner (3 Aug 2024): the same thing.
+  for (const newsletters of [
+    [MINE],
+    [{ ...REAL, user_role: 'owner' }, FOLLOWED],
+    [REAL, { ...MINE, user_role: undefined, role: 'owner' }],
+    [{ ...REAL, user_role: 'creator' }],
+    [REAL, { ...MINE, user_role: 'creator' }],
+  ]) {
+    const h = await harness(t, { env: FIND, routes: listed(...newsletters) })
+    const res = await h.run(edge(quietFeed(), liveFeed(W1), NOW))
+    assert.equal(h.wa.posts().length, 0, JSON.stringify(newsletters))
+    assert.equal(res.paused, 'owner-linked')
+    const [issue] = h.github.opened()
+    assert.match(issue.body, /OWNER[\s\S]*log out the Whapi device[\s\S]*set the WHAPI_CHANNEL_ID secret/)
+    assert.deepEqual(leaks(h.published()), [])
+  }
+})
+
+test('no channel id, and admin of two Channels: nothing posted, paused asking for the id', async (t) => {
+  const h = await harness(t, { env: FIND, routes: listed(REAL, TESTING, FOLLOWED) })
+  const res = await h.run(edge(quietFeed(), liveFeed(W1), NOW))
+  assert.equal(h.wa.posts().length, 0)
+  assert.equal(res.paused, 'many-channels')
+  const [issue] = h.github.opened()
+  assert.match(issue.title, new RegExp(PAUSE_TITLE))
+  assert.match(issue.body, /admin of 2 WhatsApp Channels[\s\S]*Add the repository secret WHAPI_CHANNEL_ID[\s\S]*WA_TEST_CHANNEL_ID/)
+  assert.ok(!/CCBuddy|Gold news/.test(issue.body), 'no channel names in a public issue')
+  assert.deepEqual(leaks(h.published()), [])
+  // The test channel named in WA_TEST_CHANNEL_ID is left out, so the other one is the channel.
+  const ok = await harness(t, { env: { ...FIND, WA_TEST_CHANNEL_ID: TEST_CHANNEL }, routes: listed(TESTING, REAL, FOLLOWED) })
+  assert.ok((await ok.run(edge(quietFeed(), liveFeed(W1), NOW))).posted)
+  assert.deepEqual(ok.wa.posts().map((p) => p.body.to), [CHANNEL])
+})
+
+test('no channel id, and no Channel it admins but the test one, or none at all: nothing posted, paused with the invite steps', async (t) => {
+  for (const [env, newsletters, title] of [
+    [{ ...FIND, WA_TEST_CHANNEL_ID: TEST_CHANNEL }, [TESTING, FOLLOWED], /not an admin of any WhatsApp Channel other than the test channel yet/],
+    [FIND, [FOLLOWED, { ...REAL, user_role: 'guest' }], /not an admin of any WhatsApp Channel yet/],
+    [FIND, [], /not an admin of any WhatsApp Channel yet/],
+  ]) {
+    const h = await harness(t, { env, routes: listed(...newsletters) })
+    const res = await h.run(edge(quietFeed(), liveFeed(W1), NOW))
+    assert.equal(h.wa.posts().length, 0)
+    assert.equal(res.paused, 'not-admin')
+    assert.match(h.github.opened()[0].body, title)
+    assert.match(h.github.opened()[0].body, /Channel info → Invite admins → the spare number, then accept the invitation on the spare phone/)
+    assert.deepEqual(leaks(h.published()), [])
+  }
+})
+
+test('no channel id, and a list that may run past one page: not trusted to hold only one, nothing posted', async (t) => {
+  const crowd = Array.from({ length: 99 }, (_, i) => ({ id: `1203631${String(i).padStart(11, '0')}@newsletter`, name: `n${i}`, role: 'subscriber' }))
+  for (const routes of [listed(REAL, ...crowd), { 'GET /newsletters': { body: { newsletters: [REAL], count: 100, total: 140, offset: 0 } } }]) {
+    const h = await harness(t, { env: FIND, routes })
+    const res = await h.run(edge(quietFeed(), liveFeed(W1), NOW))
+    assert.equal(h.wa.posts().length, 0)
+    assert.equal(res.paused, 'many-channels')
+    assert.match(h.github.opened()[0].body, /follows too many WhatsApp Channels/)
+    assert.equal(h.wa.requests.filter((r) => r.route === 'GET /newsletters').length, 1, 'one page, never a crawl')
+  }
+})
+
+test('no channel id is no reason to be dry, and a dry run still calls nothing at all', async (t) => {
+  const live = { WA_DRY_RUN: '0', WHAPI_TOKEN: TOKEN, GITHUB_EVENT_NAME: 'push', GITHUB_RUN_ATTEMPT: '1' }
+  for (const WHAPI_CHANNEL_ID of [undefined, '', '  ']) assert.equal(settings({ ...live, WHAPI_CHANNEL_ID }).dry, null)
+  const h = await harness(t, { env: FIND, routes: listed(REAL) })
+  for (const extra of [{ WA_DRY_RUN: undefined }, { WA_DRY_RUN: '1' }, { WHAPI_TOKEN: undefined }, { GITHUB_EVENT_NAME: 'workflow_dispatch' }, { GITHUB_RUN_ATTEMPT: '2' }]) {
+    assert.ok((await h.run(edge(quietFeed(), liveFeed(W1), NOW), extra)).dry, JSON.stringify(extra))
+    assert.ok((await h.run(edge(liveTill(W1, W1_END), ended(liveFeed(W1), W1_END), NOW), extra)).dry)
+  }
+  assert.equal(h.wa.requests.length, 0)
+  assert.equal(h.github.calls.length, 0)
+})
+
+test('an explicit WHAPI_CHANNEL_ID works as before: its own role call, and the list is never read', async (t) => {
+  // A list that would pause a search (an owned Channel, two admin ones) changes nothing.
+  const h = await harness(t, { routes: listed(MINE, REAL, TESTING) })
+  const res = await h.run(edge(quietFeed(), liveFeed(W1), NOW))
+  assert.ok(res.posted)
+  assert.deepEqual(h.wa.requests.map((r) => r.route), ['GET /health', 'GET /newsletters/:id', 'POST /messages/text', 'GET /messages/:id'])
+  assert.equal(h.wa.posts()[0].body.to, CHANNEL)
+})
+
+test('check with no channel id: the session, how many it admins, the name and role, and never an id', async (t) => {
+  const h = await harness(t, { env: FIND, routes: listed(FOLLOWED, REAL, TESTING) })
+  assert.equal(await runCheck({ env: h.env({ WA_TEST_CHANNEL_ID: TEST_CHANNEL }), deps: h.deps }), true)
+  const out = h.lines.join('\n')
+  assert.match(out, /^session: AUTH$/m)
+  assert.match(out, /Channels this number admins, the test channel aside: 1$/m)
+  assert.match(out, /^channel: "CCBuddy Deals" \(found by itself\), this number's role: admin$/m)
+  assert.match(out, /^test channel: "CCBuddy test", this number's role: admin$/m)
+  assert.ok(!out.includes('@newsletter'), out)
+  assert.deepEqual(leaks(out), [])
+  assert.deepEqual(h.wa.requests.map((r) => r.route), ['GET /health', 'GET /newsletters'], 'one list call covers both channels')
+  assert.ok(h.wa.requests.every((r) => r.route.startsWith('GET ')))
+  // Two, none or an owner: not ready, and it says what to do.
+  for (const [newsletters, why] of [[[REAL, TESTING], /admins: 2[\s\S]*admin of 2 WhatsApp Channels/], [[FOLLOWED], /admins: 0[\s\S]*Invite admins/], [[MINE], /OWNER[\s\S]*log out the Whapi device/]]) {
+    const c = await harness(t, { env: FIND, routes: listed(...newsletters) })
+    assert.equal(await runCheck({ env: c.env(), deps: c.deps }), false)
+    const said = c.lines.join('\n')
+    assert.match(said, why)
+    assert.match(said, /Not ready/)
+    assert.ok(!/\d@newsletter/.test(said), said)
+    assert.deepEqual(leaks(said), [])
+  }
+  // A test id that is not an id is said so, and is not left out of the count.
+  const typo = await harness(t, { env: FIND, routes: listed(REAL, TESTING) })
+  assert.equal(await runCheck({ env: typo.env({ WA_TEST_CHANNEL_ID: 'CCBuddy test' }), deps: typo.deps }), false)
+  assert.match(typo.lines.join('\n'), /admins: 2$[\s\S]*^test channel: set, but not a …@newsletter id, so it is not left out$/m)
+})
+
+test('test-post with no channel id: finds the real channel first, then posts to the test channel only', async (t) => {
+  const h = await harness(t, { env: FIND, routes: listed(REAL, TESTING) })
+  assert.equal(await runTestPost({ env: h.env({ WA_TEST_CHANNEL_ID: TEST_CHANNEL }), deps: h.deps }), true)
+  assert.deepEqual(h.wa.requests.map((r) => r.route), ['GET /health', 'GET /newsletters', 'POST /messages/text', 'GET /messages/:id', 'POST /messages/text'])
+  assert.deepEqual(h.wa.posts().map((p) => p.body.to), [TEST_CHANNEL, TEST_CHANNEL])
+  assert.match(h.lines.join('\n'), /real channel: "CCBuddy Deals" \(found by itself\)/)
+  assert.deepEqual(leaks(h.lines.join('\n')), [])
+})
+
+test('test-post with no channel id refuses unless exactly one real channel is found, and refuses ids that look swapped', async (t) => {
+  for (const [newsletters, why] of [
+    [[TESTING, FOLLOWED], /not an admin of any WhatsApp Channel other than the test channel/],
+    [[REAL, TESTING, { ...REAL, id: OTHER, name: 'Other' }], /admin of 2 WhatsApp Channels/],
+    [[REAL, TESTING, MINE], /OWNER/],
+    [[REAL, { ...TESTING, user_role: 'subscriber' }], /not an admin of the test channel \(its role is subscriber\)/],
+    [[REAL], /not an admin of the test channel \(the channel was not found\)/],
+    [[REAL, { ...TESTING, subscribers_count: undefined }], /no follower counts/],
+  ]) {
+    const h = await harness(t, { env: FIND, routes: listed(...newsletters) })
+    assert.equal(await runTestPost({ env: h.env({ WA_TEST_CHANNEL_ID: TEST_CHANNEL }), deps: h.deps }), false)
+    assert.equal(h.wa.posts().length, 0)
+    assert.match(h.lines.join('\n'), why)
+  }
+  // WA_TEST_CHANNEL_ID set to the REAL channel by mistake. Left out of the
+  // search, it makes the test channel look like the real one; the follower
+  // counts give it away, and no TEST POST reaches the real followers.
+  const swapped = await harness(t, { env: FIND, routes: listed(REAL, TESTING) })
+  assert.equal(await runTestPost({ env: swapped.env({ WA_TEST_CHANNEL_ID: CHANNEL }), deps: swapped.deps }), false)
+  assert.equal(swapped.wa.posts().length, 0)
+  assert.match(swapped.lines.join('\n'), /WA_TEST_CHANNEL_ID may be the real channel/)
+  assert.deepEqual(leaks(swapped.lines.join('\n')), [])
 })
 
 // ---- The CLI the workflow runs ------------------------------------------------------------
@@ -755,4 +941,17 @@ test('the workflow steps end to end: --edge writes the outputs, --post with no s
   assert.match(p.stdout, /BLINKDEAL6 live on Myntra — 6% off gold coins/)
   assert.equal(wa.requests.length, 0)
   assert.doesNotMatch(await readFile(files.out, 'utf8'), /posted_key/)
+})
+
+test('the posting step gets the test channel too, so a test channel the spare number admins is left out of the search', async () => {
+  const yml = (await readFile(join(HERE, '..', '.github', 'workflows', 'wa-post.yml'), 'utf8')).replace(/\r\n/g, '\n')
+  const start = yml.indexOf('      - name: Post\n')
+  const end = yml.indexOf('      - name: Remember the post', start)
+  assert.ok(start > 0 && end > start, 'the Post step is where it was')
+  const step = yml.slice(start, end)
+  for (const name of ['WHAPI_TOKEN', 'WHAPI_CHANNEL_ID', 'WA_TEST_CHANNEL_ID']) {
+    assert.match(step, new RegExp(`^ +${name}: \\$\\{\\{ secrets\\.${name} \\}\\}$`, 'm'), name)
+  }
+  // A variable is printed in clear in the step's log, which is public.
+  assert.doesNotMatch(yml, /vars\.(WHAPI|WA_TEST)/)
 })
