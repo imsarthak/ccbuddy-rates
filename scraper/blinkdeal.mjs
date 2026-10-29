@@ -219,8 +219,9 @@ export function toSku(p) {
  * The headline discount. Rounding makes per-SKU percentages disagree by a
  * point across a couple of hundred coins, so demanding unanimity published
  * null on the 2026-09-16 window and the alert could not state the discount at
- * all. Take the most common value instead, and fall back to the digits in the
- * code itself — BLINKDEAL6 means 6%, which Myntra is telling us outright.
+ * all. Take the most common value instead. With no coin to measure, say
+ * nothing: a code's digits are not its discount. BLINKDEAL6 is 6%, and so is
+ * BLINKDEAL60 (October 2026), which reading the digits made 60%.
  */
 export function inferDiscountPct(code, skus) {
   const tally = new Map()
@@ -230,9 +231,7 @@ export function inferDiscountPct(code, skus) {
     tally.set(p, (tally.get(p) ?? 0) + 1)
   }
   const modal = [...tally].sort((a, b) => b[1] - a[1])[0]
-  if (modal) return modal[0]
-  const fromCode = /(\d+)\s*$/.exec(code ?? '')
-  return fromCode ? Number(fromCode[1]) : null
+  return modal ? modal[0] : null
 }
 
 const filterUrl = (code, id) => `${LISTING}?f=Coupons:${code}_${id}`

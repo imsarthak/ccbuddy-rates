@@ -10,10 +10,10 @@
 # when quiet), and push docs/blinkdeal.json only when something changed.
 # GitHub Pages then serves it to the app exactly like rates.json.
 #
-#   bash scraper/watch-termux.sh              20s during the active hours,
-#                                             5s around the top of each
+#   bash scraper/watch-termux.sh              20s from 11:00 to midnight IST,
+#                                             5 min overnight
 #   FAST=10 bash scraper/watch-termux.sh      poll harder
-#   BURST=0 bash scraper/watch-termux.sh      no burst around the hour
+#   BURST=5 bash scraper/watch-termux.sh      5s around the top of each hour
 #   FAST=20 SLOW=20 FAST_FROM=0 FAST_TO=24 …  no quiet period at all
 #
 # Setup lives in docs/termux-setup.md.
@@ -21,23 +21,27 @@
 set -u
 cd "$(dirname "$0")/.." || exit 1
 
-# Adaptive cadence. Every BLINKDEAL sighting we have a timestamp for landed
-# between 12:34 and 22:52 IST, so poll hard across that span and idle
-# overnight. Treat the pattern with some suspicion — most of those are tweet
-# times, and people tweet when they are awake — but it halves the load for no
-# measured loss, and the bounds below widen it if that ever proves wrong.
+# Adaptive cadence. September's BLINKDEAL sightings landed between 12:34 and
+# 22:52 IST, and October's 63 starts (two rival channels' posts, 8-27 Oct)
+# between 12:28 and 23:52, three of them after 23:00. So poll hard from 11:00
+# to midnight and idle overnight. Treat the pattern with some suspicion — those
+# are post times, and people post when they are awake — but it nearly halves
+# the load for no measured loss, and the bounds below widen it if that ever
+# proves wrong.
 FAST="${FAST:-20}"           # seconds, during the active hours
 SLOW="${SLOW:-300}"          # seconds, overnight
 FAST_FROM="${FAST_FROM:-11}" # IST hour, inclusive
-FAST_TO="${FAST_TO:-23}"     # IST hour, exclusive
+FAST_TO="${FAST_TO:-24}"     # IST hour, exclusive
 
-# Windows open on the hour: the one exact start we have is 17:00:43 IST and
-# the other, caught by hand, was about 18:00. On 16 Sep the flip fell inside
+# In September windows opened on the hour: the one exact start we had was
+# 17:00:43 IST and the other, caught by hand, was about 18:00. On 16 Sep the flip fell inside
 # the ~25s between two twenty-second ticks. So for a short stretch either
 # side of every active hour boundary poll at BURST seconds instead, and skip
 # the git sync on those ticks so five seconds means five seconds and not five
-# plus a fetch over mobile data. About thirty extra requests an hour.
-BURST="${BURST:-5}"                 # seconds; 0 disables
+# plus a fetch over mobile data. About thirty extra requests an hour. None of
+# October's 63 starts fell inside those minutes (the nearest was 16:02:15),
+# so the burst is off unless BURST is set.
+BURST="${BURST:-0}"                 # seconds; 0 disables
 BURST_BEFORE="${BURST_BEFORE:-30}"  # seconds before the hour
 BURST_AFTER="${BURST_AFTER:-120}"   # seconds after it
 
@@ -116,7 +120,7 @@ interval_now() {
 # the interval.
 jitter() { if bursting; then echo $(( RANDOM % 2 )); else echo $(( RANDOM % 5 )); fi; }
 
-say "started — ${FAST}s during ${FAST_FROM}:00-${FAST_TO}:00 IST, ${SLOW}s otherwise, ${BURST}s around the hour"
+say "started — ${FAST}s during ${FAST_FROM}:00-${FAST_TO}:00 IST, ${SLOW}s otherwise$([ "$BURST" -gt 0 ] && echo ", ${BURST}s around the hour")"
 
 need_sync=1
 while true; do
