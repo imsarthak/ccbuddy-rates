@@ -474,8 +474,9 @@ export async function step(previous, deps = {}) {
     next = { generated: now, checkedAt: now, ok: true, heartbeatMs: HEARTBEAT_MS, ...d }
     if (d.live) {
       const from = previous.live && previous.code === d.code ? previous.lastLive?.from ?? now : now
-      // lastSeen moves only with the file, every LIVE_HEARTBEAT_MS, so it is
-      // the last sighting to within a heartbeat; closeWindow reads it.
+      // lastSeen moves only when the file is written (a change, or the live
+      // heartbeat), so it trails the last sighting by at most a heartbeat
+      // and a tick; closeWindow reads it.
       next.lastLive = { code: d.code, couponId: d.couponId, from, skuCount: d.skus.length, lastSeen: now }
     } else if (previous.lastLive) {
       next.lastLive = previous.lastLive.to ? previous.lastLive : closeWindow(previous, now)
