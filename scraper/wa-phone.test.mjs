@@ -116,11 +116,11 @@ function github({ issues = [], fail = false, status = 200, delayMs = 0 } = {}) {
 
 /**
  * The channel as an earlier tick cached it: for this token, found with the
- * fake's linked number. With no `healthAt`, as a cache written before the
- * session check had its own time: `checkedAt` stands for it.
+ * fake's linked number and no pin. With no `healthAt`, as a cache written
+ * before the session check had its own time: `checkedAt` stands for it.
  */
-async function warmCache(dir, { token = TOKEN, channelId = CHANNEL, checkedAt = new Date().toISOString(), user = userTag(TOKEN, LINKED_NUMBER), ...more } = {}) {
-  await writeFile(join(dir, 'channel.json'), JSON.stringify({ channelId, tag: channelTag(token, channelId), user, checkedAt, ...more }))
+async function warmCache(dir, { token = TOKEN, channelId = CHANNEL, checkedAt = new Date().toISOString(), user = userTag(TOKEN, LINKED_NUMBER), pin = '', ...more } = {}) {
+  await writeFile(join(dir, 'channel.json'), JSON.stringify({ channelId, tag: channelTag(token, channelId), user, pin, checkedAt, ...more }))
 }
 
 /**
@@ -1073,7 +1073,7 @@ const RELINKED = {
   ...listed({ ...REAL, user_role: 'owner' }),
 }
 
-test('the session re-linked to another number (the owner\'s): caught at the next session check, a day at most after the last; the channel is found again, and nothing is posted', async (t) => {
+test('the session re-linked to another number (the owner\'s): caught at the next session check, the first opening a day or more after the last; the channel is found again, and nothing is posted', async (t) => {
   const h = await phone(t, { warm: false, routes: RELINKED })
   await warmCache(h.dir, { checkedAt: ago(25 * 3600 * 1000) })
   const { next } = await h.tick(quiet(), LIVE)
@@ -1187,6 +1187,42 @@ test('a pinned whapi.channelId is checked with its own role call, and an owner t
   const own = await phone(t, { warm: false, cfg, routes: { 'GET /newsletters/:id': { body: { id: CHANNEL, user_role: 'owner' } } } })
   assert.equal((await own.tick(quiet(), LIVE)).next.waAt, undefined)
   assert.equal(own.wa.posts().length, 0)
+})
+
+test('the cache keeps the pin it was found under: a pin removed, or one added, finds the channel again at the next opening', async (t) => {
+  // --check once with a test channel pinned (in that shell only, say); the spare number admins only the real one.
+  const h = await phone(t, { warm: false })
+  const routes = () => h.wa.requests.map((r) => r.route)
+  const pinned = { whapi: { token: TOKEN, dryRun: false, channelId: OTHER } }
+  assert.equal(await runPhoneCheck({ cfg: pinned, dir: h.dir, base: h.wa.base, fetch: h.g.fetch, sleep: async () => {}, log: () => {} }), true)
+  assert.equal((await h.ledger('channel.json')).pin, OTHER)
+  // The watcher loop has no pin: it checks the session and finds the real channel, under a day after that check.
+  let calls = h.wa.requests.length
+  const { feed } = await h.tick(quiet(), LIVE)
+  assert.deepEqual(routes().slice(calls), ['GET /health', 'GET /newsletters', 'POST /messages/text'])
+  assert.equal(h.fresh().at(-1).body.to, CHANNEL, 'posted to the channel found, not the one pinned before')
+  const cache = await h.ledger('channel.json')
+  assert.equal(cache.channelId, CHANNEL)
+  assert.equal(cache.pin, '')
+  const { feed: q } = await h.tick(feed, QUIET)
+  // A pin added: checked with its own role call before the next post.
+  calls = h.wa.requests.length
+  await h.tick(q, LIVE_B, { cfg: { whapi: { token: TOKEN, dryRun: false, channelId: CHANNEL } } })
+  assert.deepEqual(routes().slice(calls), ['GET /health', 'GET /newsletters/:id', 'POST /messages/text'])
+  assert.equal((await h.ledger('channel.json')).pin, CHANNEL)
+})
+
+test('a cache written before the pin was kept is checked once, then trusted as before', async (t) => {
+  const h = await phone(t, { warm: false })
+  const at = new Date().toISOString()
+  await writeFile(join(h.dir, 'channel.json'), JSON.stringify({ channelId: CHANNEL, tag: channelTag(TOKEN, CHANNEL), user: userTag(TOKEN, LINKED_NUMBER), checkedAt: at, healthAt: at }))
+  const routes = () => h.wa.requests.map((r) => r.route)
+  const { feed } = await h.tick(quiet(), LIVE)
+  assert.deepEqual(routes(), ['GET /health', 'GET /newsletters', 'POST /messages/text'])
+  assert.equal((await h.ledger('channel.json')).pin, '')
+  const { feed: q } = await h.tick(feed, QUIET)
+  await h.tick(q, LIVE_B)
+  assert.deepEqual(routes().slice(4), ['POST /messages/text'], 'then the post alone')
 })
 
 // ---- D1: the full crawl's rows ------------------------------------------------------------------------

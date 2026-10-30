@@ -66,8 +66,11 @@ jobs:
       # sandbox allows 1,000 requests a month (docs/whatsapp-poster.md).
       # And once a day: on the first scheduled run at or after 06:00 IST
       # (windows have opened from about 12:30 IST). An Actions cache entry
-      # named for the IST date marks the day's probe as made, whatever it
-      # found; later runs that day find it and skip the probe.
+      # named for the IST date marks the day's probe as made once it reached
+      # a verdict (connected, or the pause issue opened); later runs that day
+      # find it and skip the probe. A probe that failed (Whapi or GitHub
+      # erred, or did not answer) leaves no mark, so the next scheduled run
+      # that day probes again.
       - name: WhatsApp poster session, due today?
         id: wa-day
         if: github.event_name == 'schedule'
@@ -83,6 +86,7 @@ jobs:
           key: ${{ steps.wa-day.outputs.key }}
           lookup-only: true
       - name: WhatsApp poster session
+        id: wa-probe
         if: steps.wa-day.outputs.due == 'true' && steps.wa-made.outputs.cache-hit != 'true'
         continue-on-error: true
         run: |
@@ -92,7 +96,7 @@ jobs:
           WHAPI_TOKEN: ${{ secrets.WHAPI_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: WhatsApp poster session, made
-        if: steps.wa-day.outputs.due == 'true' && steps.wa-made.outputs.cache-hit != 'true'
+        if: steps.wa-day.outputs.due == 'true' && steps.wa-made.outputs.cache-hit != 'true' && steps.wa-probe.outcome == 'success'
         continue-on-error: true
         uses: actions/cache/save@v6
         with:

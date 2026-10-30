@@ -430,14 +430,16 @@ WhatsApp post with the others and calls nothing.
 Whapi's free Sandbox allows 1,000 calls a month, so the phone keeps its
 calls to a schedule. A window costs 4: the post, the edit with the first
 page's coins, the edit with the full crawl's prices, and "Over". On top of
-that, the session check and one post's delivery status are read once a day,
-and the channel list once a week; the GitHub watchdog checks the session
-once a day too. At October's 5.4 windows a day that is about 806 calls a
-month; a whole month at 11 a day would be about 1,557, over the Sandbox
+that, the session check and one post's delivery status are read at most
+once in 24 hours, at the first window 24 hours or more after the last one
+(about 25 times a month, later in the day each time, with some days
+skipped), and the channel list once a week; the GitHub watchdog checks the
+session once a day too. At October's 5.4 windows a day that is about 806
+calls a month; a whole month at 11 a day would be about 1,557, over the Sandbox
 (details: [whatsapp-poster.md](whatsapp-poster.md)). `.wa-ledger/` also
 holds when each of those was last done, so a restart does not repeat them.
 
-Because the session is checked only once a day, run the check once after
+Because the session is checked only about once a day, run the check once after
 you re-link the spare number on Whapi (a new QR scan). It checks the session
 and the channel now, with the number now linked, and the next post goes by
 that. If it is not ready (your own number linked, say), it forgets the

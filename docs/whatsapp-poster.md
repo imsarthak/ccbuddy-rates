@@ -121,8 +121,9 @@ time.
   the crawl ends. Everything else the phone does with WhatsApp or GitHub after
   the crawl (an "Over" edit, a status read) shares one 8-second limit. The
   post starts when the phone sees the window, beside the Telegram alert, and
-  goes out once its checks pass (the pause issue; at the day's first opening
-  the session too, see **Session watch**), usually about 1-2 seconds later;
+  goes out once its checks pass (the pause issue; at the first opening 24
+  hours or more after the last session check, the session too, see **Session
+  watch**), usually about 1-2 seconds later;
   the edit that fills it in is made at the
   coupon's first page, about 3 seconds after the sight, off the crawl's path.
   If the checks are still running when that page arrives, the post goes out
@@ -158,15 +159,20 @@ time.
   carried it was lost. A record over 2 hours old is not taken for the window
   opening now, even with the same code: that earlier post is ended "Over"
   with no time, and the new window is posted.
-- **Delivery is checked, once a day.** A 200 from Whapi is not delivery. The
-  phone looks at the status of one post a day: the first it sends when no
-  status was read in the last 24 hours, once, on its first check 15 seconds
-  or more after the send. (The job looks at each of its own posts.) If
-  WhatsApp marked it failed, the phone posts nothing for 2 days and leaves
-  each window to the job, which meets the same failure and opens the pause
-  issue. A post that fails and is not the day's one read is noticed at the
-  next day's read; followers miss the same windows either way, since the job's
-  posts fail too, but you hear of it up to a day later.
+- **Delivery is checked, about once a day.** A 200 from Whapi is not
+  delivery. The phone looks at the status of one post in 24 hours: the first
+  it sends 24 hours or more after its last status read, once, on its first
+  check 15 seconds or more after the send. (The job looks at each of its own
+  posts.) Windows open only from about 12:30 IST to midnight, so the read
+  drifts later through the day and some days have none: about 25 reads a
+  month at October's pace. If WhatsApp marked it failed, the phone posts
+  nothing for 2 days and leaves each window to the job, which meets the same
+  failure and opens the pause issue. Posts that start failing just after a
+  read keep going out from the phone until the next read, which can be two
+  calendar days later (42 hours in a test, with 4 windows posted in
+  between); the watchdog checks the session, never delivery. Followers miss
+  the same windows either way, since the job's posts fail too, but you hear
+  of it up to about two days later.
 - **One off switch.** An issue titled **WhatsApp poster is paused** stops it
   completely, on the phone and in Actions: while the issue is open, neither
   calls Whapi at all, and the job only comments on each window it skipped.
@@ -174,8 +180,8 @@ time.
   with that exact title to pause it by hand. Close it to resume. The repo is
   public, so an issue with that title counts only if the workflow, you, or a
   collaborator opened it. The phone reads the open issues without any
-  credential, once per window opening, once per end and once for the day's
-  status read. It forgets the channel it found when it sees the issue open, and finds
+  credential, once per window opening, once per end and once for each status
+  read. It forgets the channel it found when it sees the issue open, and finds
   it again (with the same checks as the job) before its next post. It never opens or
   comments on an issue: when Whapi refuses it, it leaves the window to the
   job, which meets the same refusal and opens the issue with the right words.
@@ -201,20 +207,26 @@ time.
 - **Session watch, once a day.** The watchdog workflow also asks Whapi,
   read-only, whether the session is still connected: once a day, on its first
   scheduled run at or after 06:00 IST. An Actions cache entry named for the
-  IST date marks that day's check as made, so later runs skip it; a phone push
-  or the ccbuddy Worker, which also start that workflow many times a day, never
-  ask. It opens the pause issue if the spare phone was logged out, so you find
-  out within a day, and hours before that day's first window (windows have
-  opened from about 12:30 IST).
+  IST date marks that day's check as made once it gets an answer, so later
+  runs skip it; a check that fails (Whapi or GitHub errs, or does not answer)
+  leaves no mark, and the next scheduled run that day checks again. A phone
+  push or the ccbuddy Worker, which also start that workflow many times a
+  day, never ask. It opens the pause issue if the spare phone was logged out,
+  so you find out within a day, and hours before that day's first window
+  (windows have opened from about 12:30 IST).
   The phone checks the session itself at the first opening 24 hours or more
   after its last check, and at the next opening after a send that may have
-  gone out (a server error, or no answer). In between it posts to the channel
-  it found, with no check. It finds the channel again (the channel list) at
-  its first session check 7 days or more after it last did, when the number
-  linked has changed, and after the pause issue or a 401, 403 or 404 from
-  Whapi. So if the session is re-linked to another number and nothing fails
-  in between, the phone can post for up to a day before it notices: after any
-  re-link, run `--check` on the phone (step 10). Between checks, a dropped
+  gone out (a server error, or no answer). That is about 25 checks a month at
+  October's pace: each falls later in the day than the last, and some days
+  have none. In between it posts to the channel it found, with no check. It
+  finds the channel again (the channel list) at its first session check 7
+  days or more after it last did, when the number linked has changed, when
+  `whapi.channelId` in `.notify.env` is added, changed or removed, and after
+  the pause issue or a 401, 403 or 404 from Whapi. So if the session is
+  re-linked to another number and nothing fails in between, the phone can
+  post until its next session check, which can be two calendar days later,
+  before it notices: after any re-link, run `--check` on the phone (step 10).
+  Between checks, a dropped
   session is found by the post itself if Whapi refuses it: the job then takes
   that window and opens the pause issue. If Whapi accepts a post into a
   dropped session (see **Not yet known**), that window is lost unseen until
@@ -380,7 +392,8 @@ To stop the phone posting, set `"dryRun": true` in the `whapi` block of
   it is the phone's record of what it posted, and without it a post the phone
   made is never edited to "Over".
 - After you re-link the spare number on Whapi (a new QR scan), run this once
-  on the watcher phone. The phone checks the session only once a day; this
+  on the watcher phone. The phone checks the session only about once a day
+  (at the first window 24 hours or more after its last check); this
   checks the session and the channel now, with the number now linked, and
   when it is not ready it forgets the channel, so the next post checks
   everything again first:
@@ -416,7 +429,7 @@ only a person knows when the number has rested.
 | Variable `WA_DRY_RUN` = `0` | The Actions job posts for real. Unset or anything else: prints only. |
 | Variable `WA_CLOSE` = `off` | The Actions job makes no "Over" edit; its open post stays as it is. The phone always ends its own post. |
 | `whapi.dryRun` in `.notify.env` on the phone | `false` (step 9 sets it): the phone posts. Anything else: it prints the post in its log, posts nothing, and leaves each window to the Actions job. A post it made before still gets its "Over" edit. |
-| `whapi.channelId` in `.notify.env` on the phone | Optional, like `WHAPI_CHANNEL_ID`: only if the spare number admins more than one Channel. |
+| `whapi.channelId` in `.notify.env` on the phone | Optional, like `WHAPI_CHANNEL_ID`: only if the spare number admins more than one Channel. Adding, changing or removing it makes the next opening check the session and find the channel again. |
 | `BLINKDEAL_WA_DRY_RUN` = `0` on the phone | Instead of the file, as `BLINKDEAL_WHAPI_TOKEN` and `BLINKDEAL_WHAPI_CHANNEL_ID` are. |
 | Issue **WhatsApp poster is paused** | Stops both, the phone and the job. |
 | Secret `WHAPI_CHANNEL_ID` | Optional. Only if the spare number admins more than one Channel: the one to post to. Unset, it posts to the one Channel the spare number admins. |
@@ -431,8 +444,11 @@ Whapi's free Sandbox allows 1,000 calls a month. The poster is built to fit:
   prices, and the "Over" edit. A code change mid-window costs about 7 (the
   new code is posted, and both posts are ended). A window the Actions job
   posts costs about 7: 4 for the post, 3 for the edit.
-- **Once a day:** the phone's session check, one delivery status read (both
-  at the day's first window), and the watchdog's session check.
+- **About once a day:** the phone's session check and one delivery status
+  read, each at the first window 24 hours or more after the last one. They
+  drift later through the day, and some days have none: about 25 of each a
+  month at October's pace. The watchdog's session check runs once each IST
+  day (30 a month), plus a retry on a later run that day if one fails.
 - **Once a week:** the phone's channel list.
 
 Measured through the real code against a fake Whapi, over October's mix of
@@ -476,8 +492,8 @@ and **Delivery is checked** above.
   pause issue, or an accepted post that never arrives, which loses that
   window until the next session check.
 - Whether a Sandbox session needs the phone's session check to wake it after
-  a quiet spell. The phone now makes that check once a day, not at every
-  window.
+  a quiet spell. The phone now makes that check about once a day (the first
+  window 24 hours or more after the last check), not at every window.
 - The phone also makes about 2 GitHub reads per window (the pause issue),
   without a credential, from the home connection. They do not count toward
   Whapi's limit.
