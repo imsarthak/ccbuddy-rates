@@ -102,7 +102,7 @@ export async function fakeTelegram(routes = {}) {
 export const fakePost = (out, { id = 7 } = {}) => async (kind, w, opts = {}) => {
   out.push({ kind, stage: opts.stage ?? null, w, at: Date.now() })
   if (kind === 'open' && opts.stage === 'sight' && opts.tg) Object.assign(opts.tg, { state: 'sent', messageId: id })
-  if (kind === 'open' && opts.stage === 'local') return { local: 'sent' }
+  if (kind === 'open' && (opts.stage === 'local' || opts.stage === 'notification')) return { local: 'sent' }
   if (kind === 'open' && opts.stage !== 'sight' && opts.tg) opts.tg.full = 'done'
   return { telegramChannel: kind === 'open' && opts.stage !== 'sight' && opts.tg?.messageId ? 'edited' : 'sent' }
 }

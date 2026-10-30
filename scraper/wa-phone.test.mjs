@@ -775,7 +775,7 @@ test('a lost feed write, then a code the plain listing names for a moment whose 
   // BLINKDEAL is named for one tick and its coupon page fails. The feed is
   // quiet, so for the feed this is an opening; the ledger says a code change.
   const started = Date.now()
-  const flicker = await h.tick(quiet(), LIVE_B, { failFirstPage: true })
+  const flicker = await h.tick(quiet(), LIVE_B, { failFirstPage: true, firstPageMs: 50 })
   assert.ok(Date.now() - started < 1000, 'the failed tick waits for no page')
   assert.equal(flicker.feed.ok, false)
   assert.equal(flicker.feed.waAt, undefined, 'nothing live in that feed')
@@ -1231,7 +1231,8 @@ test('checks slower than the first page: one post, sent whole, and no edit; slow
 
 test('the first page fails, then the window is read live: not posted again; the next tick fills it in, keeping its first "Live since"', async (t) => {
   const h = await phone(t)
-  const { feed: failed } = await h.tick(quiet(), LIVE, { failFirstPage: true })
+  // The page fails after the post went out (its fetch took 150 ms).
+  const { feed: failed } = await h.tick(quiet(), LIVE, { failFirstPage: true, firstPageMs: 150 })
   assert.equal(failed.ok, false)
   assert.equal(failed.live, false, 'the feed never said live')
   assert.equal(failed.waAt, undefined, 'and carries no waAt')
@@ -1260,7 +1261,7 @@ test('the first page fails, then quiet reads: "Over." with no time, from what wa
   for (const fails of [1, 3]) {
     const h = await phone(t)
     let f = quiet()
-    for (let i = 0; i < fails; i++) f = (await h.tick(f, LIVE, { failFirstPage: true })).feed
+    for (let i = 0; i < fails; i++) f = (await h.tick(f, LIVE, { failFirstPage: true, firstPageMs: 150 })).feed
     const first = await h.ledger('open.json')
     const { next, closedWindow } = await h.tick(f, QUIET)
     assert.equal(closedWindow, null)
@@ -1273,6 +1274,31 @@ test('the first page fails, then quiet reads: "Over." with no time, from what wa
     await h.tick(next, QUIET)
     assert.equal(h.edits().length, 1, 'once')
   }
+})
+
+test('the first page fails while the post is still at its checks: cut off at once, nothing sent or on file, and the next tick posts it; a send under way is waited for', async (t) => {
+  const h = await phone(t, { gh: { delayMs: 600 } })
+  const started = Date.now()
+  const { feed: failed } = await h.tick(quiet(), LIVE, { failFirstPage: true, firstPageMs: 50 })
+  const took = Date.now() - started
+  assert.ok(took < 400, `the tick took ${took} ms: it waits for no check`)
+  assert.equal(failed.ok, false)
+  assert.equal(failed.waAt, undefined)
+  assert.equal(await h.ledger('open.json'), null, 'nothing on file')
+  await pause(900)
+  assert.equal(h.wa.posts().length, 0, 'nothing sent after the tick ended')
+  assert.match(h.lines.join('\n'), /^WA open: the coupon page failed before the send; the next tick that sees the window posts it$/m)
+  h.g.delayMs = 0
+  const { next } = await h.tick(failed, LIVE)
+  assert.equal(h.fresh().length, 1, 'the next tick posts it')
+  assert.ok(next.waAt)
+  // The send already under way when the page fails: waited for (it keeps its own 8 s), and the post is the phone's.
+  const s = await phone(t, { routes: { 'POST /messages/text': { delay: 400, body: { sent: true, message: { id: 'PsqXn5SAD5v7HRA-wHN2ziQ0001' } } } } })
+  const s2 = Date.now()
+  await s.tick(quiet(), LIVE, { failFirstPage: true, firstPageMs: 100 })
+  assert.ok(Date.now() - s2 >= 400, 'it waited for the send')
+  assert.equal(s.fresh().length, 1)
+  assert.equal((await s.ledger('open.json')).state, 'sent')
 })
 
 test('a restart between the sight and the first page: the post is out, and the next tick fills it in, never posts it again', async (t) => {
@@ -1315,7 +1341,7 @@ test('a restart between the sight and the first page: the post is out, and the n
 
 test('a post adopted at its first stage is not filled in while the poster is paused; the first live tick after the issue closes fills it in', async (t) => {
   const h = await phone(t)
-  const { feed: failed } = await h.tick(quiet(), LIVE, { failFirstPage: true })
+  const { feed: failed } = await h.tick(quiet(), LIVE, { failFirstPage: true, firstPageMs: 150 })
   const first = await h.ledger('open.json')
   h.g.issues.push(BOT_PAUSE)
   const calls = h.wa.requests.length

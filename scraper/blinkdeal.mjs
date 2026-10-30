@@ -515,17 +515,28 @@ const INERT_WA = Object.freeze({
  * can throw into the tick.
  *
  * The Telegram channel's opening (channelPoster in notify.mjs) is awaited at
- * the same point, until 15 s after the first page (or after the sight, when
- * the first page never came), then cut off, with 1 s to stop. So the feed is
- * written by the later of 16 s after the crawl and 16 s after the first page,
- * never later than before, when the Telegram post's 15 s sat in front of the
- * crawl. Its notification and Tasker intent go at the first page, beside the
+ * the same point, until 15 s after the first page, then cut off, with 1 s to
+ * stop. So the feed is written by the later of 16 s after the crawl and 16 s
+ * after the first page, never later than before, when the Telegram post's
+ * 15 s sat in front of the crawl. A tick whose first page never comes (its
+ * fetch failed) publishes no window, and the next tick, which crawls it,
+ * starts only when this one ends; before the posts at sight it ended at once.
+ * So there the Telegram send at sight gets 2 s more to be answered (cut off,
+ * it may be out: never sent again, nor filled in), and a WhatsApp post not
+ * yet at its send is cut off at once (the next tick posts it). Such a tick
+ * ends at most about 3 s after the failure, or 8 s when a WhatsApp send is
+ * under way; the next tick then crawls with no Telegram post in front of it,
+ * where before it had one, of up to 15 s.
+ *
+ * The notification and Tasker intent go at the first page, beside the
  * Telegram post, never behind it; only the Telegram edit waits for the
  * answer to the sight's send. On the rare tick that ends an opening never
  * published, its "is over" post (up to 15 s) comes before the write, as a
- * close post always has; on a live tick that owes the opening its edit (the
- * first page's failed), that edit runs beside the WhatsApp work, cut at 8 s,
- * the same deadline that work has.
+ * close post always has; when it is another code's page that replaces such
+ * an opening, its "is over" goes beside the new opening, inside the same
+ * 15 s after the first page. On a live tick that owes the opening its edit
+ * (the first page's failed), that edit runs beside the WhatsApp work, cut at
+ * 8 s, the same deadline that work has.
  */
 export async function step(previous, deps = {}) {
   const detectFn = deps.detect ?? detect

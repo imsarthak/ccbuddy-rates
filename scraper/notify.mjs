@@ -126,7 +126,8 @@ async function sendTelegram(cfg, text, { base = TELEGRAM_API } = {}) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: cfg.chatId, text, disable_web_page_preview: true }),
-    signal: AbortSignal.timeout(TIMEOUT_MS),
+    // cfg.signal (a tick's bound) cuts it short beside its own 15 s.
+    signal: cfg.signal ? AbortSignal.any([AbortSignal.timeout(TIMEOUT_MS), cfg.signal]) : AbortSignal.timeout(TIMEOUT_MS),
   })
   if (!res.ok) {
     // Telegram says why in the body ("bot is not a member of the channel
@@ -547,16 +548,21 @@ export function composePost(kind, w) {
  *            retry) or 'failed'.
  *   'local'  the local notification and the Tasker intent, which cannot be
  *            edited, so they carry the full text, once, at the first page.
+ *   'notification'  the local notification alone, put back on a tick that
+ *            sees an opening already filled in (its feed write was lost): the
+ *            alert's own notification, under the same id, took its place.
+ *            The Tasker intent is never sent twice.
  *   none     the single post: 'full' and 'local' together.
  * A close at stage 'sight' is the Telegram channel alone too: the end of an
  * opening that never got past its first sight, which no notification or
  * Tasker ever carried. `signal` cuts the opening's calls short (step()'s
- * bound). `config`, `base` and `exec` are for tests.
+ * bound), and a close at stage 'sight' too. `config`, `base` and `exec` are
+ * for tests.
  */
 export async function postWindow(kind, w, { dryRun = false, stage = null, tg = {}, config, base = TELEGRAM_API, signal, exec = execFileAsync } = {}) {
   const text = composePost(kind, w)
   if (dryRun) {
-    const how = kind !== 'open' ? '' : stage === 'local' ? ', to the notification and Tasker' : stage !== 'sight' && tg.state === 'dry' ? ', edited to' : ''
+    const how = kind !== 'open' ? '' : stage === 'local' ? ', to the notification and Tasker' : stage === 'notification' ? ', to the notification again' : stage !== 'sight' && tg.state === 'dry' ? ', edited to' : ''
     console.log(`DRY-RUN ${kind} post${how}:\n${text}`)
     if (kind === 'open' && stage === 'sight') tg.state = 'dry'
     return { dryRun: 'printed' }
@@ -565,6 +571,9 @@ export async function postWindow(kind, w, { dryRun = false, stage = null, tg = {
   const channel = { token: cfg.telegram?.token, chatId: cfg.telegram?.channelId, base, signal }
   if (stage === 'sight') {
     return fanOut([['telegramChannel', () => (kind === 'open' ? openAtSight(channel, text, tg) : sendTelegram(channel, text, { base }))]])
+  }
+  if (kind === 'open' && stage === 'notification') {
+    return fanOut([['local', () => sendLocalPost(kind, text, cfg, { exec, signal })]])
   }
   if (kind === 'open') {
     return fanOut([
@@ -643,7 +652,11 @@ async function openInFull({ token, chatId, base, signal }, text, tg) {
 // feed says (the write that showed it live may have been lost): it is left as
 // it is, and nothing is posted at sight, until the new code's own page
 // confirms it, so a code the plain listing names for a moment cannot replace
-// it and have its window posted again on the next tick.
+// it and have its window posted again on the next tick. When that page does
+// confirm it, an opening on record that never got its own first page was
+// never published (a sight is made only when the feed shows nothing live),
+// so it gets its "is over" then, beside the new opening, as a good read would
+// give it; one that got its page is a code change, ended without a post.
 
 export const TG_OPEN_PATH = join(ROOT, '.wa-ledger', 'telegram-open.json')
 // The same bound as wa-phone.mjs ADOPT_MAX_AGE_MS: no window lasts that long.
@@ -656,6 +669,12 @@ export const TG_EDIT_RETRY_GAP_MS = 20 * 1000
 // (wa-phone.mjs PHONE_TIMEOUT_MS), which it runs beside, so a live tick is
 // held no longer than that work may already hold it.
 const TG_RETRY_MS = 8000
+// How long a tick whose coupon page failed still waits for its sight's send
+// to be answered, from the failure. That tick publishes no window, and the
+// next one, which crawls it, starts only when this one ends; before the first
+// sight posts, such a tick ended at once. A send cut off here may be out: it
+// is never sent again, nor filled in, and its close comes as ever.
+export const TG_SIGHT_GRACE_MS = 2000
 
 /** The record at `path`, or (null) one in memory only, for tests, dry runs and replays. */
 export function telegramRecord(path = null) {
@@ -740,10 +759,15 @@ const liveCodeOf = (feed) => (feed?.live === true ? feed.lastLive?.code ?? feed.
  *              once, as before, and the Telegram post edited to the full
  *              opening once sight's send is answered (or sent whole, when
  *              none went out, or this tick had no sight, or sight waited for
- *              this page: a code change)
+ *              this page: a code change). When sight waited for it, the other
+ *              code's opening, if it never got its own first page, is told
+ *              over beside this one ("is over", Telegram alone), as idle()
+ *              would tell it. On a tick that sees an opening already filled
+ *              in, the notification alone is put back: the alert took its place
  *   settle()   before the feed is written: waits for all of it, until boundMs
- *              after the first page (or the sight, when no page came), then
- *              cuts whatever is still in flight
+ *              after the first page, then cuts whatever is still in flight.
+ *              When no page came (its fetch failed), the sight's send gets
+ *              only TG_SIGHT_GRACE_MS more (never past boundMs after the sight)
  *   posted()   whether any stage was made (the feed's postedAt)
  *   idle({ previous, next })   any tick that is not an opening: a good read
  *              that does not show the record's code live ends it, posting "is
@@ -764,6 +788,7 @@ export function channelPoster({ post = postWindow, record = telegramRecord(null)
   let made = false
   let taken = false // another run on this clone holds the record: this one posts nothing
   let rec = null // this tick's record, as it stands; every write is of it as it is then
+  let owed = null // the record this tick's opening replaced, still owed its "is over"
   let io = Promise.resolve()
   const stamp = () => new Date().toISOString()
   const short = (e) => String(e?.message ?? e).slice(0, 80)
@@ -787,8 +812,9 @@ export function channelPoster({ post = postWindow, record = telegramRecord(null)
   const send = async (stage, w) => {
     try {
       const res = await post('open', w, { dryRun, stage, tg, signal: ctrl.signal })
-      made = true
-      log(`POST open${stage === 'sight' ? '' : ' filled in'} ${fmtResults(res)} at ${stamp()}`)
+      // The notification put back is no post of this tick's.
+      if (stage !== 'notification') made = true
+      log(`POST open${stage === 'sight' ? '' : stage === 'notification' ? ': the notification put back,' : ' filled in'} ${fmtResults(res)} at ${stamp()}`)
     } catch (e) {
       // A channel failing must never cost the window its crawl and publish.
       error(`POST open failed: ${short(e)}`)
@@ -802,7 +828,7 @@ export function channelPoster({ post = postWindow, record = telegramRecord(null)
    * (another run holds it), 'unconfirmed' (another code's opening is on
    * record and this code is not yet confirmed by its page) or 'new'.
    */
-  const claimFor = (w, { confirmed = false } = {}) =>
+  const claimFor = (w, { confirmed = false, held = false } = {}) =>
     serial(async () => {
       const r = await safely('read', () => record.read())
       // Posted under TG_ADOPT_MAX_AGE_MS ago (a time that cannot be read counts as recent).
@@ -837,8 +863,26 @@ export function channelPoster({ post = postWindow, record = telegramRecord(null)
         return 'taken'
       }
       rec = ok ? first : null
+      // But the opening this tick's sight waited for (`held`: the feed on
+      // file showed nothing live, so no feed ever published it), when it never
+      // got its own first page: a sight whose page failed, not a code change.
+      // It is owed its "is over", as a good read would end it.
+      if (held && recent && r.code !== w.code && !r.filled) owed = r
       return 'new'
     })
+
+  /** The opening this tick's opening replaced, never published: "is over" on Telegram alone (TEMPLATES.close, no length), cut at settle()'s bound. */
+  async function endOwed(code) {
+    const r = owed
+    owed = null
+    if (!r || !['sent', 'unknown', 'sending'].includes(r.state)) return
+    try {
+      const res = await post('close', { code: r.code, approx: true }, { dryRun, stage: 'sight', signal: ctrl.signal })
+      log(`POST close ${fmtResults(res)} at ${stamp()} (${r.code}: posted at ${r.postedAt}, never published; ${code}'s page replaced it)`)
+    } catch (e) {
+      error(`POST close failed: ${short(e)}`)
+    }
+  }
 
   /**
    * The edit a good live read of the record's window still owes (the first
@@ -883,7 +927,7 @@ export function channelPoster({ post = postWindow, record = telegramRecord(null)
       pageAt = now()
       // No sight on this tick (a code change), or the sight waited for this
       // page (another code on record): claimed here, and posted whole.
-      claim = claim ? claim.then((how) => (how === 'unconfirmed' ? claimFor(w, { confirmed: true }) : how)) : claimFor(w, { confirmed: true })
+      claim = claim ? claim.then((how) => (how === 'unconfirmed' ? claimFor(w, { confirmed: true, held: true }) : how)) : claimFor(w, { confirmed: true })
       const sighted = sending ?? Promise.resolve()
       let again = false // the notification and Tasker were made by an earlier tick
       // Written first: the notification and Tasker go once, whatever happens next.
@@ -910,7 +954,9 @@ export function channelPoster({ post = postWindow, record = telegramRecord(null)
         return true
       })
       // They cannot be edited, so they carry the full text: now, beside sight's send, as before.
-      const local = marked.then((go) => (go && !again ? send('local', w) : undefined))
+      // Made by an earlier tick, Tasker is not sent again; the notification is
+      // put back, since this tick's alert took its place (the same id).
+      const local = marked.then((go) => (go ? send(again ? 'notification' : 'local', w) : undefined))
       // The Telegram post once sight's send is answered: edited in full, or sent whole when none went out.
       const telegram = Promise.all([sighted, marked]).then(async ([, go]) => {
         if (!go || rec?.edited || (again && !Number.isInteger(tg.messageId))) return
@@ -925,7 +971,9 @@ export function channelPoster({ post = postWindow, record = telegramRecord(null)
         }
         await save()
       })
-      chain = Promise.all([local, telegram])
+      // The opening this one replaced, if it is owed its end: beside this one,
+      // never behind it, so a slow send of either cannot cost the other its time.
+      chain = Promise.all([local, telegram, marked.then(() => endOwed(w.code))])
     },
     async settle() {
       try {
@@ -934,12 +982,15 @@ export function channelPoster({ post = postWindow, record = telegramRecord(null)
           let t
           return [new Promise((r) => (t = setTimeout(() => r(false), Math.max(0, ms)))), () => clearTimeout(t)]
         }
-        const [timer, stop] = wait((pageAt ?? sightAt) + boundMs - now())
+        // No first page (its fetch failed): this tick publishes no window, and
+        // the next one, which crawls it, waits for this one to end.
+        const until = pageAt != null ? pageAt + boundMs : Math.min(sightAt + boundMs, now() + TG_SIGHT_GRACE_MS)
+        const [timer, stop] = wait(until - now())
         const done = await Promise.race([chain.then(() => true), timer])
         stop()
         if (done) return
         ctrl.abort(new DOMException('the channel post time for this tick is up', 'TimeoutError'))
-        error(`POST open: not done ${boundMs / 1000} s after the ${pageAt ? 'first page' : 'first sight'}; cut off`)
+        error(pageAt != null ? `POST open: not done ${boundMs / 1000} s after the first page; cut off` : 'POST open: no first page, and the post at sight still unanswered; cut off')
         // What is left is the record's last write, on this phone.
         const [grace, stop2] = wait(1000)
         await Promise.race([chain, grace])

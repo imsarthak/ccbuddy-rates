@@ -30,7 +30,11 @@
 // crawl; in a 20-25 s crawl the post is usually out well before it ends.
 // Everything else a tick does with Whapi or GitHub after the crawl (the full
 // crawl's edit, an "Over" edit, a status read) shares one deadline of
-// PHONE_TIMEOUT_MS, so the feed is written, and pushed, soon after.
+// PHONE_TIMEOUT_MS, so the feed is written, and pushed, soon after. A tick
+// whose coupon page fails publishes no window, and the next tick, which
+// crawls it, waits for it: a post still at its checks is cut off at once (the
+// next tick posts it), and only a send already started holds it, for at most
+// PHONE_TIMEOUT_MS.
 //
 // Exactly once. The ledger is `.wa-ledger/` at the clone root, on the phone
 // only (gitignored; nothing in the watcher loop touches ignored files):
@@ -333,7 +337,8 @@ function phoneLedger(dir, { now, forced = false }) {
  *                     here when onLive did not start it (a code change), as
  *                     whole as the first page makes it
  *   settle()          after the crawl: waits for that post (bounded), and
- *                     starts the tick's one deadline
+ *                     starts the tick's one deadline. With no first page (its
+ *                     fetch failed), a post not yet at its send is cut at once
  *   refresh(next)     the post again, edited, if the full crawl's rows differ
  *                     (after the first page's edit, never before it)
  *   close({previous, next})   a window ended: its post edited "Over"
@@ -431,6 +436,7 @@ export function phonePoster({
   let job = null
   let phase = 'pre' // 'pre' → 'sending' → 'done'; settle() waits only for a job past 'pre'
   let cutoff = false
+  let noPage = false // cut off because the coupon page failed before the send
   let opened = null // { entry, adopted? } once this tick's post went out, or one on file is this window's
   let firstPage = null // the coupon's first page, once it came
   let fill = null // the first page's edit, chained on the post
@@ -725,7 +731,7 @@ export function phonePoster({
     }
   }
   function late() {
-    say('open: not at the send by the end of the crawl; the Actions poster takes this window')
+    say(noPage ? 'open: the coupon page failed before the send; the next tick that sees the window posts it' : 'open: not at the send by the end of the crawl; the Actions poster takes this window')
     return 'late'
   }
   const start = (seed, confirmed = false) =>
@@ -875,6 +881,14 @@ export function phonePoster({
         // Asked at onLive, and no post followed (the read failed): nothing needs the answer.
         if (pre) cut()
         return
+      }
+      // No first page (its fetch failed): this tick publishes no window, and
+      // the next one, which crawls it, waits for this one to end. A post not
+      // yet at its send is cut off now: nothing went out and nothing of it is
+      // on file, so the next tick posts it. A send already started keeps its own.
+      if (!firstPage && phase === 'pre') {
+        noPage = cutoff = true
+        return cut()
       }
       let t
       await Promise.race([job, new Promise((r) => (t = setTimeout(r, settleMs)))])

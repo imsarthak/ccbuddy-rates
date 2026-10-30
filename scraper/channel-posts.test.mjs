@@ -20,7 +20,7 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import {
   composePost, formatDuration, applyEnv, cheapestPerGram, buttonAction, intentArgs, postWindow, telegramRecord,
-  APP_LINK, TEMPLATES, INTENT_ACTION, TASKER_PACKAGE, TERMUX_BIN, TG_OPEN_PATH, TG_ADOPT_MAX_AGE_MS, TG_EDIT_RETRIES, TG_EDIT_RETRY_GAP_MS,
+  APP_LINK, TEMPLATES, INTENT_ACTION, TASKER_PACKAGE, TERMUX_BIN, TG_OPEN_PATH, TG_ADOPT_MAX_AGE_MS, TG_EDIT_RETRIES, TG_EDIT_RETRY_GAP_MS, TG_SIGHT_GRACE_MS,
 } from './notify.mjs'
 import { step, inferDiscountPct } from './blinkdeal.mjs'
 import { ADOPT_MAX_AGE_MS, EDIT_RETRIES, EDIT_RETRY_GAP_MS } from './wa-phone.mjs'
@@ -513,7 +513,7 @@ test('Telegram: an edit that fails once is made on the next live tick, from the 
   await d.tick(quietFeed(), LIVE)
   assert.equal(d.tgf.sends().length, 1)
   assert.deepEqual(d.tgf.edits().map((r) => r.body.text), [FULL_TEXT, FULL_TEXT])
-  assert.deepEqual([d.local().length, d.tasker().length], [1, 1], 'the notification and Tasker once')
+  assert.deepEqual([d.local().length, d.tasker().length], [2, 1], 'Tasker once; the notification put back over the alert')
   assert.equal((await d.record.read()).edited, true)
 })
 
@@ -571,9 +571,9 @@ test('Telegram: no channel configured: nothing at sight, the notification and Ta
   assert.equal(c.local().length, 1)
   assert.equal(c.tasker().length, 1)
   assert.ok(feed.postedAt)
-  // A lost feed write: not again.
+  // A lost feed write: Tasker not again; the notification put back over the alert, which took its place.
   await c.tick(quietFeed(), LIVE)
-  assert.equal(c.local().length, 1)
+  assert.equal(c.local().length, 2)
   assert.equal(c.tasker().length, 1)
 })
 
@@ -643,14 +643,18 @@ test('Telegram: a restart between the sight and the first page: the next tick ed
   assert.deepEqual(e.tgf.edits().map((r) => r.body.message_id), [101])
 })
 
-test('Telegram: a lost feed write after the first page: nothing at all on the next tick; quiet reads then end it once', async (t) => {
+test('Telegram: a lost feed write after the first page: nothing posted on the next tick, the notification put back; quiet reads then end it once', async (t) => {
   const c = await channel(t)
   await c.tick(quietFeed(), LIVE) // posted and filled in; the feed write is lost
   const before = c.tgf.requests.length
-  const { feed } = await c.tick(quietFeed(), LIVE)
+  const { text, result: { feed } } = await captured(() => c.tick(quietFeed(), LIVE))
   assert.equal(c.tgf.requests.length, before, 'no post and no edit')
-  assert.equal(c.local().length, 1)
-  assert.equal(c.tasker().length, 1)
+  assert.equal(c.tasker().length, 1, 'Tasker once')
+  // This tick's alert, a notification under the same id, took the post's place: it is put back, button and all.
+  assert.equal(c.local().length, 2)
+  assert.deepEqual(c.local()[1].args, c.local()[0].args)
+  assert.ok(c.local()[1].args.includes('--button1') && c.local()[1].args.includes(FULL_TEXT))
+  assert.match(text, /^POST open: the notification put back, local:sent\+button at /m)
   assert.equal(feed.postedAt, undefined, 'nothing was posted on this tick')
   // Its end is the step's own close post.
   await c.tick(feed, QUIET)
@@ -703,7 +707,7 @@ test('Telegram: a lost feed write, then a code the plain listing names for a mom
   const again = (await c.tick(flicker.feed, B, { failFirstPage: true })).feed
   const back = await captured(() => c.tick(again, LIVE))
   assert.equal(c.tgf.requests.length, 2, 'not posted again')
-  assert.deepEqual([c.local().length, c.tasker().length], [1, 1])
+  assert.deepEqual([c.local().length, c.tasker().length], [2, 1], 'Tasker once; the notification put back over the alert')
   assert.equal(back.result.feed.postedAt, undefined, 'nothing was posted on this tick')
   assert.match(back.text, /POST open: BLINKDEAL6 was posted at .* by an earlier tick that did not publish it; not posting it again/)
   // Its end is the step's own close post, once.
@@ -733,6 +737,69 @@ test('Telegram: a lost feed write, then another code confirmed by its own page: 
   assert.deepEqual([c.local().length, c.tasker().length], [2, 2], 'the notification and Tasker beside it')
   assert.ok(feed.postedAt)
   assert.deepEqual(pick(await c.record.read(), 'code', 'state', 'messageId', 'filled', 'edited'), { code: 'BLINKDEAL', state: 'sent', messageId: 102, filled: true, edited: true })
+  // BLINKDEAL6 got its page (filled in): a code change, so no "is over" for it, as at any code change.
+})
+
+test('Telegram: a code posted at first sight whose page fails, then another code confirmed by its own page: the first is told over, on Telegram alone, beside the new opening', async (t) => {
+  const A = { ...LIVE, code: 'BLINKDEAL', skus: LIVE.skus.map((s) => ({ ...s, code: 'BLINKDEAL' })) }
+  const SIGHT_A = composePost('open', sightOf(A))
+  const OVER_A = `BLINKDEAL is over\n${APP_LINK}`
+  const c = await channel(t)
+  const { feed: failed } = await c.tick(quietFeed(), A, { failFirstPage: true })
+  assert.equal(failed.live, false, 'no feed ever showed BLINKDEAL live')
+  assert.deepEqual(c.tgf.sends().map((r) => r.body.text), [SIGHT_A])
+  // The next tick sees BLINKDEAL6: it waits for its page, which confirms it.
+  const { text, result } = await captured(() => c.tick(failed, LIVE))
+  const texts = c.tgf.sends().map((r) => r.body.text)
+  assert.equal(texts[0], SIGHT_A)
+  assert.deepEqual(texts.slice(1).sort(), [FULL_TEXT, OVER_A].sort())
+  assert.equal(c.tgf.edits().length, 0)
+  assert.deepEqual([c.local().length, c.tasker().length], [1, 1], "the notification and Tasker carry BLINKDEAL6's opening alone")
+  assert.ok(c.local()[0].args.includes(FULL_TEXT))
+  assert.match(text, /^POST close telegramChannel:sent at \S+ \(BLINKDEAL: posted at \S+, never published; BLINKDEAL6's page replaced it\)$/m)
+  assert.ok(result.feed.postedAt)
+  assert.deepEqual(pick(await c.record.read(), 'code', 'state', 'filled', 'edited'), { code: 'BLINKDEAL6', state: 'sent', filled: true, edited: true })
+  // BLINKDEAL6's own window: its close, once, and nothing more for BLINKDEAL.
+  const beat = (await c.tick(staleFeed(result.feed), LIVE)).feed
+  const { closedWindow, feed } = await c.tick(beat, QUIET)
+  await c.tick(feed, QUIET)
+  await c.tick(staleFeed(feed), QUIET)
+  assert.deepEqual(c.tgf.sends().map((r) => r.body.text).slice(3), [composePost('close', closedWindow)])
+  // The new opening's send hanging to the bound does not hold the "is over" back.
+  const d = await channel(t, {
+    boundMs: 300,
+    routes: { sendMessage: (req) => (req.body.text === FULL_TEXT ? { hang: true } : { body: { ok: true, result: { message_id: 201 } } }) },
+  })
+  const f = (await d.tick(quietFeed(), A, { failFirstPage: true })).feed
+  await d.tick(f, LIVE)
+  assert.deepEqual(d.tgf.sends().map((r) => r.body.text).sort(), [SIGHT_A, FULL_TEXT, OVER_A].sort())
+  assert.equal((await d.record.read()).state, 'unknown', 'the hung opening: never sent again')
+})
+
+test('a tick whose coupon page fails waits 2 s at most for the post at sight: cut off, it is never sent again nor filled in, and its close comes as ever', async (t) => {
+  const c = await channel(t, { routes: { sendMessage: [{ delay: 3000, body: { ok: true, result: { message_id: 101 } } }, { body: { ok: true, result: { message_id: 102 } } }] } })
+  const started = Date.now()
+  const { text, result: { feed: failed } } = await captured(() => c.tick(quietFeed(), LIVE, { failFirstPage: true, firstPageMs: 100 }))
+  const took = Date.now() - started
+  assert.ok(took >= 100 + TG_SIGHT_GRACE_MS - 50 && took < 100 + TG_SIGHT_GRACE_MS + 700, `the tick took ${took} ms`)
+  assert.equal(failed.ok, false)
+  assert.match(text, /^POST open: no first page, and the post at sight still unanswered; cut off$/m)
+  assert.deepEqual(pick(await c.record.read(), 'state', 'messageId', 'filled'), { state: 'unknown', messageId: null, filled: false })
+  // The next tick sees the window live: nothing sent again, no id to edit; the notification and Tasker once.
+  const { feed } = await c.tick(failed, LIVE)
+  assert.equal(c.tgf.sends().length, 1)
+  assert.equal(c.tgf.edits().length, 0)
+  assert.deepEqual([c.local().length, c.tasker().length], [1, 1])
+  const { closedWindow } = await c.tick(feed, QUIET)
+  assert.deepEqual(c.tgf.sends().map((r) => r.body.text), [SIGHT_TEXT, composePost('close', closedWindow)])
+  // Answered inside those 2 s: the id is on record, and the next tick fills the post in.
+  const d = await channel(t, { routes: { sendMessage: { delay: 300, body: { ok: true, result: { message_id: 101 } } } } })
+  const s2 = Date.now()
+  const f = (await d.tick(quietFeed(), LIVE, { failFirstPage: true })).feed
+  assert.ok(Date.now() - s2 < 300 + 400, 'held only until the answer')
+  assert.deepEqual(pick(await d.record.read(), 'state', 'messageId'), { state: 'sent', messageId: 101 })
+  await d.tick(f, LIVE)
+  assert.deepEqual(d.tgf.edits().map((r) => r.body.message_id), [101])
 })
 
 test('the wait for the Telegram opening is bounded after the first page, and cuts what is in flight', async (t) => {

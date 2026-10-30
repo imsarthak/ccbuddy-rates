@@ -125,8 +125,12 @@ time.
   usually about 1-2 seconds later; the edit that fills it in is made at the
   coupon's first page, about 3 seconds after the sight, off the crawl's path.
   If the checks are still running when that page arrives, the post goes out
-  whole instead, and there is no edit. If the page never loads (the tick
-  fails after the post went out), the feed of that tick is not live and
+  whole instead, and there is no edit. A tick whose page never loads
+  publishes no window, and the next tick, which crawls it, waits for it to
+  end: a post still at its checks then is dropped at once (nothing is sent
+  or written down, and the next tick posts it), and only a send already
+  under way holds that tick, for its 8 seconds at most. If the page never
+  loads after the post went out, the feed of that tick is not live and
   carries no `waAt`; the post stays as first sent until the next tick. If that
   tick sees the window live, it does not post again: it fills the post in and
   its feed carries `waAt`. If it sees no window, it ends the post "Over." with

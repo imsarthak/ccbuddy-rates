@@ -267,13 +267,22 @@ never sends a second message. The watcher writes down that opening in
 `.wa-ledger/telegram-open.json` before sending it, so a tick that fails
 after the opening went out (the coupon page did not load, say) does not post
 it again: the next tick fills it in, or, if the window has gone, says it is
-over. A code change mid-window is not posted at sight: the plain listing can
-name another code for a moment, so that opening waits for its own coupon
-page and goes out whole, as before. The record counts as well as the feed:
-another code's opening on it, under 2 hours old, makes the new code a code
-change even when the feed write that showed the old one live was lost, so a
-code named for a moment, whose page then fails, neither replaces the record
-nor gets the old code's window posted again on the next tick.
+over. Such a tick publishes no window, and the next one, which crawls it,
+waits for it to end, so it waits at most about 2 seconds more for Telegram
+to answer that opening; one cut off there is never sent again, and stays as
+first sent until it is over. A code change mid-window is not posted at
+sight: the plain listing can name another code for a moment, so that
+opening waits for its own coupon page and goes out whole, as before. The
+record counts as well as the feed: another code's opening on it, under 2
+hours old, makes the new code a code change even when the feed write that
+showed the old one live was lost, so a code named for a moment, whose page
+then fails, neither replaces the record nor gets the old code's window
+posted again on the next tick. If the new code's page does load, and the
+old code's opening never got its own coupon page, that opening was never
+published: it is told over (with no length) beside the new one. On a tick
+that sees an opening again after its feed write was lost, the phone's
+notification is put back (the alert, which shares its slot, took its
+place), and the Tasker intent is not sent twice.
 
 To see the exact wording without sending anything:
 
