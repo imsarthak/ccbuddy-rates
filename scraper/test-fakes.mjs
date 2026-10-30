@@ -96,10 +96,13 @@ export async function fakeTelegram(routes = {}) {
 /**
  * A stand-in for postWindow that records each call ({ kind, stage, w, at })
  * and, at the opening's first sight, says the Telegram post went out with
- * message id `id`, as the real one does, so the first page's stage edits it.
+ * message id `id`, as the real one does, so the first page's stage edits it,
+ * and that the full stage put the full text there (tg.full).
  */
 export const fakePost = (out, { id = 7 } = {}) => async (kind, w, opts = {}) => {
   out.push({ kind, stage: opts.stage ?? null, w, at: Date.now() })
   if (kind === 'open' && opts.stage === 'sight' && opts.tg) Object.assign(opts.tg, { state: 'sent', messageId: id })
+  if (kind === 'open' && opts.stage === 'local') return { local: 'sent' }
+  if (kind === 'open' && opts.stage !== 'sight' && opts.tg) opts.tg.full = 'done'
   return { telegramChannel: kind === 'open' && opts.stage !== 'sight' && opts.tg?.messageId ? 'edited' : 'sent' }
 }

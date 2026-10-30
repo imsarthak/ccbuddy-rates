@@ -495,8 +495,10 @@ const INERT_WA = Object.freeze({
  * post. Only the alert is awaited there, as before; the two public posts say
  * what the plain listing knows (code, discount, coupon page) and are edited
  * to the full opening (count, cheapest coins) at the coupon's first page,
- * which waits for neither. The crawl starts at the first page and waits for
- * no post at all.
+ * which waits for neither. A code change mid-window (the previous feed live
+ * with another code) posts nothing at sight: the alert goes, and both posts
+ * wait for the coupon's first page to confirm the code, as before. The crawl
+ * starts at the first page and waits for no post at all.
  *
  * `wa` is the phone's own WhatsApp Channel poster (wa-phone.mjs). Only main()
  * passes the real one; the default does nothing, so no test and no importer
@@ -514,8 +516,13 @@ const INERT_WA = Object.freeze({
  * the first page never came), then cut off, with 1 s to stop. So the feed is
  * written by the later of 16 s after the crawl and 16 s after the first page,
  * never later than before, when the Telegram post's 15 s sat in front of the
- * crawl. On the rare tick that ends an opening never published, its "is over"
- * post (up to 15 s) comes before the write, as a close post always has.
+ * crawl. Its notification and Tasker intent go at the first page, beside the
+ * Telegram post, never behind it; only the Telegram edit waits for the
+ * answer to the sight's send. On the rare tick that ends an opening never
+ * published, its "is over" post (up to 15 s) comes before the write, as a
+ * close post always has; on a live tick that owes the opening its edit (the
+ * first page's failed), that edit runs beside the WhatsApp work, cut at 8 s,
+ * the same deadline that work has.
  */
 export async function step(previous, deps = {}) {
   const detectFn = deps.detect ?? detect
@@ -570,10 +577,14 @@ export async function step(previous, deps = {}) {
             return DRY_RUN ? (console.log(`DRY-RUN alert:\n${text}`), { dryRun: 'printed' }) : notifyFn(text)
           })()
           // Then the public posts, with what is known at sight: no coins yet,
-          // so no count and no cheapest. Neither is waited for here.
+          // so no count and no cheapest. Neither is waited for here. A code
+          // change mid-window posts nothing yet: the plain listing can name
+          // another code for a moment, and only the coupon's own page
+          // confirms it, so both posts wait for that page, as before.
           const sight = { code: early.code, couponId: early.couponId, source: early.source, discountPct, skus: [], totalCount: null, from: now }
-          waNow('open', () => wa.onLive(sight))
-          tg.sight(sight)
+          const changed = !!previous.live
+          waNow('open', () => wa.onLive(sight, { post: !changed }))
+          if (!changed) tg.sight(sight)
           try {
             const res = await alerting
             console.log(`ALERT ${fmtResults(res)} at ${new Date().toISOString()}`)
@@ -587,8 +598,9 @@ export async function step(previous, deps = {}) {
           if (!opening(page.code)) return
           waEdge = true
           const feed = { ...page, discountPct: inferDiscountPct(page.code, page.skus) }
-          // Both posts filled in from the first page, off the crawl's path:
-          // the crawl starts now and waits for neither.
+          // Both posts filled in from the first page (or, at a code change,
+          // posted from it), off the crawl's path: the crawl starts now and
+          // waits for neither.
           waNow('fill', () => wa.onFirstPage({ ...feed, from: now }))
           tg.page(feed)
         },
@@ -637,19 +649,23 @@ export async function step(previous, deps = {}) {
       }
     }
   }
-  // Every tick that is not an opening settles the Telegram opening's record
-  // against this read, after any close post: a good read that does not show
-  // its code live ends it, and one whose window was never published (its
-  // first page or its feed write never came) gets its "is over" now. Never
-  // throws; a file read, and on that rare tick one post.
-  if (!waEdge) await tg.idle({ previous, next })
+  // Two things run side by side here, after any close post, on every tick
+  // that is not an opening; neither throws.
+  // The Telegram opening's record is settled against this read: a good read
+  // that does not show its code live ends it, and one whose window was never
+  // published (its first page or its feed write never came) gets its "is
+  // over" now; one that shows it live makes the edit still owed, if the first
+  // page's failed (3 tries a window at most, each cut at 8 s). A file read,
+  // and on those rare ticks one post or one edit.
   // The phone ends its own WhatsApp post on the same edge. Any other tick that
   // is not an opening settles its ledger against this read: a good read that
   // does not show its post's code live ends that post (its tick's feed was
   // lost), then its status read and any "Over" edit still owed are made. All
   // of it shares one deadline (wa-phone.mjs), so the feed is not held long.
-  if (closedWindow) await waWait('close', () => wa.close({ previous, next }))
-  else if (!waEdge) await waWait('idle', () => wa.idle(next))
+  await Promise.all([
+    waEdge ? null : tg.idle({ previous, next }),
+    closedWindow ? waWait('close', () => wa.close({ previous, next })) : waEdge ? null : waWait('idle', () => wa.idle(next)),
+  ])
   // `waAt` comes from the phone's ledger on every tick, never from the feed
   // before, so a heartbeat or a failed read carries it exactly while it holds.
   const waAt = await waWait('marker', () => wa.marker(next))

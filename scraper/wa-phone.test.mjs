@@ -73,6 +73,7 @@ const LIVE_B = { ...LIVE, code: 'BLINKDEAL', skus: fixture.skus.map((s) => ({ ..
 const QUIET = { live: false, knownIds: ['135733'] }
 const quiet = () => ({ generated: ago(MIN), checkedAt: ago(MIN), ok: true, live: false, knownIds: [] })
 const stale = (feed) => ({ ...feed, checkedAt: ago(3 * MIN) })
+const pick = (o, ...keys) => Object.fromEntries(keys.map((k) => [k, o?.[k]]))
 
 /**
  * A detect that behaves like the real one: the plain listing (onLive), the
@@ -306,7 +307,7 @@ test('a live opening: one post of the exact text, written ahead, the Telegram al
   assert.equal(next.waAt, next.lastLive.from <= open.postedAt ? open.postedAt : next.lastLive.from)
   assert.ok(Date.parse(next.waAt) >= Date.parse(next.lastLive.from), 'never before the window started')
   assert.equal(h.out.alerts.length, 1)
-  assert.deepEqual(h.tgKinds(), ['open/sight', 'open/full'])
+  assert.deepEqual(h.tgKinds(), ['open/sight', 'open/local', 'open/full'])
   assert.ok(next.alertedAt && next.postedAt)
   assert.equal(open.stage, 'full', 'the first page came before the checks were done: sent whole, nothing to fill in')
   assert.equal(h.edits().length, 0)
@@ -388,7 +389,7 @@ test('a WhatsApp poster that throws everywhere costs the tick nothing', async (t
   assert.equal(next.ok, true)
   assert.equal(next.waAt, undefined)
   assert.equal(h.out.alerts.length, 1)
-  assert.deepEqual(h.tgKinds(), ['open/sight', 'open/full'])
+  assert.deepEqual(h.tgKinds(), ['open/sight', 'open/local', 'open/full'])
   const { closedWindow, next: closed } = await h.tick(next, QUIET, { wa })
   assert.ok(closedWindow.postedAt, 'the Telegram close still posts')
   assert.equal(closed.live, false)
@@ -709,25 +710,48 @@ test('an end nobody watched (the phone was off) is edited to "Over." with no tim
   assert.match(edit.body.body, /^Over\. These prices no longer apply\./)
 })
 
-test('a code change mid-window: the new code is posted, then the old post is ended with no time, as Actions would', async (t) => {
+test('a code change mid-window: the new code is posted whole from its first page, then the old post is ended with no time, as Actions would', async (t) => {
   const h = await phone(t)
   const { feed } = await h.tick(quiet(), LIVE)
   const old = await h.ledger('open.json')
-  const { next } = await h.tick(feed, LIVE_B)
+  const events = []
+  const { next } = await h.tick(feed, LIVE_B, { firstPageMs: 150, events })
   assert.equal(h.wa.posts().length, 2, 'the opening tick makes the post and nothing else')
   await h.tick(next, LIVE_B)
   const posts = h.wa.posts()
   assert.equal(posts.length, 3)
-  assert.match(posts[1].body.body, /^BLINKDEAL live on Myntra/)
+  assert.equal(posts[1].body.body, firstPageBody(LIVE_B, next.lastLive.from), 'whole: the code is confirmed by its own page')
+  assert.ok(posts[1].at >= Object.fromEntries(events)['first page'], 'never at sight')
   assert.equal(posts[1].body.edit, undefined)
+  assert.equal(h.g.calls[1].at < Object.fromEntries(events)['first page'], true, 'its checks started at sight, as before')
   assert.deepEqual(posts[2].body, { to: CHANNEL, edit: old.messageId, body: renderOver(old.data, null), no_link_preview: true })
   assert.ok(next.waAt)
   assert.equal((await h.ledger('open.json')).code, 'BLINKDEAL')
   // What Actions makes of the same push: nothing, both were the phone's.
   const e = edge(feed, next, Date.now())
   assert.deepEqual([e.open, e.close], [null, null])
-  // Telegram as before: one opening per code, each sent at sight and filled in at the first page.
-  assert.deepEqual(h.out.posts.map((p) => `${p.kind}/${p.stage} ${p.w.code}`), ['open/sight BLINKDEAL6', 'open/full BLINKDEAL6', 'open/sight BLINKDEAL', 'open/full BLINKDEAL'])
+  // Telegram the same way: the first code at sight and filled in; the new one at its first page.
+  assert.deepEqual(h.out.posts.map((p) => `${p.kind}/${p.stage} ${p.w.code}`), ['open/sight BLINKDEAL6', 'open/local BLINKDEAL6', 'open/full BLINKDEAL6', 'open/local BLINKDEAL', 'open/full BLINKDEAL'])
+})
+
+test('a code the plain listing names for a moment mid-window, whose page fails: no post, the live post untouched, waAt kept', async (t) => {
+  const h = await phone(t)
+  const { feed } = await h.tick(quiet(), LIVE)
+  const open = await h.ledger('open.json')
+  const flicker = await h.tick(feed, LIVE_B, { failFirstPage: true })
+  assert.equal(flicker.feed.ok, false)
+  assert.equal(flicker.feed.live, true, 'the feed still says BLINKDEAL6 live')
+  assert.ok(flicker.feed.waAt, 'and that the phone took it')
+  assert.equal(h.out.alerts.length, 2, 'the private alert as ever')
+  h.advance(30000)
+  const back = await h.tick(flicker.feed, LIVE)
+  await pause(100)
+  assert.equal(h.wa.posts().length, 1, 'no post for the other code, and no "Over" for this one')
+  assert.deepEqual(await h.ledger('open.json'), open)
+  assert.ok(back.feed.waAt)
+  const e = edge(flicker.feed, back.feed, Date.now())
+  assert.deepEqual([e.open, e.close], [null, null])
+  assert.deepEqual(h.tgKinds(), ['open/sight', 'open/local', 'open/full'], 'nor on Telegram')
 })
 
 // ---- 11. An edit that fails ----------------------------------------------------------------------
@@ -1098,7 +1122,7 @@ test('at first sight: the post says what the plain listing knows, before the fir
   assert.equal(edge(quiet(), next, Date.now()).open, null, 'Actions stands down')
   assert.match(h.lines.join('\n'), /^WA open filled in from the first page at /m)
   // Telegram beside it: its opening at sight, filled in at the first page.
-  assert.deepEqual(h.tgKinds(), ['open/sight', 'open/full'])
+  assert.deepEqual(h.tgKinds(), ['open/sight', 'open/local', 'open/full'])
   assert.ok(h.out.posts[0].at < at['first page'])
   // The end: "Over", with the coins the post came to carry.
   await h.tick(next, QUIET)
@@ -1303,6 +1327,23 @@ test("the crawl's edit waits for the first page's: a slow fill never lands over 
   assert.notEqual(edits[0].body.body, edits[1].body.body)
   assert.ok(edits[1].at - edits[0].at >= 240, 'the second was sent after the first was answered')
   assert.equal((await h.ledger('open.json')).body, renderOpen(postData(next)))
+})
+
+test('Whapi gives the post at sight no usable id: no edit is ever sent for it (a request with no id would be a second post)', async (t) => {
+  for (const message of [{}, { id: 'odd1' }]) {
+    const h = await phone(t, { routes: { 'POST /messages/text': { body: { sent: true, ...(message.id ? { message } : {}) } } } })
+    const { next } = await h.tick(quiet(), LIVE, { firstPageMs: 150 })
+    const what = JSON.stringify(message)
+    assert.equal(h.wa.posts().length, 1, `${what}: the post at sight, and nothing else`)
+    assert.ok(h.wa.posts().every((p) => !('edit' in p.body)), what)
+    assert.deepEqual(pick(await h.ledger('open.json'), 'state', 'messageId', 'stage'), { state: 'sent', messageId: null, stage: 'first' })
+    assert.ok(next.waAt, 'it went out: Actions stands down')
+    // The window's later ticks, and its end: nothing either.
+    h.advance(21000)
+    const { feed } = await h.tick(stale(next), LIVE)
+    await h.tick(feed, QUIET)
+    assert.equal(h.wa.posts().length, 1, what)
+  }
 })
 
 test('dry, with the first page after the sight: prints the post at sight and the edit it would make, and calls nothing', async (t) => {

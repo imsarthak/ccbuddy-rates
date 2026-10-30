@@ -132,7 +132,13 @@ time.
   its feed carries `waAt`. If it sees no window, it ends the post "Over." with
   no time. A fill that fails is made by the crawl's edit, or else tried again
   on the next live ticks (3 times at most, 20 seconds apart; a tick that finds
-  the poster paused spends a try without editing). While a window it posted,
+  the poster paused spends a try without editing). A post Whapi answered
+  without a usable message id is never edited, filled in or ended: an edit
+  needs that id, and a request without one would be a second post. A code
+  change mid-window (the last feed live with another code) is not posted at
+  sight: the plain listing can name another code for a moment, so the phone
+  runs its checks then but posts, and ends the old code's post, only once
+  the new code's own page has loaded, as before. While a window it posted,
   or may have posted, is live, every feed it pushes carries `waAt`, and the
   Actions job then neither posts that window nor edits its end. A post that may have gone out (no answer, or a server error) is never
   sent again. A post that certainly did not go out (any 4xx, or no connection

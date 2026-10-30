@@ -20,10 +20,10 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import {
   composePost, formatDuration, applyEnv, cheapestPerGram, buttonAction, intentArgs, postWindow, telegramRecord,
-  APP_LINK, TEMPLATES, INTENT_ACTION, TASKER_PACKAGE, TERMUX_BIN, TG_OPEN_PATH, TG_ADOPT_MAX_AGE_MS,
+  APP_LINK, TEMPLATES, INTENT_ACTION, TASKER_PACKAGE, TERMUX_BIN, TG_OPEN_PATH, TG_ADOPT_MAX_AGE_MS, TG_EDIT_RETRIES, TG_EDIT_RETRY_GAP_MS,
 } from './notify.mjs'
 import { step, inferDiscountPct } from './blinkdeal.mjs'
-import { ADOPT_MAX_AGE_MS } from './wa-phone.mjs'
+import { ADOPT_MAX_AGE_MS, EDIT_RETRIES, EDIT_RETRY_GAP_MS } from './wa-phone.mjs'
 import { fakeTelegram, fakePost } from './test-fakes.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -218,58 +218,70 @@ test('one opening (sent at first sight, filled in at the first page) and one clo
   assert.equal(posts.length, 0)
 
   ;({ next: feed } = await run(feed, LIVE)) // OPEN edge
-  assert.deepEqual(kinds(posts), ['open/sight', 'open/full'])
+  assert.deepEqual(kinds(posts), ['open/sight', 'open/local', 'open/full'])
   // At sight: the code, the discount from the plain listing's coins, the coupon page. No coins, no count.
   assert.deepEqual(posts[0].w.skus, [])
   assert.equal(posts[0].w.totalCount, null)
   assert.equal(posts[0].w.discountPct, inferDiscountPct(LIVE.code, LIVE.skus.slice(0, 3)))
   assert.equal(posts[0].w.source, LIVE.source)
-  assert.equal(posts[1].w.totalCount, 207)
-  assert.equal(posts[1].w.discountPct, 6)
-  assert.equal(posts[1].w.skus.length, 12)
+  // At the first page: the notification and Tasker, and the Telegram edit, from the coupon's own page.
+  for (const p of posts.slice(1)) {
+    assert.equal(p.w.totalCount, 207)
+    assert.equal(p.w.discountPct, 6)
+    assert.equal(p.w.skus.length, 12)
+  }
   assert.equal(alerts.length, 1)
   assert.ok(feed.postedAt)
   assert.ok(feed.alertedAt)
 
   ;({ next: feed } = await run(feed, LIVE)) // live, same SKUs: no rewrite
   ;({ next: feed } = await run(stale(feed), LIVE)) // live heartbeat rewrite
-  assert.equal(posts.length, 2, 'heartbeat rewrite must not repost')
+  assert.equal(posts.length, 3, 'heartbeat rewrite must not repost')
 
   ;({ next: feed } = await run(feed, new Error('HTTP 500'))) // failed read mid-window
   assert.equal(feed.live, true)
   assert.equal(feed.ok, false)
   ;({ next: feed } = await run(feed, LIVE)) // recovers
-  assert.equal(posts.length, 2, 'a failed read must not repost on recovery')
+  assert.equal(posts.length, 3, 'a failed read must not repost on recovery')
 
   let closed
   ;({ next: feed, closedWindow: closed } = await run(feed, QUIET)) // CLOSE edge
-  assert.deepEqual(kinds(posts), ['open/sight', 'open/full', 'close'])
-  assert.equal(posts[2].w.code, 'BLINKDEAL6')
-  assert.equal(posts[2].w.maxSkus, fixture.skus.length)
-  assert.ok(posts[2].w.from && posts[2].w.to)
+  assert.deepEqual(kinds(posts), ['open/sight', 'open/local', 'open/full', 'close'])
+  assert.equal(posts[3].w.code, 'BLINKDEAL6')
+  assert.equal(posts[3].w.maxSkus, fixture.skus.length)
+  assert.ok(posts[3].w.from && posts[3].w.to)
   assert.ok(closed.postedAt)
 
   ;({ next: feed } = await run(feed, QUIET))
   ;({ next: feed } = await run(stale(feed), QUIET)) // quiet heartbeat rewrite
-  assert.equal(posts.length, 3, 'quiet ticks after the close must not repost')
+  assert.equal(posts.length, 4, 'quiet ticks after the close must not repost')
 
   ;({ next: feed } = await run(feed, LIVE)) // a NEW window, same code
-  assert.deepEqual(kinds(posts).slice(3), ['open/sight', 'open/full'])
+  assert.deepEqual(kinds(posts).slice(4), ['open/sight', 'open/local', 'open/full'])
   assert.equal(alerts.length, 2)
 })
 
-test('a code change mid-window posts the new code once and does not close the old one', async () => {
+test('a code change mid-window posts the new code once, from its first page, and does not close the old one', async () => {
   const posts = []
-  const deps = { notify: async () => ({}), post: fakePost(posts) }
+  const alerts = []
+  const deps = { notify: async (text) => (alerts.push(text), {}), post: fakePost(posts) }
   let feed = { checkedAt: new Date().toISOString(), ok: true, live: false, knownIds: [] }
   feed = (await step(feed, { ...deps, detect: fakeDetect(LIVE) })).next
+  // The plain listing names another code, and its coupon page fails: only the private alert, no post.
+  const flicker = await step(feed, { ...deps, detect: fakeDetect({ ...LIVE, code: 'BLINKDEAL' }, { failFirstPage: true }) })
+  assert.equal(posts.length, 3, 'nothing posted at sight for a code change')
+  assert.equal(alerts.length, 2, 'the private alert as ever')
+  assert.equal(flicker.next.live, true, 'the feed still says BLINKDEAL6 live')
+  // Confirmed by its coupon page: posted whole at the first page, as before.
   feed = (await step(feed, { ...deps, detect: fakeDetect({ ...LIVE, code: 'BLINKDEAL' }) })).next
   assert.deepEqual(posts.map((p) => `${p.kind}/${p.stage} ${p.w.code}`), [
     'open/sight BLINKDEAL6',
+    'open/local BLINKDEAL6',
     'open/full BLINKDEAL6',
-    'open/sight BLINKDEAL',
+    'open/local BLINKDEAL',
     'open/full BLINKDEAL',
   ])
+  assert.equal(posts[4].w.totalCount, 207, 'the full post')
 })
 
 test('a post channel failing never fails the tick or loses the window', async () => {
@@ -425,12 +437,9 @@ test('Telegram: "message is not modified" counts as the edit made', async (t) =>
   assert.ok(result.feed.postedAt)
 })
 
-test('Telegram: a failed edit (400, 500, or one that hangs past the bound) costs the tick nothing and is never retried', async (t) => {
-  for (const answer of [
-    { status: 400, body: { ok: false, error_code: 400, description: 'Bad Request: message to edit not found' } },
-    { status: 500, body: { ok: false, error_code: 500, description: 'Internal Server Error' } },
-    { hang: true },
-  ]) {
+test('Telegram: a failed edit costs the tick nothing; later live reads make it, 3 tries at most, 20 s apart; a 4xx (not 429) ends them; never a second message', async (t) => {
+  const NOT_FOUND = { status: 400, body: { ok: false, error_code: 400, description: 'Bad Request: message to edit not found' } }
+  for (const answer of [NOT_FOUND, { status: 500, body: { ok: false, error_code: 500, description: 'Internal Server Error' } }, { hang: true }]) {
     const c = await channel(t, { routes: { editMessageText: answer }, boundMs: 300 })
     const started = Date.now()
     const { text, result } = await captured(() => c.tick(quietFeed(), LIVE, { firstPageMs: 20 }))
@@ -446,10 +455,87 @@ test('Telegram: a failed edit (400, 500, or one that hangs past the bound) costs
     assert.equal(c.tasker().length, 1)
     assert.match(text, /telegramChannel:failed: telegram[: ]/)
     if (answer.hang) assert.match(text, /telegramChannel:failed: telegram: no answer \(timed out\)/, 'cut off at the bound')
-    // Later ticks of the window: no retry.
-    const beat = (await c.tick(staleFeed(result.feed), LIVE)).feed
-    await c.tick(beat, LIVE)
-    assert.equal(c.tgf.requests.length, 2, what)
+    assert.deepEqual(pick(await c.record.read(), 'state', 'filled', 'edited'), { state: 'sent', filled: true, edited: false })
+    // The window's later live ticks. `back` moves the last try 20 s into the past.
+    const back = async () => {
+      const r = await c.record.read()
+      if (r.retry?.lastTry) await c.record.replace({ ...r, retry: { ...r.retry, lastTry: r.retry.lastTry - TG_EDIT_RETRY_GAP_MS } })
+    }
+    let feed = result.feed
+    if (answer === NOT_FOUND) {
+      assert.equal((await c.record.read()).retry.refused, true)
+      for (let i = 0; i < 3; i++) {
+        feed = (await c.tick(staleFeed(feed), LIVE)).feed
+        await back()
+      }
+      assert.equal(c.tgf.requests.length, 2, `${what}: never tried again`)
+      continue
+    }
+    const s2 = Date.now()
+    feed = (await c.tick(staleFeed(feed), LIVE)).feed
+    assert.ok(Date.now() - s2 < 300 + 800, `${what}: a try is cut at its bound`)
+    assert.equal(c.tgf.edits().length, 2, `${what}: the next live tick tries again`)
+    feed = (await c.tick(staleFeed(feed), LIVE)).feed
+    assert.equal(c.tgf.edits().length, 2, `${what}: not before 20 s`)
+    for (let i = 2; i <= TG_EDIT_RETRIES; i++) {
+      await back()
+      feed = (await c.tick(staleFeed(feed), LIVE)).feed
+      assert.equal(c.tgf.edits().length, 1 + i, what)
+    }
+    await back()
+    await c.tick(staleFeed(feed), LIVE)
+    assert.equal(c.tgf.edits().length, 1 + TG_EDIT_RETRIES, `${what}: then it stops`)
+    assert.deepEqual(new Set(c.tgf.edits().map((r) => r.body.message_id)), new Set([101]), 'always the post at sight')
+    assert.equal(c.tgf.sends().length, 1, `${what}: never a second message`)
+    assert.deepEqual([c.local().length, c.tasker().length], [1, 1])
+    assert.equal((await c.record.read()).retry.tries, TG_EDIT_RETRIES)
+  }
+})
+
+test('Telegram: an edit that fails once is made on the next live tick, from the full crawl, and then never again', async (t) => {
+  const c = await channel(t, { routes: { editMessageText: [{ status: 502, body: { ok: false, error_code: 502, description: 'Bad Gateway' } }, { body: { ok: true, result: true } }] } })
+  const { feed } = await c.tick(quietFeed(), LIVE)
+  const { result, text } = await captured(() => c.tick(staleFeed(feed), LIVE))
+  assert.equal(c.tgf.sends().length, 1)
+  assert.deepEqual(c.tgf.edits().map((r) => r.body), [
+    { chat_id: '@test_channel', message_id: 101, text: FULL_TEXT, disable_web_page_preview: true },
+    { chat_id: '@test_channel', message_id: 101, text: composePost('open', result.next), disable_web_page_preview: true },
+  ])
+  assert.match(text, /^POST open filled in telegramChannel:edited .*\(on a later tick, try 1 of 3\)$/m)
+  assert.deepEqual(pick(await c.record.read(), 'state', 'filled', 'edited'), { state: 'sent', filled: true, edited: true })
+  let f = result.feed
+  for (let i = 0; i < 3; i++) f = (await c.tick(staleFeed(f), LIVE)).feed
+  assert.equal(c.tgf.requests.length, 3, 'made: nothing more')
+  assert.deepEqual([c.local().length, c.tasker().length], [1, 1])
+  // The same failure with the feed write lost: the next opening tick makes the edit, and nothing else.
+  const d = await channel(t, { routes: { editMessageText: [{ status: 502, body: { ok: false, error_code: 502, description: 'Bad Gateway' } }, { body: { ok: true, result: true } }] } })
+  await d.tick(quietFeed(), LIVE)
+  await d.tick(quietFeed(), LIVE)
+  assert.equal(d.tgf.sends().length, 1)
+  assert.deepEqual(d.tgf.edits().map((r) => r.body.text), [FULL_TEXT, FULL_TEXT])
+  assert.deepEqual([d.local().length, d.tasker().length], [1, 1], 'the notification and Tasker once')
+  assert.equal((await d.record.read()).edited, true)
+})
+
+test('the notification and Tasker go at the first page, beside the Telegram post at sight, however long that takes', async (t) => {
+  for (const send of [{ delay: 400, body: { ok: true, result: { message_id: 101 } } }, { hang: true }]) {
+    const c = await channel(t, { routes: { sendMessage: send }, boundMs: 600 })
+    const events = []
+    const { feed } = await c.tick(quietFeed(), LIVE, { firstPageMs: 50, events })
+    const at = Object.fromEntries(events)
+    const what = JSON.stringify(send)
+    assert.ok(c.local()[0].at - at['first page'] < 100, `${what}: the notification ${c.local()[0].at - at['first page']} ms after the first page`)
+    assert.ok(c.tasker()[0].at - at['first page'] < 100, `${what}: and Tasker`)
+    assert.ok(feed.postedAt)
+    if (send.hang) {
+      assert.equal(c.tgf.edits().length, 0, 'no answer to the send: no id to edit, and never sent twice')
+      assert.equal(c.tgf.sends().length, 1)
+      assert.deepEqual(pick(await c.record.read(), 'state', 'filled'), { state: 'unknown', filled: true })
+    } else {
+      assert.equal(c.tgf.edits().length, 1)
+      assert.ok(c.tgf.edits()[0].at >= c.tgf.sends()[0].at + 400, 'the edit waits for the send to be answered')
+      assert.deepEqual(pick(await c.record.read(), 'state', 'messageId', 'filled', 'edited'), { state: 'sent', messageId: 101, filled: true, edited: true })
+    }
   }
 })
 
@@ -578,14 +664,25 @@ test('Telegram: a lost feed write after the first page: nothing at all on the ne
   assert.equal(d.tasker()[1].args[d.tasker()[1].args.indexOf('kind') + 1], 'close')
 })
 
-test('Telegram: a code change replaces the record without a close, as before, and posts the new code at sight', async (t) => {
+test('Telegram: a code change replaces the record without a close, as before, and posts the new code whole at its first page, never at sight', async (t) => {
   const c = await channel(t)
   const { feed } = await c.tick(quietFeed(), LIVE)
   const B = { ...LIVE, code: 'BLINKDEAL', skus: LIVE.skus.map((s) => ({ ...s, code: 'BLINKDEAL' })) }
+  // The plain listing names the other code for a moment and its page fails: nothing posted, nothing ended.
+  const flicker = await c.tick(feed, B, { failFirstPage: true })
+  assert.equal(c.tgf.requests.length, 2, 'no Telegram call at all')
+  assert.equal(c.alerts.length, 2, 'the private alert as ever')
+  assert.equal((await c.record.read()).code, 'BLINKDEAL6')
+  // The next read shows BLINKDEAL6 again: not an opening, and its post untouched.
+  await c.tick(flicker.feed, LIVE)
+  assert.equal(c.tgf.requests.length, 2)
+  assert.deepEqual(pick(await c.record.read(), 'code', 'state', 'messageId'), { code: 'BLINKDEAL6', state: 'sent', messageId: 101 })
+  // The code really changes: posted whole at its first page, the notification and Tasker beside it.
   await c.tick(feed, B)
-  assert.deepEqual(c.tgf.sends().map((r) => r.body.text.split('\n')[0]), ['BLINKDEAL6 live on Myntra — 6% off gold coins', 'BLINKDEAL live on Myntra — 6% off gold coins'])
-  assert.equal(c.tgf.edits().length, 2)
-  assert.equal((await c.record.read()).code, 'BLINKDEAL')
+  assert.deepEqual(c.tgf.sends().map((r) => r.body.text), [SIGHT_TEXT, composePost('open', fullOf(B))])
+  assert.equal(c.tgf.edits().length, 1)
+  assert.deepEqual([c.local().length, c.tasker().length], [2, 2])
+  assert.deepEqual(pick(await c.record.read(), 'code', 'state', 'messageId', 'filled', 'edited'), { code: 'BLINKDEAL', state: 'sent', messageId: 102, filled: true, edited: true })
 })
 
 test('the wait for the Telegram opening is bounded after the first page, and cuts what is in flight', async (t) => {
@@ -628,6 +725,7 @@ test('the record: one opening at a time, written whole, a broken one moved aside
   // The phone's file sits beside the WhatsApp ledger, and the two agree on how old an opening can be.
   assert.equal(TG_OPEN_PATH, join(HERE, '..', '.wa-ledger', 'telegram-open.json'))
   assert.equal(TG_ADOPT_MAX_AGE_MS, ADOPT_MAX_AGE_MS)
+  assert.deepEqual([TG_EDIT_RETRIES, TG_EDIT_RETRY_GAP_MS], [EDIT_RETRIES, EDIT_RETRY_GAP_MS], 'and on how an owed edit is tried again')
   // step() keeps the record in memory unless it is handed one; main() hands the file only to a real run.
   const read = async () => readFile(TG_OPEN_PATH, 'utf8').catch(() => null)
   const was = await read()

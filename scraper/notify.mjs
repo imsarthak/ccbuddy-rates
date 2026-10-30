@@ -532,19 +532,22 @@ export function composePost(kind, w) {
  * result for the log. `dryRun` prints the post and sends nothing — the way
  * to exercise this anywhere without a real channel ever seeing it.
  *
- * An opening comes in two stages, sharing `tg` ({ state, messageId }, the
+ * An opening comes in stages, sharing `tg` ({ state, messageId, full }, the
  * Telegram post of this window so far):
  *   'sight'  the Telegram channel alone: sendMessage, then tg.state is 'sent'
  *            (with messageId when Telegram gave an integer one), 'unknown' (no
  *            answer, or a 5xx: it may have gone out) or 'unsent' (a 4xx, or no
  *            connection at all). Unset when no channel is configured.
- *   'full'   (and no stage, the single post) the Telegram post edited to this
- *            text when it has a message id ("message is not modified" counts
- *            as done); else sent, once, when none went out ('unsent' or
- *            unset); else left as it is ('unknown': it may be out, and a
- *            second could never be taken back). Plus the local notification
- *            and the Tasker intent, which cannot be edited, so they wait for
- *            this stage.
+ *   'full'   the Telegram channel alone: the post edited to this text when it
+ *            has a message id ("message is not modified" counts as done);
+ *            else sent, once, when none went out ('unsent' or unset); else
+ *            left as it is ('unknown': it may be out, and a second could never
+ *            be taken back). tg.full then says how it went: 'done' (this text
+ *            is on Telegram), 'refused' (a 4xx other than 429: not worth a
+ *            retry) or 'failed'.
+ *   'local'  the local notification and the Tasker intent, which cannot be
+ *            edited, so they carry the full text, once, at the first page.
+ *   none     the single post: 'full' and 'local' together.
  * A close at stage 'sight' is the Telegram channel alone too: the end of an
  * opening that never got past its first sight, which no notification or
  * Tasker ever carried. `signal` cuts the opening's calls short (step()'s
@@ -553,8 +556,8 @@ export function composePost(kind, w) {
 export async function postWindow(kind, w, { dryRun = false, stage = null, tg = {}, config, base = TELEGRAM_API, signal, exec = execFileAsync } = {}) {
   const text = composePost(kind, w)
   if (dryRun) {
-    const edit = kind === 'open' && stage !== 'sight' && tg.state === 'dry'
-    console.log(`DRY-RUN ${kind} post${edit ? ', edited to' : ''}:\n${text}`)
+    const how = kind !== 'open' ? '' : stage === 'local' ? ', to the notification and Tasker' : stage !== 'sight' && tg.state === 'dry' ? ', edited to' : ''
+    console.log(`DRY-RUN ${kind} post${how}:\n${text}`)
     if (kind === 'open' && stage === 'sight') tg.state = 'dry'
     return { dryRun: 'printed' }
   }
@@ -565,9 +568,13 @@ export async function postWindow(kind, w, { dryRun = false, stage = null, tg = {
   }
   if (kind === 'open') {
     return fanOut([
-      ['telegramChannel', () => openInFull(channel, text, tg)],
-      ['local', () => sendLocalPost(kind, text, cfg, { exec, signal })],
-      ['tasker', () => sendTaskerIntent(kind, w, text, cfg, { exec, signal })],
+      ...(stage === 'local' ? [] : [['telegramChannel', () => openInFull(channel, text, tg)]]),
+      ...(stage === 'full'
+        ? []
+        : [
+            ['local', () => sendLocalPost(kind, text, cfg, { exec, signal })],
+            ['tasker', () => sendTaskerIntent(kind, w, text, cfg, { exec, signal })],
+          ]),
     ])
   }
   return fanOut([
@@ -591,19 +598,25 @@ async function openAtSight({ token, chatId, base, signal }, text, tg) {
   }
 }
 
-/** The opening in full: the post edited, or sent once when none is out, or left as it is. */
+/** The opening in full: the post edited, or sent once when none is out, or left as it is. tg.full says how. */
 async function openInFull({ token, chatId, base, signal }, text, tg) {
   if (!token || !chatId) return null
   if (Number.isInteger(tg.messageId)) {
     try {
       await telegramApi(token, 'editMessageText', { chat_id: chatId, message_id: tg.messageId, text, disable_web_page_preview: true }, { base, signal })
     } catch (e) {
-      if (!(e?.status === 400 && /message is not modified/i.test(e.description ?? ''))) throw e
+      if (!(e?.status === 400 && /message is not modified/i.test(e.description ?? ''))) {
+        tg.full = e?.status >= 400 && e.status < 500 && e.status !== 429 ? 'refused' : 'failed'
+        throw e
+      }
     }
+    tg.full = 'done'
     return 'edited'
   }
   if (tg.state && tg.state !== 'unsent') return 'not sent again'
-  return openAtSight({ token, chatId, base, signal }, text, tg)
+  const r = await openAtSight({ token, chatId, base, signal }, text, tg)
+  tg.full = 'done'
+  return r
 }
 
 // ---- The Telegram opening, once per window --------------------------------------
@@ -612,11 +625,16 @@ async function openInFull({ token, chatId, base, signal }, text, tg) {
 // (the fetch failed, or the phone restarted) post again on the next tick: that
 // tick's feed was never live, so it is an opening too. A record on the phone,
 // beside the WhatsApp ledger, stops it: telegram-open.json, the one opening
-// out and not yet ended { v, code, from, state, messageId, filled, postedAt }.
+// out and not yet ended
+// { v, code, from, state, messageId, filled, edited, retry, postedAt }.
 //   state   'sending' (written before the send), 'sent', 'unknown' (may be
 //           out), 'none' (no Telegram post: no channel, or it was refused)
-//   filled  the first page's stage is done (or under way): the edit, the
-//           notification and Tasker are never made twice
+//   filled  the notification and Tasker are made (or under way): never twice
+//   edited  the full text is on Telegram (the edit made, or the post sent
+//           whole); until then a good live read makes the edit, at most
+//           TG_EDIT_RETRIES times, TG_EDIT_RETRY_GAP_MS apart
+//   retry   { tries, lastTry, refused } of those edits; a 4xx other than 429
+//           ends them. None of them is ever a new message.
 // Created exclusively (one run posts), each write whole. Every good read that
 // does not show its code live ends it; one never published then gets its
 // "is over" (TEMPLATES.close with no length), as WhatsApp gets its "Over.".
@@ -625,6 +643,14 @@ async function openInFull({ token, chatId, base, signal }, text, tg) {
 export const TG_OPEN_PATH = join(ROOT, '.wa-ledger', 'telegram-open.json')
 // The same bound as wa-phone.mjs ADOPT_MAX_AGE_MS: no window lasts that long.
 export const TG_ADOPT_MAX_AGE_MS = 2 * 3600 * 1000
+// The same as wa-phone.mjs EDIT_RETRIES and EDIT_RETRY_GAP_MS, which bound the
+// WhatsApp fill the same way (that file cannot be imported from here).
+export const TG_EDIT_RETRIES = 3
+export const TG_EDIT_RETRY_GAP_MS = 20 * 1000
+// Each such edit's bound: the phone's own deadline for a tick's WhatsApp work
+// (wa-phone.mjs PHONE_TIMEOUT_MS), which it runs beside, so a live tick is
+// held no longer than that work may already hold it.
+const TG_RETRY_MS = 8000
 
 /** The record at `path`, or (null) one in memory only, for tests, dry runs and replays. */
 export function telegramRecord(path = null) {
@@ -702,27 +728,34 @@ const liveCodeOf = (feed) => (feed?.live === true ? feed.lastLive?.code ?? feed.
 /**
  * One tick's Telegram channel opening, for step() in blinkdeal.mjs:
  *   sight(w)   at the plain listing: the opening as known then, sent now
- *   page(w)    at the coupon's first page: that post edited to the full
- *              opening, the notification and Tasker (after sight's send)
- *   settle()   before the feed is written: waits for both, until boundMs
+ *   page(w)    at the coupon's first page: the notification and Tasker at
+ *              once, as before, and the Telegram post edited to the full
+ *              opening once sight's send is answered (or sent whole, when
+ *              none went out, or this tick had no sight: a code change)
+ *   settle()   before the feed is written: waits for all of it, until boundMs
  *              after the first page (or the sight, when no page came), then
  *              cuts whatever is still in flight
- *   posted()   whether either stage was made (the feed's postedAt)
- *   idle({ previous, next })   any tick that is not an opening, after its
- *              close post: a good read that does not show the record's code
- *              live ends it, posting "is over" for one never published
+ *   posted()   whether any stage was made (the feed's postedAt)
+ *   idle({ previous, next })   any tick that is not an opening: a good read
+ *              that does not show the record's code live ends it, posting "is
+ *              over" for one never published; one that shows it live makes
+ *              the edit still owed, if any (TG_EDIT_RETRIES at most,
+ *              TG_EDIT_RETRY_GAP_MS apart, each cut at TG_RETRY_MS)
  * Nothing is awaited by the caller but settle() and idle(), and nothing
  * throws. `record` is telegramRecord(); `post` is postWindow or a test's fake.
  */
 export function channelPoster({ post = postWindow, record = telegramRecord(null), dryRun = false, log = console.log, error = console.error, boundMs = TIMEOUT_MS, now = Date.now } = {}) {
   const ctrl = new AbortController()
   const tg = {}
-  let chain = null
+  let claim = null // the record read and this window claimed in it: file work only, no network
+  let sending = null // sight's send, and its outcome written
+  let chain = null // all this tick posts: settle() waits for it
   let sightAt = null
   let pageAt = null
   let made = false
   let taken = false // another run on this clone holds the record: this one posts nothing
-  let rec = null // this tick's record, as last written
+  let rec = null // this tick's record, as it stands; every write is of it as it is then
+  let io = Promise.resolve()
   const stamp = () => new Date().toISOString()
   const short = (e) => String(e?.message ?? e).slice(0, 80)
   // A record that cannot be read or written never stops a post.
@@ -734,85 +767,137 @@ export function channelPoster({ post = postWindow, record = telegramRecord(null)
       return undefined
     }
   }
+  // The record's writes, one at a time, so sight's outcome and the first
+  // page's `filled` land in either order and neither undoes the other.
+  const serial = (fn) => {
+    const p = io.then(fn)
+    io = p.catch(() => {})
+    return p
+  }
+  const save = () => serial(() => (rec ? safely('written', () => record.replace(rec)) : undefined))
   const send = async (stage, w) => {
     try {
       const res = await post('open', w, { dryRun, stage, tg, signal: ctrl.signal })
       made = true
-      log(`POST open${stage === 'full' ? ' filled in' : ''} ${fmtResults(res)} at ${stamp()}`)
+      log(`POST open${stage === 'sight' ? '' : ' filled in'} ${fmtResults(res)} at ${stamp()}`)
     } catch (e) {
       // A channel failing must never cost the window its crawl and publish.
       error(`POST open failed: ${short(e)}`)
     }
   }
   const outcome = () => (tg.state === 'sent' || tg.state === 'unknown' ? tg.state : null)
-  const entry = (w, filled) => ({ v: 1, code: w.code, from: w.from ?? null, state: 'sending', messageId: null, filled, postedAt: stamp() })
+  const entry = (w) => ({ v: 1, code: w.code, from: w.from ?? null, state: 'sending', messageId: null, filled: false, edited: false, postedAt: stamp() })
+
+  /** This window in the record: 'adopted' (an earlier tick posted it), 'taken' (another run holds it) or 'new'. */
+  const claimFor = (w) =>
+    serial(async () => {
+      const r = await safely('read', () => record.read())
+      if (r && r.code === w.code && !(now() - Date.parse(r.postedAt) >= TG_ADOPT_MAX_AGE_MS)) {
+        // This window, posted by an earlier tick whose first page or feed write never came: not again.
+        rec = r
+        tg.state = r.state === 'sending' ? 'unknown' : r.state
+        if (Number.isInteger(r.messageId)) tg.messageId = r.messageId
+        log(`POST open: ${w.code} was posted at ${r.postedAt} by an earlier tick that did not publish it; not posting it again`)
+        return 'adopted'
+      }
+      // Another code, or too old to be this window: ended without a post, as a code change always was.
+      if (r) await safely('removed', () => record.remove())
+      const first = entry(w)
+      const ok = await safely('written', () => record.create(first))
+      if (ok === false) {
+        taken = true
+        log(`POST open: another run on this clone is posting ${w.code}; not posting it twice`)
+        return 'taken'
+      }
+      rec = ok ? first : null
+      return 'new'
+    })
+
+  /**
+   * The edit a good live read of the record's window still owes (the first
+   * page's failed, or the phone stopped before it), from this read. Its try
+   * is written before the call, so a restart never makes it one more.
+   */
+  async function refill(r, next) {
+    if (r.edited !== false || r.state !== 'sent' || !Number.isInteger(r.messageId)) return
+    const f = r.retry ?? {}
+    if (f.refused || (f.tries ?? 0) >= TG_EDIT_RETRIES || (f.lastTry && now() - f.lastTry < TG_EDIT_RETRY_GAP_MS)) return
+    const retry = { tries: (f.tries ?? 0) + 1, lastTry: now() }
+    await record.replace({ ...r, retry })
+    const t = { state: 'sent', messageId: r.messageId }
+    const res = await post('open', next, { dryRun, stage: 'full', tg: t, signal: AbortSignal.timeout(Math.min(boundMs, TG_RETRY_MS)) })
+    log(`POST open filled in ${fmtResults(res)} at ${stamp()} (on a later tick, try ${retry.tries} of ${TG_EDIT_RETRIES})`)
+    if (t.full === 'done') await record.replace({ ...r, retry, edited: true })
+    else if (t.full === 'refused') await record.replace({ ...r, retry: { ...retry, refused: true } })
+  }
 
   return {
     sight(w) {
-      if (chain) return
+      if (claim) return
       sightAt = now()
-      chain = (async () => {
-        const r = await safely('read', () => record.read())
-        if (r && r.code === w.code && !(now() - Date.parse(r.postedAt) >= TG_ADOPT_MAX_AGE_MS)) {
-          // This window, posted by an earlier tick whose first page or feed write never came: not again.
-          rec = r
-          tg.state = r.state === 'sending' ? 'unknown' : r.state
-          if (Number.isInteger(r.messageId)) tg.messageId = r.messageId
-          log(`POST open: ${w.code} was posted at ${r.postedAt} by an earlier tick that did not publish it; not posting it again`)
-          return
-        }
-        // Another code, or too old to be this window: ended without a post, as a code change always was.
-        if (r) await safely('removed', () => record.remove())
-        const first = entry(w, false)
-        const ok = await safely('written', () => record.create(first))
-        if (ok === false) {
-          taken = true
-          log(`POST open: another run on this clone is posting ${w.code}; not posting it twice`)
-          return
-        }
-        rec = ok ? first : null
+      claim = claimFor(w)
+      sending = claim.then(async (how) => {
+        if (how !== 'new') return
         await send('sight', w)
-        if (!rec) return
         const state = outcome()
         if (state) {
+          if (!rec) return
           rec = { ...rec, state, messageId: tg.messageId ?? null }
-          await safely('written', () => record.replace(rec))
-        } else {
-          // Nothing went out: the first page posts it whole, as before.
+          await save()
+        } else if (rec && !rec.filled) {
+          // Nothing went out, and the first page has not come: it posts the opening whole, as before.
           rec = null
-          await safely('removed', () => record.remove())
+          await serial(() => safely('removed', () => record.remove()))
         }
-      })()
+      })
+      chain = sending
     },
     page(w) {
       pageAt = now()
-      chain = (chain ?? Promise.resolve()).then(async () => {
-        if (taken) return
+      // No sight on this tick (a code change): claimed here, and posted whole.
+      claim ??= claimFor(w)
+      const sighted = sending ?? Promise.resolve()
+      let again = false // the notification and Tasker were made by an earlier tick
+      // Written first: the notification and Tasker go once, whatever happens next.
+      const marked = claim.then(async () => {
+        if (taken) return false
         if (rec?.filled) {
+          again = true
           log(`POST open: ${w.code} was filled in by an earlier tick; not again`)
-          return
+          return true
         }
-        // Written first: the notification and Tasker go once, whatever happens next.
         if (rec) {
           rec = { ...rec, filled: true }
-          await safely('written', () => record.replace(rec))
-        } else {
-          const full = entry(w, true)
-          const ok = await safely('written', () => record.create(full))
-          if (ok === false) {
-            taken = true
-            log(`POST open: another run on this clone is posting ${w.code}; not posting it twice`)
-            return
-          }
-          rec = ok ? full : null
+          await save()
+          return true
         }
+        const full = { ...entry(w), filled: true }
+        const ok = await serial(() => safely('written', () => record.create(full)))
+        if (ok === false) {
+          taken = true
+          log(`POST open: another run on this clone is posting ${w.code}; not posting it twice`)
+          return false
+        }
+        if (ok) rec = full
+        return true
+      })
+      // They cannot be edited, so they carry the full text: now, beside sight's send, as before.
+      const local = marked.then((go) => (go && !again ? send('local', w) : undefined))
+      // The Telegram post once sight's send is answered: edited in full, or sent whole when none went out.
+      const telegram = Promise.all([sighted, marked]).then(async ([, go]) => {
+        if (!go || rec?.edited || (again && !Number.isInteger(tg.messageId))) return
         const fresh = !Number.isInteger(tg.messageId) && (!tg.state || tg.state === 'unsent')
         await send('full', w)
-        if (rec && fresh) {
-          rec = { ...rec, state: outcome() ?? 'none', messageId: tg.messageId ?? null }
-          await safely('written', () => record.replace(rec))
+        if (!rec) return
+        rec = {
+          ...rec,
+          ...(fresh ? { state: outcome() ?? 'none', messageId: tg.messageId ?? null } : {}),
+          ...(tg.full === 'done' ? { edited: true } : {}),
+          ...(tg.full === 'refused' ? { retry: { ...rec.retry, refused: true } } : {}),
         }
+        await save()
       })
+      chain = Promise.all([local, telegram])
     },
     async settle() {
       try {
@@ -840,7 +925,11 @@ export function channelPoster({ post = postWindow, record = telegramRecord(null)
       try {
         if (next?.ok !== true) return
         const r = await record.read()
-        if (!r || liveCodeOf(next) === r.code) return
+        if (!r) return
+        if (liveCodeOf(next) === r.code) {
+          await refill(r, next).catch((e) => error(`POST open: the edit owed was not made (${short(e)})`))
+          return
+        }
         await record.remove()
         // Shown live by the feed before: that window's close is step()'s own close post.
         if (liveCodeOf(previous) === r.code) return
@@ -913,10 +1002,10 @@ if (process.argv[1] && process.argv[1].replace(/\\/g, '/').toLowerCase().endsWit
     const sight = { code: fx.code, couponId: fx.couponId, source: fx.source, discountPct: open.discountPct, skus: [], totalCount: null }
     const dryRun = !process.argv.includes('--post-test')
     // One opening, as a window has it: sent at first sight, then edited in full (the bot needs
-    // to be able to edit its own channel posts), then the close.
+    // to be able to edit its own channel posts) beside the notification and Tasker, then the close.
     const tg = {}
-    for (const [kind, w, stage] of [['open', sight, 'sight'], ['open', open, 'full'], ['close', close, null]]) {
-      if (!dryRun && stage === 'full') await new Promise((r) => setTimeout(r, 3000))
+    for (const [kind, w, stage] of [['open', sight, 'sight'], ['open', open, 'local'], ['open', open, 'full'], ['close', close, null]]) {
+      if (!dryRun && stage === 'local') await new Promise((r) => setTimeout(r, 3000))
       const res = await postWindow(kind, w, { dryRun, stage, tg })
       if (!dryRun) console.log(`${kind}${stage ? ` (${stage})` : ''}:`, JSON.stringify(res))
     }

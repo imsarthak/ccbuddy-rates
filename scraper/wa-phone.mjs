@@ -312,14 +312,17 @@ function phoneLedger(dir, { now, forced = false }) {
 /**
  * One tick's WhatsApp poster: the hooks step() calls. Every method is safe to
  * call in any order and never throws; every network call goes through `fetch`.
- *   onLive(sight)     at an opening, beside the Telegram alert: starts the
- *                     pause check, then (when clear) the session check, and
- *                     the post, which step() does not wait for. It says what
- *                     is known at sight, or the first page when that has come
- *                     by the send
+ *   onLive(sight, { post })   at an opening, beside the Telegram alert:
+ *                     starts the pause check, then (when clear) the session
+ *                     check, and the post, which step() does not wait for. It
+ *                     says what is known at sight, or the first page when that
+ *                     has come by the send. With post: false (a code change
+ *                     mid-window, which only the coupon's page confirms) the
+ *                     checks only
  *   onFirstPage(p)    at the coupon's first page: the post filled in from it
  *                     (an edit), off the crawl's path; the post itself starts
- *                     here only when onLive could not start it
+ *                     here when onLive did not start it (a code change), as
+ *                     whole as the first page makes it
  *   settle()          after the crawl: waits for that post (bounded), and
  *                     starts the tick's one deadline
  *   refresh(next)     the post again, edited, if the full crawl's rows differ
@@ -497,6 +500,8 @@ export function phonePoster({
   }
 
   async function editPost(entry, body) {
+    // Never without the post's own id: a request with no usable `edit` is a send, a second post.
+    if (!MESSAGE_ID_OK.test(entry.messageId ?? '')) return false
     // The channel the post went to, and no other.
     const to = NEWSLETTER_OK.test(entry.channelId ?? '') && channelTag(s.token, entry.channelId) === entry.channelTag ? entry.channelId : null
     if (!to) return false
@@ -763,6 +768,8 @@ export function phonePoster({
     }
     const entry = opened?.entry
     if (!entry || entry.code !== page.code || (entry.stage ?? 'full') !== 'first' || entry.fill?.state === 'refused') return
+    // Whapi gave no usable id for it: it stays as first sent, as every edit path leaves such a post.
+    if (!MESSAGE_ID_OK.test(entry.messageId ?? '')) return
     if (!(await clearToEdit())) return
     try {
       const r = await editOpen(entry, page)
@@ -813,15 +820,16 @@ export function phonePoster({
   }
 
   return {
-    onLive(sight) {
+    onLive(sight, { post = true } = {}) {
       // Not for a code no ledger can name: that window is never posted from here.
       if (job || !KEY_OK.test(`${sight?.code}-${Date.parse(sight?.from)}`)) return
       if (s.mode === 'live') prepare().catch(() => {}) // read, and reported, when the post awaits it
-      job = start(sight)
+      // A code change waits for its first page, as before: the checks only.
+      if (post) job = start(sight)
     },
     onFirstPage(page) {
       firstPage = page
-      // onLive could not start the post (it threw, or the code could not name a window): the first page does, as before.
+      // onLive did not start the post (a code change, or it threw): the first page does, as before.
       if (!job) job = start(page)
       fill ??= job.then(fillIn).catch((e) => say(`open not filled in: ${short(e)}`))
     },

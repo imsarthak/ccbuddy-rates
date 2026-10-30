@@ -258,11 +258,18 @@ page, the app link). It is edited a few seconds later, when the coupon's own
 page has loaded, to add how many coins it covers and the cheapest ₹/g; an
 edit does not ping the channel again. Neither the alert nor the crawl waits
 for it, and the feed waits for it no later than about 16 seconds after that
-page, however slow Telegram is; a failed edit leaves the opening as first
-sent. The watcher writes down that opening in `.wa-ledger/telegram-open.json`
-before sending it, so a tick that fails after the opening went out (the
-coupon page did not load, say) does not post it again: the next tick fills
-it in, or, if the window has gone, says it is over.
+page, however slow Telegram is. The phone's own notification (the **Post to
+channel** button) and the Tasker intent carry the full post and go at that
+page, beside the edit, never behind it. An edit that fails is tried again on
+the window's next live ticks, 3 times at most, 20 seconds apart, each cut at
+8 seconds; one Telegram refuses (a 4xx other than 429) is not, and a retry
+never sends a second message. The watcher writes down that opening in
+`.wa-ledger/telegram-open.json` before sending it, so a tick that fails
+after the opening went out (the coupon page did not load, say) does not post
+it again: the next tick fills it in, or, if the window has gone, says it is
+over. A code change mid-window is not posted at sight: the plain listing can
+name another code for a moment, so that opening waits for its own coupon
+page and goes out whole, as before.
 
 To see the exact wording without sending anything:
 
