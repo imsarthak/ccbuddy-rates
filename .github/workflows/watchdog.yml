@@ -64,10 +64,37 @@ jobs:
       # never fail the watchdog above. On the schedule only: a phone push or
       # a Worker dispatch runs this workflow dozens of times a day, and Whapi's
       # sandbox allows 1,000 requests a month (docs/whatsapp-poster.md).
-      - name: WhatsApp poster session
+      # And once a day: on the first scheduled run at or after 06:00 IST
+      # (windows have opened from about 12:30 IST). An Actions cache entry
+      # named for the IST date marks the day's probe as made, whatever it
+      # found; later runs that day find it and skip the probe.
+      - name: WhatsApp poster session, due today?
+        id: wa-day
         if: github.event_name == 'schedule'
         continue-on-error: true
-        run: node scraper/wa-post.mjs --mode health
+        run: node scraper/watchdog.mjs --wa-health-day >> "$GITHUB_OUTPUT"
+      - name: WhatsApp poster session, made today?
+        id: wa-made
+        if: steps.wa-day.outputs.due == 'true'
+        continue-on-error: true
+        uses: actions/cache/restore@v6
+        with:
+          path: .wa-health
+          key: ${{ steps.wa-day.outputs.key }}
+          lookup-only: true
+      - name: WhatsApp poster session
+        if: steps.wa-day.outputs.due == 'true' && steps.wa-made.outputs.cache-hit != 'true'
+        continue-on-error: true
+        run: |
+          mkdir -p .wa-health && date -u +%FT%TZ > .wa-health/probed
+          node scraper/wa-post.mjs --mode health
         env:
           WHAPI_TOKEN: ${{ secrets.WHAPI_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: WhatsApp poster session, made
+        if: steps.wa-day.outputs.due == 'true' && steps.wa-made.outputs.cache-hit != 'true'
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: .wa-health
+          key: ${{ steps.wa-day.outputs.key }}

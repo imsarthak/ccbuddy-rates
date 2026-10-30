@@ -5,8 +5,9 @@
 // the window: the whole crawl, the push, the runner's queue and its setup.
 // October's windows lasted a median 4 min. From here it goes out the moment
 // the plain listing shows the code, beside the Telegram alert and the Telegram
-// channel post, once the pause check and the session check (both started
-// then) pass: about 1-2 s after the alert on mobile data. It says what is
+// channel post, once the pause check passes (started then; the session check
+// with it, at the day's first opening only): about 1-2 s after the alert on
+// mobile data. It says what is
 // known then (the code, its discount, the coupon page). About 3 s after the
 // sight, the coupon's first page has the count and the cheapest coins, and
 // the post is edited to say them; an edit pings nobody. If the checks are
@@ -64,12 +65,28 @@
 //   <key>.json     each ended post, with its edit's state; kept 30 days
 //   due.json       the keys of ended posts whose "Over" edit is still owed
 //   check.json     the last post, until its status is read once, 15 s or more
-//                  after the send (a 200 is not delivery)
-//   channel.json   the channel found for this token and the number linked;
-//                  found again when it is a day old, the number changes, the
+//                  after the send (a 200 is not delivery). Only a post sent
+//                  when no status was read in the last STATUS_EVERY_MS (a
+//                  day) is put here: one read a day, of the day's first post
+//   checked.json   when a post's status was last read
+//   channel.json   the channel found for this token and the number linked
+//                  (`checkedAt`), and when the session was last checked
+//                  (`healthAt`). An opening checks the session (GET /health)
+//                  only when that check is HEALTH_MAX_AGE_MS (a day) old, or
+//                  a send may have gone out since (`recheck`: a 5xx or no
+//                  answer). The channel is found again (GET /newsletters)
+//                  at the first session check CHANNEL_MAX_AGE_MS (7 days)
+//                  or more after it was found, when the number changes, the
 //                  pause issue is seen open, or Whapi answers 401/403/404
+//                  (the last two drop this file)
 //   hold.json      after a 429, or a post WhatsApp marked failed: no Whapi
 //                  call before `until` (2 days)
+//
+// Whapi's Sandbox allows 1,000 calls a month, so the two reads above are
+// daily and weekly rather than per window; a normal window costs 4 calls (the
+// post, the first page's edit, the crawl's edit, the "Over" edit). After a
+// re-link of the session, run --check: it finds the channel again with the
+// new number, or drops the cache when it is not ready (the owner's number).
 //
 // One loop per clone: watch-termux.sh refuses to start a second. Two runs on
 // one clone anyway (a hand run beside the loop) still post a window once, and
@@ -120,7 +137,12 @@ export const SETTLE_MS = 8000
 // window whose end nobody saw (its feed lost, then the phone off or every read
 // failed): it is ended, and the new window posted.
 export const ADOPT_MAX_AGE_MS = 2 * 3600 * 1000
-export const CHANNEL_MAX_AGE_MS = 24 * 3600 * 1000
+// Whapi's Sandbox allows 1,000 calls a month. The channel list is read again
+// once a week; the session once a day, on the cached channel, with the number
+// it was found with; a post's delivery status once a day.
+export const CHANNEL_MAX_AGE_MS = 7 * 24 * 3600 * 1000
+export const HEALTH_MAX_AGE_MS = 24 * 3600 * 1000
+export const STATUS_EVERY_MS = 24 * 3600 * 1000
 export const EDIT_RETRIES = 3
 export const EDIT_RETRY_GAP_MS = 20 * 1000
 export const EDIT_MAX_AGE_MS = 24 * 3600 * 1000
@@ -130,10 +152,16 @@ const TOKEN_OK = /^[A-Za-z0-9_-]{20,200}$/
 const OPEN = 'open.json'
 const DUE = 'due.json'
 const CHECK = 'check.json'
+const CHECKED = 'checked.json'
 const CHANNEL = 'channel.json'
 const HOLD = 'hold.json'
 
 const iso = (ms) => new Date(ms).toISOString()
+/** Is the time `at` under `maxMs` old at `nowMs`? A time that cannot be read, or one ahead of the clock, is not. */
+const within = (at, maxMs, nowMs) => {
+  const age = nowMs - Date.parse(at ?? '')
+  return age >= 0 && age < maxMs
+}
 // A sleep that a deadline ends early, timer and all, so it never holds the process open.
 const realSleep = (ms, signal) =>
   new Promise((ok, no) => {
@@ -304,8 +332,20 @@ function phoneLedger(dir, { now, forced = false }) {
     held,
     heldUntil: async () => (await held())?.until ?? null,
     hold: (why = '429') => replace(HOLD, { until: iso(now() + REST_MS), why }),
+    /** The channel just found, with the session checked at the same moment. */
     async saveChannel(token, channelId, user = '') {
-      await replace(CHANNEL, { channelId, tag: channelTag(token, channelId), user, checkedAt: iso(now()) })
+      const at = iso(now())
+      await replace(CHANNEL, { channelId, tag: channelTag(token, channelId), user, checkedAt: at, healthAt: at })
+    },
+    /** The cached channel `c` still holds after a session check now: the list is not read again. */
+    async sessionChecked(c) {
+      const { recheck: _r, ...kept } = c
+      await replace(CHANNEL, { ...kept, healthAt: iso(now()) })
+    },
+    /** A send that may have gone out: the next opening checks the session again. The channel stands. */
+    async recheckSession() {
+      const c = await readJson(CHANNEL)
+      if (c && typeof c === 'object' && !Array.isArray(c)) await replace(CHANNEL, { ...c, recheck: true })
     },
     /** The cached channel for this token (and this pin, if any), or null. */
     async cachedChannel(token, pinned) {
@@ -323,8 +363,9 @@ function phoneLedger(dir, { now, forced = false }) {
  * One tick's WhatsApp poster: the hooks step() calls. Every method is safe to
  * call in any order and never throws; every network call goes through `fetch`.
  *   onLive(sight, { post })   at an opening, beside the Telegram alert:
- *                     starts the pause check, then (when clear) the session
- *                     check, and the post, which step() does not wait for. It
+ *                     starts the pause check, then (when clear, and once a
+ *                     day) the session check, and the post, which step()
+ *                     does not wait for. It
  *                     says what is known at sight, or the first page when that
  *                     has come by the send. With post: false (a code change
  *                     mid-window, which only the coupon's page confirms) the
@@ -442,13 +483,23 @@ export function phonePoster({
   let fill = null // the first page's edit, chained on the post
   let dryShown = null // what a dry run printed it would post
 
-  /** At an opening: held? paused? and, when clear, the session and the number linked. No Whapi call while paused. */
+  /**
+   * At an opening: held? paused? and, when clear, the session and the number
+   * linked. No Whapi call while paused. The session is not checked while the
+   * cached channel's last check is under HEALTH_MAX_AGE_MS old, carries the
+   * number's fingerprint, and no send since may have gone out: the post goes
+   * to that channel. Every 401/403/404 and every sight of the pause issue
+   * drops the cache, so the next opening checks again.
+   */
   const prepare = () =>
     (pre ??= (async () => {
       const h = await L.held()
       if (h) return { pause: 'held', why: h.why }
       const pause = await checkPause()
       if (pause !== 'clear') return { pause }
+      // A cache written before `healthAt` existed: it was found right after a session check.
+      const c = await L.cachedChannel(s.token, s.channelId)
+      if (c?.user && !c.recheck && within(c.healthAt ?? c.checkedAt, HEALTH_MAX_AGE_MS, now())) return { pause, cached: c }
       try {
         return { pause, health: await readHealth(call, '/health') }
       } catch (e) {
@@ -478,10 +529,12 @@ export function phonePoster({
     return f.reason ? { reason: f.reason.title } : { channelId: f.channel.id }
   }
   /**
-   * Where this post goes: the cache, while it is under a day old and the
-   * session is connected to the number it was found with; else found again
-   * and cached. A session re-linked to another number (the owner's, say) is
-   * checked by the same rules as Actions before anything is posted.
+   * Where this post goes, after a session check: the cache, while it is under
+   * CHANNEL_MAX_AGE_MS old and the session is connected to the number it was
+   * found with (its `healthAt` then moves to now); else found again and
+   * cached. A session re-linked to another number (the owner's, say) is
+   * checked by the same rules as Actions before anything is posted. Between
+   * session checks (prepare) the cache is used without one.
    */
   async function channelFor(health) {
     if (health?.error) return { reason: `the session check failed: ${short(health.error)}` }
@@ -496,7 +549,10 @@ export function phonePoster({
     }
     const user = userTag(s.token, h.user)
     const c = await L.cachedChannel(s.token, s.channelId)
-    if (c && user && c.user === user && now() - Date.parse(c.checkedAt) < CHANNEL_MAX_AGE_MS) return { channelId: c.channelId }
+    if (c && user && c.user === user && within(c.checkedAt, CHANNEL_MAX_AGE_MS, now())) {
+      await L.sessionChecked(c)
+      return { channelId: c.channelId }
+    }
     const found = await locate()
     if (found.reason) await L.remove(CHANNEL)
     else await L.saveChannel(s.token, found.channelId, user)
@@ -592,10 +648,12 @@ export function phonePoster({
   }
 
   /**
-   * A 200 is not delivery. The last post's status is read once, on the first
-   * tick VERIFY_AFTER_MS or more after its send, by the same rule as Actions.
-   * "failed" holds the phone off Whapi for 2 days: each window then goes to
-   * Actions, which meets the same failure and opens the pause issue.
+   * A 200 is not delivery. The status of the post on file (the day's first,
+   * openJob) is read once, on the first tick VERIFY_AFTER_MS or more after its
+   * send, by the same rule as Actions. "failed" holds the phone off Whapi for
+   * 2 days: each window then goes to Actions, which meets the same failure
+   * and opens the pause issue. Only a read actually made counts toward the
+   * day (checked.json): one skipped while held, paused or unsure is not.
    */
   async function checkStatus() {
     const c = await L.readJson(CHECK)
@@ -606,6 +664,8 @@ export function phonePoster({
     await L.remove(CHECK)
     if (!(now() - sentAt <= EDIT_MAX_AGE_MS) || !MESSAGE_ID_OK.test(c.messageId ?? '') || rested || (await L.heldUntil())) return
     if ((await pausedNow()) !== false) return
+    // Written before the call: a read that fails, or a process that dies in it, still spent the day's one.
+    await L.replace(CHECKED, { at: iso(now()) })
     // A 429 here is already held by the call itself.
     const status = await verify(call, c.messageId, { sleep: async () => {}, log: () => {} }).catch(() => null)
     say(`status of the last post: ${status ?? 'not read'}`)
@@ -695,7 +755,8 @@ export function phonePoster({
       return 'paused'
     }
     if (cutoff) return late()
-    const ch = await channelFor(p.health)
+    // Checked under a day ago (prepare): the cached channel, with no call.
+    const ch = p.cached ? { channelId: p.cached.channelId } : await channelFor(p.health)
     // The last moment to back out: past here the feed must say the phone took it.
     if (cutoff) return late()
     if (ch.reason) {
@@ -714,7 +775,8 @@ export function phonePoster({
       const id = typeof res?.message?.id === 'string' && MESSAGE_ID_OK.test(res.message.id) ? res.message.id : null
       const sent = { ...entry, state: 'sent', messageId: id }
       await L.replace(OPEN, sent)
-      if (id) await L.replace(CHECK, { messageId: id, sentAt: iso(now()) })
+      // Its status is read 15 s on only when no post's was read in the last day.
+      if (id && !within((await L.readJson(CHECKED))?.at, STATUS_EVERY_MS, now())) await L.replace(CHECK, { messageId: id, sentAt: iso(now()) })
       opened = { entry: sent }
       say(`open sent at ${iso(now())}${id ? '' : ' (Whapi gave no message id, so its end cannot be edited in)'}`)
       return 'sent'
@@ -726,6 +788,8 @@ export function phonePoster({
         return 'unsent'
       }
       await L.replace(OPEN, { ...entry, state: 'unknown' })
+      // Something is off between here and WhatsApp: the next opening checks the session first.
+      await L.recheckSession().catch(() => {})
       say(`open may have gone out (${short(e)}); never sent twice, and its end cannot be edited in`)
       return 'unknown'
     }
@@ -1076,6 +1140,8 @@ export async function phoneCheck({ token, channelId = '', dir = LEDGER_DIR, fetc
   }
   ready = !!(ready && channel)
   if (ready) await L.saveChannel(token, channel, user)
+  // Not confirmed (a re-link to the owner's number, say): the next opening checks it all again.
+  else await L.remove(CHANNEL)
   log(ready ? 'Ready: connected, and an admin of the channel.' : 'Not ready: see above.')
   return { ready }
 }

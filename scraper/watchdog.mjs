@@ -43,6 +43,10 @@
 //   node scraper/watchdog.mjs --preview    print the messages for the October outage, send nothing
 //   node scraper/watchdog.mjs --test-dm    send the owner the test message, nothing else
 //                                          (MODE=test-dm in the workflow does the same)
+//   node scraper/watchdog.mjs --wa-health-day
+//                                          key=… and due=… for $GITHUB_OUTPUT: whether
+//                                          this run may make the day's WhatsApp
+//                                          session probe (waHealthDay); no network
 
 import { readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -159,6 +163,20 @@ const istDayNumber = (ms) => Math.floor((ms + IST_MS) / 86400000)
 export function istDay(ms) {
   const d = new Date(ms + IST_MS)
   return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`
+}
+
+// The WhatsApp poster's session probe (wa-post.mjs --mode health) runs once
+// a day, not on every scheduled run: Whapi's Sandbox allows 1,000 calls a
+// month. The workflow makes it on the first scheduled run at or after this
+// hour IST whose day has no Actions cache entry under `key` yet, then saves
+// one. Windows have opened from about 12:30 IST, so it still comes hours
+// before the day's first.
+export const WA_HEALTH_FROM_IST_HOUR = 6
+
+/** The probe's day at `ms`: its cache key, by the IST date, and whether a run then may make it. */
+export function waHealthDay(ms) {
+  const d = new Date(ms + IST_MS)
+  return { key: `wa-health-${d.toISOString().slice(0, 10)}`, due: d.getUTCHours() >= WA_HEALTH_FROM_IST_HOUR }
 }
 
 export const DM = {
@@ -351,6 +369,11 @@ async function preview() {
 }
 
 async function main(argv = process.argv.slice(2), env = process.env) {
+  if (argv.includes('--wa-health-day')) {
+    const { key, due } = waHealthDay(Date.now())
+    console.log(`key=${key}\ndue=${due}`)
+    return
+  }
   if (argv.includes('--preview')) return preview()
   const mode = argv.includes('--test-dm') ? 'test-dm' : (env.MODE || 'check')
   const tg = telegramFrom(env)
