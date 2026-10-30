@@ -639,6 +639,11 @@ async function openInFull({ token, chatId, base, signal }, text, tg) {
 // does not show its code live ends it; one never published then gets its
 // "is over" (TEMPLATES.close with no length), as WhatsApp gets its "Over.".
 // One older than TG_ADOPT_MAX_AGE_MS is never taken for the window opening now.
+// One younger, of another code, makes an opening a code change whatever the
+// feed says (the write that showed it live may have been lost): it is left as
+// it is, and nothing is posted at sight, until the new code's own page
+// confirms it, so a code the plain listing names for a moment cannot replace
+// it and have its window posted again on the next tick.
 
 export const TG_OPEN_PATH = join(ROOT, '.wa-ledger', 'telegram-open.json')
 // The same bound as wa-phone.mjs ADOPT_MAX_AGE_MS: no window lasts that long.
@@ -727,11 +732,15 @@ const liveCodeOf = (feed) => (feed?.live === true ? feed.lastLive?.code ?? feed.
 
 /**
  * One tick's Telegram channel opening, for step() in blinkdeal.mjs:
- *   sight(w)   at the plain listing: the opening as known then, sent now
+ *   sight(w)   at the plain listing: the opening as known then, sent now;
+ *              nothing, when the record holds another code's opening posted
+ *              under TG_ADOPT_MAX_AGE_MS ago (a code change the feed may not
+ *              show: its write lost), until the first page confirms this code
  *   page(w)    at the coupon's first page: the notification and Tasker at
  *              once, as before, and the Telegram post edited to the full
  *              opening once sight's send is answered (or sent whole, when
- *              none went out, or this tick had no sight: a code change)
+ *              none went out, or this tick had no sight, or sight waited for
+ *              this page: a code change)
  *   settle()   before the feed is written: waits for all of it, until boundMs
  *              after the first page (or the sight, when no page came), then
  *              cuts whatever is still in flight
@@ -788,11 +797,17 @@ export function channelPoster({ post = postWindow, record = telegramRecord(null)
   const outcome = () => (tg.state === 'sent' || tg.state === 'unknown' ? tg.state : null)
   const entry = (w) => ({ v: 1, code: w.code, from: w.from ?? null, state: 'sending', messageId: null, filled: false, edited: false, postedAt: stamp() })
 
-  /** This window in the record: 'adopted' (an earlier tick posted it), 'taken' (another run holds it) or 'new'. */
-  const claimFor = (w) =>
+  /**
+   * This window in the record: 'adopted' (an earlier tick posted it), 'taken'
+   * (another run holds it), 'unconfirmed' (another code's opening is on
+   * record and this code is not yet confirmed by its page) or 'new'.
+   */
+  const claimFor = (w, { confirmed = false } = {}) =>
     serial(async () => {
       const r = await safely('read', () => record.read())
-      if (r && r.code === w.code && !(now() - Date.parse(r.postedAt) >= TG_ADOPT_MAX_AGE_MS)) {
+      // Posted under TG_ADOPT_MAX_AGE_MS ago (a time that cannot be read counts as recent).
+      const recent = r && !(now() - Date.parse(r.postedAt) >= TG_ADOPT_MAX_AGE_MS)
+      if (recent && r.code === w.code) {
         // This window, posted by an earlier tick whose first page or feed write never came: not again.
         rec = r
         tg.state = r.state === 'sending' ? 'unknown' : r.state
@@ -800,7 +815,19 @@ export function channelPoster({ post = postWindow, record = telegramRecord(null)
         log(`POST open: ${w.code} was posted at ${r.postedAt} by an earlier tick that did not publish it; not posting it again`)
         return 'adopted'
       }
-      // Another code, or too old to be this window: ended without a post, as a code change always was.
+      // Another code, recent, and this one seen only on the plain listing: a
+      // code change for this phone, whatever the feed says (the write that
+      // showed the other code live may have been lost). The plain listing can
+      // name another code for a moment, so the record stays as it is, and
+      // nothing is posted, until this code's own page confirms it: a flicker
+      // whose page fails then leaves the other code's opening on record, and
+      // the next tick that sees that code adopts it rather than posting it again.
+      if (recent && !confirmed) {
+        log(`POST open: ${w.code} waits for its coupon page: ${r.code}, posted at ${r.postedAt}, is on record and no good read has ended it`)
+        return 'unconfirmed'
+      }
+      // Another code (confirmed by this code's page), or too old to be this
+      // window: ended without a post, as a code change always was.
       if (r) await safely('removed', () => record.remove())
       const first = entry(w)
       const ok = await safely('written', () => record.create(first))
@@ -854,8 +881,9 @@ export function channelPoster({ post = postWindow, record = telegramRecord(null)
     },
     page(w) {
       pageAt = now()
-      // No sight on this tick (a code change): claimed here, and posted whole.
-      claim ??= claimFor(w)
+      // No sight on this tick (a code change), or the sight waited for this
+      // page (another code on record): claimed here, and posted whole.
+      claim = claim ? claim.then((how) => (how === 'unconfirmed' ? claimFor(w, { confirmed: true }) : how)) : claimFor(w, { confirmed: true })
       const sighted = sending ?? Promise.resolve()
       let again = false // the notification and Tasker were made by an earlier tick
       // Written first: the notification and Tasker go once, whatever happens next.

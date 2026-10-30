@@ -42,6 +42,12 @@
 //                  that window, not posted again, unless it was posted over
 //                  ADOPT_MAX_AGE_MS ago: no window lasts that long, so it is
 //                  ended (an "Over" with no time) and the new one is posted.
+//                  One of another code, posted under that, makes an opening a
+//                  code change, whatever the feed says (the write that showed
+//                  it live may have been lost): nothing is posted or ended at
+//                  sight, only once the coupon's own page confirms the new
+//                  code, so a code the plain listing names for a moment
+//                  cannot end the live post and have it posted again.
 //                  `stage` is 'first' while the post says only what was known
 //                  at sight, 'full' once it carries the coins (none: 'full').
 //                  A post adopted at its 'first' stage (its first page never
@@ -318,7 +324,10 @@ function phoneLedger(dir, { now, forced = false }) {
  *                     says what is known at sight, or the first page when that
  *                     has come by the send. With post: false (a code change
  *                     mid-window, which only the coupon's page confirms) the
- *                     checks only
+ *                     checks only. The ledger can say it is a code change too,
+ *                     when the feed cannot: another code's post on file,
+ *                     posted under ADOPT_MAX_AGE_MS ago (its feed write lost).
+ *                     Then nothing is posted or ended before the first page
  *   onFirstPage(p)    at the coupon's first page: the post filled in from it
  *                     (an edit), off the crawl's path; the post itself starts
  *                     here when onLive did not start it (a code change), as
@@ -601,7 +610,12 @@ export function phonePoster({
 
   // ---- The opening ----------------------------------------------------------------
 
-  async function openJob(seed) {
+  /**
+   * The post itself. `confirmed` when the coupon's own page has named this
+   * code (the job started at the first page); a job started at sight is
+   * confirmed too once that page has come.
+   */
+  async function openJob(seed, { confirmed = false } = {}) {
     const code = seed.code
     const key = `${code}-${Date.parse(seed.from)}`
     // A window no ledger can name could never be ended; Actions refuses it too.
@@ -617,19 +631,33 @@ export function phonePoster({
       return { data, body: renderOpen(data), stage: src === firstPage ? 'full' : 'first' }
     }
     const cur = await current()
-    // The same code on file, posted under ADOPT_MAX_AGE_MS ago: no good read
-    // has seen that window end, so this is it again (a tick whose first page
-    // or feed write never came posted it, or another run on this clone is
-    // posting it). Not posted twice, but filled in if it needs to be. A post
-    // time that cannot be read counts as recent, for the same reason.
-    if (cur && cur.code === code && !(now() - Date.parse(cur.postedAt) >= ADOPT_MAX_AGE_MS)) {
+    // Posted under ADOPT_MAX_AGE_MS ago: no good read has seen that window
+    // end. A post time that cannot be read counts as recent, for the same
+    // reason.
+    const recent = cur && !(now() - Date.parse(cur.postedAt) >= ADOPT_MAX_AGE_MS)
+    // The same code, recent: this is that window again (a tick whose first
+    // page or feed write never came posted it, or another run on this clone
+    // is posting it). Not posted twice, but filled in if it needs to be.
+    if (recent && cur.code === code) {
       say(`open: ${code} was posted at ${cur.postedAt} by an earlier tick that did not publish it; not posting it again`)
       if (s.mode === 'live' && cur.state === 'sent' && MESSAGE_ID_OK.test(cur.messageId ?? '')) opened = { entry: cur, adopted: true }
       return 'adopted'
     }
-    // Another code on file, or this code posted too long ago to be this
-    // window, ended unseen: its end is owed ("Over", with no time), and made
-    // on a later tick, never in the way of this post.
+    // Another code, recent, and this one seen only on the plain listing: a
+    // code change for this phone, whatever the feed says (the write that said
+    // the other code was live may have been lost). The plain listing can name
+    // another code for a moment, so, as at any code change, nothing is posted
+    // or ended until the coupon's own page confirms this code: a moment's
+    // flicker whose page fails leaves the post on file as it is, and the next
+    // tick that sees its code adopts it rather than posting it again.
+    if (recent && !(confirmed || firstPage?.code === code)) {
+      say(`open: ${code} waits for its coupon page: ${cur.code}, posted at ${cur.postedAt}, is on file and no good read has ended it`)
+      return 'unconfirmed'
+    }
+    // Another code on file (confirmed by this code's page), or this code
+    // posted too long ago to be this window, ended unseen: its end is owed
+    // ("Over", with no time), and made on a later tick, never in the way of
+    // this post.
     if (cur && s.forced) {
       say(`DRY (${s.why}): would edit the post for ${cur.code} to:\n${renderOver(cur.data, null)}`)
     } else if (cur) {
@@ -700,8 +728,8 @@ export function phonePoster({
     say('open: not at the send by the end of the crawl; the Actions poster takes this window')
     return 'late'
   }
-  const start = (seed) =>
-    openJob(seed)
+  const start = (seed, confirmed = false) =>
+    openJob(seed, { confirmed })
       .catch((e) => {
         if (cutoff) return late()
         say(`open failed: ${short(e)}`)
@@ -710,6 +738,12 @@ export function phonePoster({
       .finally(() => {
         phase = 'done'
       })
+  // The post again, from the first page, after the sight's job waited for it.
+  const confirm = (page) => {
+    if (cutoff) return late()
+    phase = 'pre'
+    return start(page, true)
+  }
 
   // ---- Filling it in ------------------------------------------------------------------
 
@@ -830,7 +864,9 @@ export function phonePoster({
     onFirstPage(page) {
       firstPage = page
       // onLive did not start the post (a code change, or it threw): the first page does, as before.
-      if (!job) job = start(page)
+      // One onLive started waited for this page (another code's post on file): it goes on from here.
+      if (!job) job = start(page, true)
+      else job = job.then((r) => (r === 'unconfirmed' ? confirm(page) : r))
       fill ??= job.then(fillIn).catch((e) => say(`open not filled in: ${short(e)}`))
     },
     async settle() {

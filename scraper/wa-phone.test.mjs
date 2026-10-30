@@ -611,14 +611,17 @@ test('a lost feed write, then quiet reads: the first good read ends the post, an
   assert.ok(failed.waAt)
 })
 
-test('a post on file of another code ended unseen: the new one is posted at once, and the old one ended on the next tick', async (t) => {
+test('a post on file of another code ended unseen: the new one is posted whole from its first page, and the old one ended on the next tick', async (t) => {
   const h = await phone(t)
   const old = await seedOpen(h.dir, { code: 'BLINKDEAL', from: ago(OPEN_MAX_AGE_MS + 5 * MIN) })
+  const events = []
   const started = Date.now()
-  const { next } = await h.tick(quiet(), LIVE)
+  const { next } = await h.tick(quiet(), LIVE, { firstPageMs: 150, events })
   assert.ok(Date.now() - started < 1000)
   assert.equal(h.wa.posts().length, 1, 'the news, and nothing in its way')
-  assert.equal(h.wa.posts()[0].body.body, renderOpen(postData(next)))
+  // Under 2 h old, the other code may still be live: only the coupon's own page confirms this one.
+  assert.equal(h.wa.posts()[0].body.body, firstPageBody(LIVE, next.lastLive.from), 'whole')
+  assert.ok(h.wa.posts()[0].at >= Object.fromEntries(events)['first page'], 'never at sight')
   assert.ok(next.waAt)
   assert.deepEqual(await h.ledger('due.json'), [old.key])
   await h.tick(next, LIVE)
@@ -627,6 +630,15 @@ test('a post on file of another code ended unseen: the new one is posted at once
   assert.deepEqual(posts[1].body, { to: CHANNEL, edit: old.messageId, body: renderOver(old.data, null), no_link_preview: true })
   assert.equal((await h.ledger(`${old.key}.json`)).edit.state, 'done')
   assert.equal((await h.ledger('open.json')).key, windowKey(next))
+  // One over 2 h old is no window now: the new code goes out at sight, as any opening does.
+  const g = await phone(t)
+  const older = await seedOpen(g.dir, { code: 'BLINKDEAL', from: ago(ADOPT_MAX_AGE_MS + MIN) })
+  const ev2 = []
+  const { next: n2 } = await g.tick(quiet(), LIVE, { firstPageMs: 150, events: ev2 })
+  assert.equal(g.fresh().length, 1)
+  assert.equal(g.fresh()[0].body.body, sightBody(LIVE, n2.lastLive.from))
+  assert.ok(g.fresh()[0].at < Object.fromEntries(ev2)['first page'], 'at sight')
+  assert.deepEqual(await g.ledger('due.json'), [older.key])
 })
 
 test('two runs on one clone (a hand run beside the loop): one post, and both feeds carry waAt', async (t) => {
@@ -752,6 +764,74 @@ test('a code the plain listing names for a moment mid-window, whose page fails: 
   const e = edge(flicker.feed, back.feed, Date.now())
   assert.deepEqual([e.open, e.close], [null, null])
   assert.deepEqual(h.tgKinds(), ['open/sight', 'open/local', 'open/full'], 'nor on Telegram')
+})
+
+test('a lost feed write, then a code the plain listing names for a moment whose page fails: the live post is neither ended nor posted again', async (t) => {
+  const h = await phone(t)
+  // BLINKDEAL6 is live and posted; the feed write is lost, so the feed on file stays quiet.
+  await h.tick(quiet(), LIVE)
+  const open = await h.ledger('open.json')
+  const requests = h.wa.posts().length
+  // BLINKDEAL is named for one tick and its coupon page fails. The feed is
+  // quiet, so for the feed this is an opening; the ledger says a code change.
+  const started = Date.now()
+  const flicker = await h.tick(quiet(), LIVE_B, { failFirstPage: true })
+  assert.ok(Date.now() - started < 1000, 'the failed tick waits for no page')
+  assert.equal(flicker.feed.ok, false)
+  assert.equal(flicker.feed.waAt, undefined, 'nothing live in that feed')
+  assert.equal(h.out.alerts.length, 2, 'the private alert as ever')
+  assert.equal(h.wa.posts().length, requests, 'nothing posted for the other code, and nothing ended')
+  assert.deepEqual(await h.ledger('open.json'), open)
+  assert.equal(await h.ledger('due.json'), null)
+  assert.match(h.lines.join('\n'), /^WA open: BLINKDEAL waits for its coupon page: BLINKDEAL6, posted at .*, is on file/m)
+  // Again the next tick, then BLINKDEAL6 again: adopted, never posted a second time.
+  h.advance(20000)
+  const again = await h.tick(flicker.feed, LIVE_B, { failFirstPage: true })
+  h.advance(20000)
+  const back = await h.tick(again.feed, LIVE)
+  await pause(100)
+  assert.equal(h.fresh().length, 1, 'one post for one window')
+  assert.equal(h.overEdits().length, 0, 'never called over while live')
+  assert.equal((await h.ledger('open.json')).key, open.key)
+  assert.match(h.lines.join('\n'), /BLINKDEAL6 was posted at .* by an earlier tick that did not publish it; not posting it again/)
+  assert.ok(back.feed.waAt, 'the feed says the phone took it')
+  assert.equal(edge(again.feed, back.feed, Date.now()).open, null, 'Actions stands down')
+  // Its end: one "Over", with the watched time.
+  await h.tick(back.feed, QUIET)
+  assert.equal(h.overEdits().length, 1)
+  assert.match(h.overEdits()[0].body.body, /^Over at /)
+  // The same flicker, then a read with no window at all: the post ends once, "Over." with no time; nothing for the other code.
+  const g = await phone(t)
+  await g.tick(quiet(), LIVE)
+  const o2 = await g.ledger('open.json')
+  const f2 = await g.tick(quiet(), LIVE_B, { failFirstPage: true })
+  await g.tick(f2.feed, QUIET)
+  await g.tick(stale(f2.feed), QUIET)
+  assert.equal(g.fresh().length, 1)
+  assert.deepEqual(g.overEdits().map((e) => e.body), [{ to: CHANNEL, edit: o2.messageId, body: renderOver(o2.data, null), no_link_preview: true }])
+})
+
+test('a lost feed write, then another code confirmed by its own page: posted whole from that page, never at sight, and the old post ended with no time', async (t) => {
+  const h = await phone(t)
+  await h.tick(quiet(), LIVE) // posted; the feed write is lost
+  const old = await h.ledger('open.json')
+  const edits = h.edits().length
+  const events = []
+  const { next } = await h.tick(quiet(), LIVE_B, { firstPageMs: 150, events })
+  const at = Object.fromEntries(events)
+  assert.equal(h.fresh().length, 2)
+  const post = h.fresh()[1]
+  assert.equal(post.body.body, firstPageBody(LIVE_B, next.lastLive.from), 'whole: the code is confirmed by its own page')
+  assert.ok(post.at >= at['first page'], 'never at sight')
+  assert.equal(h.edits().length, edits, 'no edit: nothing to fill in, and the old post\'s end is not in the way')
+  assert.ok(h.g.calls[1].at < at['first page'], 'its checks started at sight, as at any code change')
+  assert.deepEqual(await h.ledger('due.json'), [old.key], 'the old post ended only now')
+  assert.equal((await h.ledger('open.json')).code, 'BLINKDEAL')
+  assert.ok(next.waAt)
+  assert.equal(edge(quiet(), next, Date.now()).open, null, 'Actions stands down')
+  await h.tick(next, LIVE_B)
+  assert.deepEqual(h.overEdits().map((e) => e.body), [{ to: CHANNEL, edit: old.messageId, body: renderOver(old.data, null), no_link_preview: true }])
+  assert.equal(h.fresh().length, 2)
 })
 
 // ---- 11. An edit that fails ----------------------------------------------------------------------

@@ -138,7 +138,11 @@ time.
   change mid-window (the last feed live with another code) is not posted at
   sight: the plain listing can name another code for a moment, so the phone
   runs its checks then but posts, and ends the old code's post, only once
-  the new code's own page has loaded, as before. While a window it posted,
+  the new code's own page has loaded, as before. Its ledger counts as well as
+  the feed: another code's post on file, under 2 hours old, makes the new
+  code a code change even when the feed write that showed the old one live
+  was lost, so a code named for a moment, whose page then fails, neither
+  ends the live post nor gets it posted again on the next tick. While a window it posted,
   or may have posted, is live, every feed it pushes carries `waAt`, and the
   Actions job then neither posts that window nor edits its end. A post that may have gone out (no answer, or a server error) is never
   sent again. A post that certainly did not go out (any 4xx, or no connection

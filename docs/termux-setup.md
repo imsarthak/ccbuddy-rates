@@ -269,7 +269,11 @@ after the opening went out (the coupon page did not load, say) does not post
 it again: the next tick fills it in, or, if the window has gone, says it is
 over. A code change mid-window is not posted at sight: the plain listing can
 name another code for a moment, so that opening waits for its own coupon
-page and goes out whole, as before.
+page and goes out whole, as before. The record counts as well as the feed:
+another code's opening on it, under 2 hours old, makes the new code a code
+change even when the feed write that showed the old one live was lost, so a
+code named for a moment, whose page then fails, neither replaces the record
+nor gets the old code's window posted again on the next tick.
 
 To see the exact wording without sending anything:
 

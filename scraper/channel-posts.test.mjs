@@ -685,6 +685,56 @@ test('Telegram: a code change replaces the record without a close, as before, an
   assert.deepEqual(pick(await c.record.read(), 'code', 'state', 'messageId', 'filled', 'edited'), { code: 'BLINKDEAL', state: 'sent', messageId: 102, filled: true, edited: true })
 })
 
+test('Telegram: a lost feed write, then a code the plain listing names for a moment whose page fails: the opening is neither replaced nor posted again', async (t) => {
+  const B = { ...LIVE, code: 'BLINKDEAL', skus: LIVE.skus.map((s) => ({ ...s, code: 'BLINKDEAL' })) }
+  const c = await channel(t)
+  await c.tick(quietFeed(), LIVE) // posted and filled in; the feed write is lost, so the feed on file stays quiet
+  const before = await c.record.read()
+  // The other code for one tick, its page failing. For the feed, an opening; for the record, a code change.
+  const started = Date.now()
+  const { text, result: flicker } = await captured(() => c.tick(quietFeed(), B, { failFirstPage: true }))
+  assert.ok(Date.now() - started < 1000, 'the failed tick waits for no page')
+  assert.equal(flicker.feed.ok, false)
+  assert.equal(c.tgf.requests.length, 2, 'no Telegram call at all')
+  assert.equal(c.alerts.length, 2, 'the private alert as ever')
+  assert.deepEqual(await c.record.read(), before, 'the record as it was')
+  assert.match(text, /^POST open: BLINKDEAL waits for its coupon page: BLINKDEAL6, posted at .*, is on record/m)
+  // Again the next tick, then BLINKDEAL6 again: adopted, nothing sent or edited, the notification and Tasker once.
+  const again = (await c.tick(flicker.feed, B, { failFirstPage: true })).feed
+  const back = await captured(() => c.tick(again, LIVE))
+  assert.equal(c.tgf.requests.length, 2, 'not posted again')
+  assert.deepEqual([c.local().length, c.tasker().length], [1, 1])
+  assert.equal(back.result.feed.postedAt, undefined, 'nothing was posted on this tick')
+  assert.match(back.text, /POST open: BLINKDEAL6 was posted at .* by an earlier tick that did not publish it; not posting it again/)
+  // Its end is the step's own close post, once.
+  const { closedWindow } = await c.tick(back.result.feed, QUIET)
+  assert.equal(closedWindow.code, 'BLINKDEAL6')
+  assert.deepEqual(c.tgf.sends().map((r) => r.body.text), [SIGHT_TEXT, composePost('close', closedWindow)])
+  assert.equal(await c.record.read(), null)
+  // The same flicker, then a read with no window at all: one "is over" with no length; nothing for the other code.
+  const d = await channel(t)
+  await d.tick(quietFeed(), LIVE)
+  const f = (await d.tick(quietFeed(), B, { failFirstPage: true })).feed
+  await d.tick(f, QUIET)
+  await d.tick(staleFeed(f), QUIET)
+  assert.deepEqual(d.tgf.sends().map((r) => r.body.text), [SIGHT_TEXT, `BLINKDEAL6 is over\n${APP_LINK}`])
+})
+
+test('Telegram: a lost feed write, then another code confirmed by its own page: posted whole from that page, never at sight', async (t) => {
+  const B = { ...LIVE, code: 'BLINKDEAL', skus: LIVE.skus.map((s) => ({ ...s, code: 'BLINKDEAL' })) }
+  const c = await channel(t)
+  await c.tick(quietFeed(), LIVE) // posted and filled in; the feed write is lost
+  const events = []
+  const { feed } = await c.tick(quietFeed(), B, { firstPageMs: 150, events })
+  const at = Object.fromEntries(events)
+  assert.deepEqual(c.tgf.sends().map((r) => r.body.text), [SIGHT_TEXT, composePost('open', fullOf(B))])
+  assert.ok(c.tgf.sends()[1].at >= at['first page'], 'never at sight')
+  assert.equal(c.tgf.edits().length, 1, 'the first window\'s fill-in only')
+  assert.deepEqual([c.local().length, c.tasker().length], [2, 2], 'the notification and Tasker beside it')
+  assert.ok(feed.postedAt)
+  assert.deepEqual(pick(await c.record.read(), 'code', 'state', 'messageId', 'filled', 'edited'), { code: 'BLINKDEAL', state: 'sent', messageId: 102, filled: true, edited: true })
+})
+
 test('the wait for the Telegram opening is bounded after the first page, and cuts what is in flight', async (t) => {
   // The edit hangs: the tick ends at the bound, not at Telegram's 15 s.
   const c = await channel(t, { routes: { editMessageText: { hang: true } }, boundMs: 250 })

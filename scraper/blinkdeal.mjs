@@ -497,8 +497,11 @@ const INERT_WA = Object.freeze({
  * to the full opening (count, cheapest coins) at the coupon's first page,
  * which waits for neither. A code change mid-window (the previous feed live
  * with another code) posts nothing at sight: the alert goes, and both posts
- * wait for the coupon's first page to confirm the code, as before. The crawl
- * starts at the first page and waits for no post at all.
+ * wait for the coupon's first page to confirm the code, as before. So does a
+ * code change only the phone's own records show (another code's opening on
+ * file, under 2 h old, its feed write lost): each channel's post waits for
+ * the page, and the other code's post is ended only then. The crawl starts at
+ * the first page and waits for no post at all.
  *
  * `wa` is the phone's own WhatsApp Channel poster (wa-phone.mjs). Only main()
  * passes the real one; the default does nothing, so no test and no importer
@@ -580,7 +583,11 @@ export async function step(previous, deps = {}) {
           // so no count and no cheapest. Neither is waited for here. A code
           // change mid-window posts nothing yet: the plain listing can name
           // another code for a moment, and only the coupon's own page
-          // confirms it, so both posts wait for that page, as before.
+          // confirms it, so both posts wait for that page, as before. The
+          // feed is not the only witness: each poster also checks its own
+          // record on the phone (.wa-ledger), and another code's opening
+          // there, under 2 h old, is a code change too (the feed write that
+          // showed it live may have been lost), so that post waits as well.
           const sight = { code: early.code, couponId: early.couponId, source: early.source, discountPct, skus: [], totalCount: null, from: now }
           const changed = !!previous.live
           waNow('open', () => wa.onLive(sight, { post: !changed }))
