@@ -9,12 +9,13 @@
 // steps only the owner can do: docs/whatsapp-poster.md.
 //
 // The phone posts first when it is set up (scraper/wa-phone.mjs, its own
-// `whapi` block in .notify.env): about 3 s after the Telegram alert, against
-// 30-40 s from here. A feed it pushes then carries `waAt` while that window is
-// live, and this job stands down for that window: no post, and no edit at its
-// end, which the phone makes from its own ledger. A feed without `waAt` (the
-// phone not set up, dry, paused, or sure its post did not go out) is posted
-// from here exactly as before.
+// `whapi` block in .notify.env): the moment it sees the window, about 1-2 s
+// after the Telegram alert, filled in from the coupon's first page seconds
+// later, against 30-40 s from here. A feed it pushes then carries `waAt` while
+// that window is live, and this job stands down for that window: no post, and
+// no edit at its end, which the phone makes from its own ledger. A feed
+// without `waAt` (the phone not set up, dry, paused, or sure its post did not
+// go out) is posted from here exactly as before.
 //
 // .github/workflows/wa-post.yml runs this on every phone push that touches
 // docs/blinkdeal.json, and compares the feed before the push with after it:

@@ -252,6 +252,18 @@ ended, only that it is over, because its length is not known). Once each —
 a heartbeat rewrite, a failed read mid-window or a restart never repeats a
 post, because both edges are keyed on what the previous feed said.
 
+The opening goes out the moment the watcher sees the window, beside the
+alert, with what the plain listing shows (the code, the discount, the coupon
+page, the app link). It is edited a few seconds later, when the coupon's own
+page has loaded, to add how many coins it covers and the cheapest ₹/g; an
+edit does not ping the channel again. Neither the alert nor the crawl waits
+for it, and the feed waits for it no later than about 16 seconds after that
+page, however slow Telegram is; a failed edit leaves the opening as first
+sent. The watcher writes down that opening in `.wa-ledger/telegram-open.json`
+before sending it, so a tick that fails after the opening went out (the
+coupon page did not load, say) does not post it again: the next tick fills
+it in, or, if the window has gone, says it is over.
+
 To see the exact wording without sending anything:
 
 ```bash
@@ -263,7 +275,10 @@ node scraper/notify.mjs --preview
 Same bot as the alert, one more key:
 
 1. Create the channel in Telegram (public, with a username, or private).
-2. Channel → Administrators → Add admin → your bot. It needs **Post messages**.
+2. Channel → Administrators → Add admin → your bot. It needs **Post messages**,
+   which also lets it edit its own posts (the opening is edited once). If
+   `--post-test` below shows the edit refused, also allow **Edit messages of
+   others**.
 3. Add `channelId` next to the bot token in `.notify.env`: the `@username`
    of a public channel, or the numeric `-100…` id of a private one (forward
    any post from it to @userinfobot, or read `channel_post.chat.id` from
@@ -285,7 +300,8 @@ and `BLINKDEAL_TELEGRAM_CHANNEL`.
 node scraper/notify.mjs --post-test
 ```
 
-That sends the captured 2026-09-15 window's open and close posts to whatever
+That sends the captured 2026-09-15 window's opening as first seen, edits it
+three seconds later into the full opening, then sends the close, to whatever
 `channelId` says. Read them, then switch `channelId` to the real channel.
 `telegram HTTP 403: bot is not a member` means step 2 was skipped;
 `400: chat not found` means the id is wrong or the bot was never added.
@@ -296,8 +312,9 @@ To rehearse the whole watcher without a channel seeing anything:
 node scraper/blinkdeal.mjs --dry-run
 ```
 
-prints the alert and both posts to the log instead of sending them
-(`BLINKDEAL_DRY_RUN=1` does the same for the loop).
+prints the alert and the posts (the opening as first sent, then as edited)
+to the log instead of sending them (`BLINKDEAL_DRY_RUN=1` does the same for
+the loop).
 
 ## WhatsApp Channel — one tap from the phone
 
@@ -354,8 +371,9 @@ until you press send.
 
 The route chosen on 2026-10-28 is the **Whapi poster**, as a spare admin
 number: [whatsapp-poster.md](whatsapp-poster.md). This phone posts each
-window itself, about 3 seconds after the Telegram alert, and GitHub Actions
-posts any window it did not take. The phone's part is one command, once the
+window itself the moment it sees it, about 1-2 seconds after the Telegram
+alert, fills the post in from the coupon's first page a few seconds later,
+and GitHub Actions posts any window it did not take. The phone's part is one command, once the
 spare number is linked on Whapi (steps 2-5 there). Copy the token in the
 Whapi dashboard (the copy icon after `Token:`), then:
 
@@ -382,9 +400,10 @@ more than one Channel. Environment variables work instead of the file:
 the saved state, the same check, and whether the pause issue is open.
 
 The phone keeps its record of each post in `.wa-ledger/` in the clone
-(gitignored, like `.notify.env`). It is what ends each post with "Over" and
-stops a window being posted twice, so it must survive a re-clone: copy it
-into the new clone, and don't re-clone while a window is live.
+(gitignored, like `.notify.env`), next to the Telegram opening's record. It
+is what ends each post with "Over" and stops a window being posted twice, so
+it must survive a re-clone: copy it into the new clone, and don't re-clone
+while a window is live.
 Once the token is saved, `node scraper/blinkdeal.mjs --dry-run` prints the
 WhatsApp post with the others and calls nothing.
 

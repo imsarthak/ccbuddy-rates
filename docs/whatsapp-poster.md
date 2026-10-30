@@ -9,7 +9,8 @@ anything.
 Two things can post it, and each window is posted once:
 
 - **The watcher phone**, once you have run the one command in step 9. It
-  posts at the coupon's first page, about 3 seconds after the Telegram alert,
+  posts the moment it sees the window, about 1-2 seconds after the Telegram
+  alert, fills that post in from the coupon's first page a few seconds later,
   and ends its own post. Code: `scraper/wa-phone.mjs`.
 - **A GitHub Actions job**, the fallback. It posts every window the phone did
   not take (the phone not set up, dry, paused, or sure its post did not go
@@ -29,7 +30,21 @@ command turns on only when its check passes.
 
 ## What followers see
 
-One post when a window opens:
+One post when a window opens. From the phone it goes out the moment the
+window is seen, with what is known then:
+
+```
+BLINKDEAL6 live on Myntra — 6% off gold coins
+Live since 6:22 pm.
+
+The coins: https://www.myntra.com/gold-coins?f=Coupons:BLINKDEAL6_135733
+Compare them all on CCBuddy: https://ccbuddy.app/blinkdeal
+```
+
+and is edited a few seconds later, when the coupon's own page has loaded,
+into the full post. An edit does not ping followers again. (The Actions job,
+and the phone when its checks are still running at that page, send the full
+post straight away, with no edit.)
 
 ```
 BLINKDEAL6 live on Myntra — 6% off gold coins
@@ -104,10 +119,22 @@ time.
   have. A send, once started, gets 8 seconds of its own, so the feed waits at
   most about 16 seconds after the crawl; usually the post is out well before
   the crawl ends. Everything else the phone does with WhatsApp or GitHub after
-  the crawl (an "Over" edit, a status read) shares one 8-second limit. While a
-  window it posted, or may have posted, is live, every feed it pushes carries
-  `waAt`, and the Actions job then neither posts that window nor edits its
-  end. A post that may have gone out (no answer, or a server error) is never
+  the crawl (an "Over" edit, a status read) shares one 8-second limit. The
+  post starts when the phone sees the window, beside the Telegram alert, and
+  goes out once its two checks (the pause issue, then the session) pass,
+  usually about 1-2 seconds later; the edit that fills it in is made at the
+  coupon's first page, about 3 seconds after the sight, off the crawl's path.
+  If the checks are still running when that page arrives, the post goes out
+  whole instead, and there is no edit. If the page never loads (the tick
+  fails after the post went out), the feed of that tick is not live and
+  carries no `waAt`; the post stays as first sent until the next tick. If that
+  tick sees the window live, it does not post again: it fills the post in and
+  its feed carries `waAt`. If it sees no window, it ends the post "Over." with
+  no time. A fill that fails is made by the crawl's edit, or else tried again
+  on the next live ticks (3 times at most, 20 seconds apart; a tick that finds
+  the poster paused spends a try without editing). While a window it posted,
+  or may have posted, is live, every feed it pushes carries `waAt`, and the
+  Actions job then neither posts that window nor edits its end. A post that may have gone out (no answer, or a server error) is never
   sent again. A post that certainly did not go out (any 4xx, or no connection
   at all) leaves no `waAt`, so Actions posts the window, with no delay. A
   phone restart, a lost push, a heartbeat or a failed read never posts again:
@@ -273,8 +300,8 @@ with the value:
 
 To switch it off again, delete the variable or set it to anything else.
 
-**9. Post from the phone.** This makes posts land about 3 seconds after the
-Telegram alert instead of 30-40. Do it when no window is live.
+**9. Post from the phone.** This makes posts land about 1-2 seconds after
+the Telegram alert instead of 30-40. Do it when no window is live.
 
 1. On the watcher phone, open panel.whapi.cloud in the browser, open the
    channel the spare number is linked to, and tap the copy icon after
@@ -365,17 +392,23 @@ only a person knows when the number has rested.
   checks count against its 1,000 requests a month (about 7 per window from
   the Actions job: 4 for the post, 3 for the edit; plus the watchdog's check
   4-8 times a day, about 180 a month). October's pace, 5.4 windows a day,
-  would make that about 1,320 a month. From the phone it is about 4 per
-  window (a session check at the opening, the post, one status read, the
-  edit), one more when the full crawl changes the first page's prices, and
-  one more (the channel list) when the channel was last found over a day ago
-  or the number linked has changed: about 650-850 a month at October's pace.
-  The phone also makes 2-3 GitHub reads per window (the pause issue), without
-  a credential, from the home connection.
+  would make that about 1,320 a month. From the phone it is about 5 per
+  window (a session check at the opening, the post, the edit that fills it in
+  from the first page, one status read, the "Over" edit), one more when the
+  full crawl changes the first page's prices, and one more (the channel list)
+  when the channel was last found over a day ago or the number linked has
+  changed: about 810-1,010 a month at October's pace (one fewer per window
+  when the checks are slower than the first page and the post goes out
+  whole). With the watchdog's checks that is about 990-1,190, at or over the
+  Sandbox's 1,000 a month; on Sandbox, the first call to drop would be the
+  edit after the full crawl. The phone also makes 2-3 GitHub reads per window (the pause
+  issue), without a credential, from the home connection.
 - Whapi renamed the role field `user_role`; its API reference still says
   `role`. The job reads both.
-- Speed: from the phone (step 9) the post goes out about 3 seconds after the
-  Telegram alert, at the coupon's first page, before the full crawl. From the
-  Actions job it lands about 30-40 seconds after the phone sees the window.
+- Speed: from the phone (step 9) the post goes out the moment the window is
+  seen, about 1-2 seconds after the Telegram alert on mobile data (each check
+  is bounded at 8 seconds), and is filled in from the coupon's first page
+  about 3 seconds after that, before the full crawl. From the Actions job it
+  lands about 30-40 seconds after the phone sees the window.
   October's windows lasted a median 4 minutes, the longest 29 (rival
   channels' posts, 19-27 Oct).

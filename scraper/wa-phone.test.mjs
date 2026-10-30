@@ -78,13 +78,16 @@ const stale = (feed) => ({ ...feed, checkedAt: ago(3 * MIN) })
  * A detect that behaves like the real one: the plain listing (onLive), the
  * coupon's first page `firstPageMs` later (onFirstPage, with its first
  * `first` coins), then `brands` brand pages of `brandMs` each. `events` gets
- * the time of each.
+ * the time of each. `failFirstPage` throws where the first page would come.
  */
-const fakeDetect = (result, { first = 12, firstPageMs = 0, brands = 0, brandMs = 0, events } = {}) => async (previous, onLive, onFirstPage) => {
+const fakeDetect = (result, { first = 12, firstPageMs = 0, failFirstPage = false, brands = 0, brandMs = 0, events } = {}) => async (previous, onLive, onFirstPage) => {
   if (result instanceof Error) throw result
   if (result.live) {
     await onLive({ code: result.code, couponId: result.couponId, source: result.source, skus: result.skus.slice(0, 3) })
+    events?.push(['sight', Date.now()])
     if (firstPageMs) await pause(firstPageMs)
+    // The coupon's own page did not load: the tick fails after the sight.
+    if (failFirstPage) throw new Error(`HTTP 503 for ${result.source}`)
     events?.push(['first page', Date.now()])
     await onFirstPage({ code: result.code, couponId: result.couponId, source: result.source, totalCount: result.totalCount, skus: result.skus.slice(0, first) })
     for (let i = 1; i <= brands; i++) {
@@ -139,7 +142,7 @@ async function phone(t, { routes = {}, gh = {}, cfg = LIVE_CFG, warm = true, tim
     const r = await step(previous, {
       detect: fakeDetect(result, opt),
       notify: async (text) => (out.alerts.push({ text, at: Date.now() }), { telegram: 'sent' }),
-      post: async (kind, w) => (out.posts.push({ kind, w, at: Date.now() }), { telegramChannel: 'sent' }),
+      post: async (kind, w, o = {}) => (out.posts.push({ kind, stage: o.stage ?? null, w, at: Date.now() }), { telegramChannel: 'sent' }),
       wa: 'wa' in opt ? opt.wa : poster(opt),
     })
     return { ...r, feed: r.next ?? previous }
@@ -151,6 +154,9 @@ async function phone(t, { routes = {}, gh = {}, cfg = LIVE_CFG, warm = true, tim
     calls: () => wa.requests.length + g.calls.length,
     fresh: () => wa.posts().filter((p) => !p.body.edit),
     edits: () => wa.posts().filter((p) => p.body.edit),
+    overEdits: () => wa.posts().filter((p) => p.body.edit && p.body.body.startsWith('Over')),
+    fillEdits: () => wa.posts().filter((p) => p.body.edit && !p.body.body.startsWith('Over')),
+    tgKinds: () => out.posts.map((p) => `${p.kind}${p.stage ? `/${p.stage}` : ''}`),
   }
 }
 
@@ -158,6 +164,12 @@ async function phone(t, { routes = {}, gh = {}, cfg = LIVE_CFG, warm = true, tim
 function firstPageBody(result, from, first = 12) {
   const skus = result.skus.slice(0, first)
   const page = { code: result.code, couponId: result.couponId, source: result.source, totalCount: result.totalCount, skus, discountPct: inferDiscountPct(result.code, skus) }
+  return renderOpen(postData({ ...page, lastLive: { code: result.code, from } }))
+}
+
+/** What the phone posts at first sight: the code, the discount from the plain listing's coins, the coupon page; no coins. */
+function sightBody(result, from) {
+  const page = { code: result.code, couponId: result.couponId, source: result.source, totalCount: null, skus: [], discountPct: inferDiscountPct(result.code, result.skus.slice(0, 3)) }
   return renderOpen(postData({ ...page, lastLive: { code: result.code, from } }))
 }
 
@@ -294,8 +306,10 @@ test('a live opening: one post of the exact text, written ahead, the Telegram al
   assert.equal(next.waAt, next.lastLive.from <= open.postedAt ? open.postedAt : next.lastLive.from)
   assert.ok(Date.parse(next.waAt) >= Date.parse(next.lastLive.from), 'never before the window started')
   assert.equal(h.out.alerts.length, 1)
-  assert.deepEqual(h.out.posts.map((p) => p.kind), ['open'])
+  assert.deepEqual(h.tgKinds(), ['open/sight', 'open/full'])
   assert.ok(next.alertedAt && next.postedAt)
+  assert.equal(open.stage, 'full', 'the first page came before the checks were done: sent whole, nothing to fill in')
+  assert.equal(h.edits().length, 0)
   assert.match(h.lines.join('\n'), /^WA open sent at /m)
   // Actions, on this push: stands down.
   const e = edge(quiet(), next, Date.now())
@@ -374,7 +388,7 @@ test('a WhatsApp poster that throws everywhere costs the tick nothing', async (t
   assert.equal(next.ok, true)
   assert.equal(next.waAt, undefined)
   assert.equal(h.out.alerts.length, 1)
-  assert.equal(h.out.posts.length, 1)
+  assert.deepEqual(h.tgKinds(), ['open/sight', 'open/full'])
   const { closedWindow, next: closed } = await h.tick(next, QUIET, { wa })
   assert.ok(closedWindow.postedAt, 'the Telegram close still posts')
   assert.equal(closed.live, false)
@@ -516,7 +530,7 @@ test('a lost feed write: the same window seen again is not posted again, and the
   assert.ok(Date.parse(next.waAt) >= Date.parse(next.lastLive.from), 'not mistaken by Actions for a left-over one')
   assert.equal(edge(quiet(), next, Date.now()).open, null, 'Actions stands down')
   assert.notEqual(windowKey(first), windowKey(next))
-  assert.match(h.lines.join('\n'), /was posted at .* by an earlier tick whose feed was lost; not posting it again/)
+  assert.match(h.lines.join('\n'), /was posted at .* by an earlier tick that did not publish it; not posting it again/)
   // And its end is still edited in.
   await h.tick(next, QUIET)
   assert.equal(h.edits().length, 1)
@@ -712,14 +726,16 @@ test('a code change mid-window: the new code is posted, then the old post is end
   // What Actions makes of the same push: nothing, both were the phone's.
   const e = edge(feed, next, Date.now())
   assert.deepEqual([e.open, e.close], [null, null])
-  // Telegram as before: one open post per code.
-  assert.deepEqual(h.out.posts.map((p) => `${p.kind} ${p.w.code}`), ['open BLINKDEAL6', 'open BLINKDEAL'])
+  // Telegram as before: one opening per code, each sent at sight and filled in at the first page.
+  assert.deepEqual(h.out.posts.map((p) => `${p.kind}/${p.stage} ${p.w.code}`), ['open/sight BLINKDEAL6', 'open/full BLINKDEAL6', 'open/sight BLINKDEAL', 'open/full BLINKDEAL'])
 })
 
 // ---- 11. An edit that fails ----------------------------------------------------------------------
 
+// The "Over" edits fail; the post, and any edit that fills it in, go through.
 const editFails = (answer) => ({
-  'POST /messages/text': (req) => (req.body.edit ? answer : { body: { sent: true, message: { id: 'PsqXn5SAD5v7HRA-wHN2ziQ0001' } } }),
+  'POST /messages/text': (req) =>
+    req.body.edit && req.body.body.startsWith('Over') ? answer : { body: { sent: true, message: { id: req.body.edit ?? 'PsqXn5SAD5v7HRA-wHN2ziQ0001' } } },
 })
 
 test('an edit that fails for a moment is tried again on later ticks: 3 more tries at most, 20 s apart, each after a pause check', async (t) => {
@@ -798,7 +814,7 @@ test('an edit still owed after 24 h is dropped without a call', async (t) => {
 
 test('after a 429 on an owed edit, no other call leaves the phone: not the next owed edit, nor anything on later ticks', async (t) => {
   const h = await phone(t, {
-    routes: { 'POST /messages/text': (req) => (req.body.edit ? refuse(429) : { body: { sent: true, message: { id: 'PsqXn5SAD5v7HRA-wHN2ziQ0009' } } }) },
+    routes: { 'POST /messages/text': (req) => (req.body.edit && req.body.body.startsWith('Over') ? refuse(429) : { body: { sent: true, message: { id: req.body.edit ?? 'PsqXn5SAD5v7HRA-wHN2ziQ0009' } } }) },
   })
   const [first, second] = await seedDue(h.dir, ['BLINKDEALA', 'BLINKDEALB'])
   const { feed } = await h.tick(quiet(), LIVE)
@@ -851,7 +867,7 @@ test('one deadline a tick: a hanging Whapi and a slow GitHub hold the end, a ret
   const T = 400
   const h = await phone(t, {
     timeoutMs: T,
-    routes: { 'POST /messages/text': (req) => (req.body.edit ? { hang: true } : { body: { sent: true, message: { id: 'PsqXn5SAD5v7HRA-wHN2ziQ0001' } } }) },
+    routes: { 'POST /messages/text': (req) => (req.body.edit && req.body.body.startsWith('Over') ? { hang: true } : { body: { sent: true, message: { id: req.body.edit ?? 'PsqXn5SAD5v7HRA-wHN2ziQ0001' } } }) },
   })
   const { feed } = await h.tick(quiet(), LIVE)
   h.g.delayMs = 300
@@ -1042,6 +1058,262 @@ test('the post from the first page is edited once, silently, with the full crawl
   const same = await phone(t)
   await same.tick(quiet(), LIVE)
   assert.equal(same.wa.posts().length, 1)
+})
+
+// ---- First sight, then the edit ---------------------------------------------------------------------------
+//
+// The post starts at onLive with what the plain listing knows, and is edited
+// to the full opening at the coupon's first page. The fake detect's first page
+// comes at once unless firstPageMs says otherwise, which is the case where the
+// checks are slower than the first page: one post, whole.
+
+const OK_POST = { body: { sent: true, message: { id: 'PsqXn5SAD5v7HRA-wHN2ziQ0001' } } }
+/** The post goes through, "Over" edits go through, and edits that fill it in get these answers in turn, the last repeating. */
+const fillAnswers = (...answers) => ({
+  'POST /messages/text': (req) => {
+    if (!req.body.edit) return OK_POST
+    if (req.body.body.startsWith('Over')) return { body: { sent: true, message: { id: req.body.edit } } }
+    return answers.length > 1 ? answers.shift() : answers[0]
+  },
+})
+
+test('at first sight: the post says what the plain listing knows, before the first page comes; one edit then fills it in', async (t) => {
+  const h = await phone(t)
+  const events = []
+  const { next } = await h.tick(quiet(), LIVE, { firstPageMs: 150, events })
+  const at = Object.fromEntries(events)
+  const from = next.lastLive.from
+  assert.equal(h.fresh().length, 1)
+  const [post] = h.fresh()
+  assert.deepEqual(post.body, { to: CHANNEL, body: sightBody(LIVE, from), no_link_preview: true })
+  assert.ok(post.at < at['first page'], 'it reached Whapi before the first page came')
+  assert.doesNotMatch(post.body.body, /Cheapest|\d coins/, 'no rows and no count yet')
+  assert.match(post.body.body, /\nThe coins: https:\/\/www\.myntra\.com\/gold-coins\?f=Coupons:BLINKDEAL6_135733\n/)
+  assert.deepEqual(h.edits().map((e) => e.body), [{ to: CHANNEL, edit: 'PsqXn5SAD5v7HRA-wHN2ziQ0001', body: firstPageBody(LIVE, from), no_link_preview: true }])
+  assert.ok(h.edits()[0].at >= at['first page'])
+  const open = await h.ledger('open.json')
+  assert.equal(open.stage, 'full')
+  assert.equal(open.body, firstPageBody(LIVE, from))
+  assert.ok(next.waAt)
+  assert.equal(edge(quiet(), next, Date.now()).open, null, 'Actions stands down')
+  assert.match(h.lines.join('\n'), /^WA open filled in from the first page at /m)
+  // Telegram beside it: its opening at sight, filled in at the first page.
+  assert.deepEqual(h.tgKinds(), ['open/sight', 'open/full'])
+  assert.ok(h.out.posts[0].at < at['first page'])
+  // The end: "Over", with the coins the post came to carry.
+  await h.tick(next, QUIET)
+  assert.equal(h.overEdits().length, 1)
+  assert.match(h.overEdits()[0].body.body, /^Over at .*\n\nBLINKDEAL6 was live on Myntra — 6% off gold coins\nLive from .*\n\nCheapest 24K per gram it gave:\n/)
+})
+
+test('checks slower than the first page: one post, sent whole, and no edit; slower than the crawl: none at all', async (t) => {
+  const h = await phone(t, { gh: { delayMs: 300 } })
+  const events = []
+  const { next } = await h.tick(quiet(), LIVE, { firstPageMs: 100, events })
+  assert.ok(h.g.calls[0].at < Object.fromEntries(events)['first page'], 'the checks started at sight')
+  assert.equal(h.wa.posts().length, 1)
+  assert.equal(h.fresh()[0].body.body, firstPageBody(LIVE, next.lastLive.from))
+  assert.equal((await h.ledger('open.json')).stage, 'full')
+  assert.equal(h.edits().length, 0)
+  assert.ok(next.waAt)
+  // Past the crawl and SETTLE_MS: cut off, never sent, and the feed leaves the window to Actions.
+  const slow = await phone(t, { gh: { delayMs: 600 }, settleMs: 100 })
+  const { next: left } = await slow.tick(quiet(), LIVE, { firstPageMs: 50 })
+  assert.equal(left.waAt, undefined)
+  assert.ok(edge(quiet(), left, Date.now()).open, 'Actions posts it')
+  await pause(800)
+  assert.equal(slow.wa.posts().length, 0)
+})
+
+test('the first page fails, then the window is read live: not posted again; the next tick fills it in, keeping its first "Live since"', async (t) => {
+  const h = await phone(t)
+  const { feed: failed } = await h.tick(quiet(), LIVE, { failFirstPage: true })
+  assert.equal(failed.ok, false)
+  assert.equal(failed.live, false, 'the feed never said live')
+  assert.equal(failed.waAt, undefined, 'and carries no waAt')
+  const first = await h.ledger('open.json')
+  assert.equal(first.stage, 'first')
+  assert.deepEqual(h.fresh().map((p) => p.body.body), [sightBody(LIVE, first.from)])
+  assert.equal(h.edits().length, 0)
+  const e1 = edge(quiet(), failed, Date.now())
+  assert.deepEqual([e1.open, e1.close], [null, null], 'Actions: a failed read opens nothing')
+  await pause(5)
+  const { next } = await h.tick(failed, LIVE)
+  assert.notEqual(next.lastLive.from, first.from)
+  assert.equal(h.fresh().length, 1, 'not posted again')
+  assert.deepEqual(h.edits().map((e) => e.body), [{ to: CHANNEL, edit: first.messageId, body: firstPageBody(LIVE, first.from), no_link_preview: true }])
+  assert.equal((await h.ledger('open.json')).stage, 'full')
+  assert.ok(next.waAt)
+  assert.equal(edge(failed, next, Date.now()).open, null, 'Actions stands down')
+  // The end: "Over", with the coins.
+  await h.tick(next, QUIET)
+  assert.equal(h.overEdits().length, 1)
+  assert.match(h.overEdits()[0].body.body, /Cheapest 24K per gram it gave:/)
+  assert.equal(h.fresh().length, 1)
+})
+
+test('the first page fails, then quiet reads: "Over." with no time, from what was known at sight; Actions does nothing', async (t) => {
+  for (const fails of [1, 3]) {
+    const h = await phone(t)
+    let f = quiet()
+    for (let i = 0; i < fails; i++) f = (await h.tick(f, LIVE, { failFirstPage: true })).feed
+    const first = await h.ledger('open.json')
+    const { next, closedWindow } = await h.tick(f, QUIET)
+    assert.equal(closedWindow, null)
+    assert.equal(h.fresh().length, 1, `${fails} failed first pages: one post`)
+    assert.deepEqual(h.edits().map((e) => e.body), [{ to: CHANNEL, edit: first.messageId, body: renderOver(first.data, null), no_link_preview: true }])
+    assert.match(h.edits()[0].body.body, /^Over\. These prices no longer apply\.\n\nBLINKDEAL6 was live on Myntra — 6% off gold coins\nLive from .*\.\n\nGold coin prices on CCBuddy: /)
+    assert.equal(await h.ledger('open.json'), null)
+    const e = edge(f, next, Date.now())
+    assert.deepEqual([e.open, e.close], [null, null])
+    await h.tick(next, QUIET)
+    assert.equal(h.edits().length, 1, 'once')
+  }
+})
+
+test('a restart between the sight and the first page: the post is out, and the next tick fills it in, never posts it again', async (t) => {
+  const h = await phone(t)
+  const url = (f) => JSON.stringify(pathToFileURL(join(HERE, f)).href)
+  // The phone dies after its post went out, before the coupon's first page: a fresh node process, killed there.
+  const code = `
+    const { step } = await import(${url('blinkdeal.mjs')})
+    const { phonePoster, phoneSettings } = await import(${url('wa-phone.mjs')})
+    const { readFile } = await import('node:fs/promises')
+    const { join } = await import('node:path')
+    const dir = ${JSON.stringify(h.dir)}
+    const fetch = async (u, init) => (new URL(String(u)).hostname === 'api.github.com' ? new Response('[]', { status: 200 }) : globalThis.fetch(u, init))
+    const wa = phonePoster({ settings: phoneSettings({ whapi: { token: ${JSON.stringify(TOKEN)}, dryRun: false } }), dir, fetch, whapiBase: ${JSON.stringify(h.wa.base)}, log: () => {} })
+    const live = ${JSON.stringify({ ...LIVE, skus: LIVE.skus.slice(0, 3) })}
+    const detect = async (prev, onLive) => {
+      await onLive({ code: live.code, couponId: live.couponId, source: live.source, skus: live.skus })
+      for (let i = 0; i < 500; i++) {
+        const o = await readFile(join(dir, 'open.json'), 'utf8').then(JSON.parse, () => null)
+        if (o?.state === 'sent') process.exit(0)
+        await new Promise((r) => setTimeout(r, 10))
+      }
+      process.exit(3)
+    }
+    await step({ ok: true, live: false }, { detect, notify: async () => ({}), post: async () => ({}), wa })
+    process.exit(4)
+  `
+  // How it dies does not matter (on Windows an exit with a socket closing can abort): only that it is gone.
+  await new Promise((ok) => execFile(process.execPath, ['--input-type=module', '-e', code], { timeout: 20000 }, () => ok()))
+  assert.equal(h.fresh().length, 1, 'the dead tick posted at sight')
+  const left = await h.ledger('open.json')
+  assert.deepEqual([left.state, left.stage], ['sent', 'first'])
+  // The next tick: a fresh process again, and the feed on file still the quiet one.
+  const { next } = await h.tick(quiet(), LIVE)
+  assert.equal(h.fresh().length, 1, 'not posted again')
+  assert.deepEqual(h.edits().map((e) => e.body.body), [firstPageBody(LIVE, left.from)])
+  assert.ok(next.waAt)
+  assert.equal(edge(quiet(), next, Date.now()).open, null, 'Actions stands down')
+})
+
+test('a post adopted at its first stage is not filled in while the poster is paused; the first live tick after the issue closes fills it in', async (t) => {
+  const h = await phone(t)
+  const { feed: failed } = await h.tick(quiet(), LIVE, { failFirstPage: true })
+  const first = await h.ledger('open.json')
+  h.g.issues.push(BOT_PAUSE)
+  const calls = h.wa.requests.length
+  const { next } = await h.tick(failed, LIVE)
+  assert.equal(h.wa.requests.length, calls, 'no Whapi call while paused: no edit, no session check')
+  assert.ok(next.waAt, "the post is the phone's: Actions still stands down")
+  assert.equal((await h.ledger('open.json')).stage, 'first')
+  h.g.issues.length = 0 // the owner closes it
+  h.advance(21000)
+  await h.tick(stale(next), LIVE)
+  assert.deepEqual(h.fillEdits().map((e) => e.body.body), [firstPageBody(LIVE, first.from)])
+  assert.equal((await h.ledger('open.json')).stage, 'full')
+})
+
+test("a fill that fails: the crawl's edit puts the coins in; failing too, later live ticks try 3 more times, 20 s apart, a pause check each; a 4xx or a 429 ends it", async (t) => {
+  // The fill fails once; the crawl's edit after it goes through.
+  const once = await phone(t, { routes: fillAnswers({ status: 502, body: {} }, OK_POST) })
+  const { next } = await once.tick(quiet(), LIVE, { firstPageMs: 150 })
+  assert.equal(once.fillEdits().length, 2)
+  assert.equal((await once.ledger('open.json')).stage, 'full')
+  assert.equal((await once.ledger('open.json')).body, renderOpen(postData(next)))
+  assert.match(once.lines.join('\n'), /WA open not filled in \(Whapi edit: HTTP 502\); the crawl's edit tries again/)
+  assert.match(once.lines.join('\n'), /WA open refreshed with the full crawl/)
+  // Both fail: the later live ticks.
+  const h = await phone(t, { routes: fillAnswers({ status: 502, body: {} }) })
+  let { feed } = await h.tick(quiet(), LIVE, { firstPageMs: 150 })
+  assert.equal(h.fillEdits().length, 2)
+  assert.equal((await h.ledger('open.json')).stage, 'first')
+  const gh = h.g.calls.length
+  h.advance(5000)
+  feed = (await h.tick(feed, LIVE)).feed
+  assert.equal(h.fillEdits().length, 2, 'not before 20 s')
+  assert.equal(h.g.calls.length, gh, 'and no pause check either')
+  for (let i = 1; i <= EDIT_RETRIES; i++) {
+    h.advance(21000)
+    feed = (await h.tick(stale(feed), LIVE)).feed
+    assert.equal(h.fillEdits().length, 2 + i)
+    assert.equal(h.g.calls.length, gh + i, 'one pause check before each')
+  }
+  h.advance(21000)
+  await h.tick(stale(feed), LIVE)
+  assert.equal(h.fillEdits().length, 2 + EDIT_RETRIES, 'then it stops')
+  assert.equal((await h.ledger('open.json')).fill.tries, EDIT_RETRIES)
+  // A 4xx: not tried again, by the crawl's edit or any later tick.
+  const no = await phone(t, { routes: fillAnswers(refuse(403)) })
+  let f = (await no.tick(quiet(), LIVE, { firstPageMs: 150 })).feed
+  no.advance(21000)
+  f = (await no.tick(stale(f), LIVE)).feed
+  assert.equal(no.fillEdits().length, 1)
+  assert.equal((await no.ledger('open.json')).fill.state, 'refused')
+  assert.deepEqual(leaks(no.lines.join('\n')), [])
+  // A 429: the number rests, and nothing else leaves the phone, the end included.
+  const rest = await phone(t, { routes: fillAnswers(refuse(429)) })
+  const r1 = (await rest.tick(quiet(), LIVE, { firstPageMs: 150 })).feed
+  const calls = rest.calls()
+  assert.equal((await rest.ledger('hold.json')).why, '429')
+  rest.advance(21000)
+  await rest.tick(stale(r1), LIVE)
+  await rest.tick(r1, QUIET)
+  assert.equal(rest.calls(), calls)
+  assert.equal(rest.fillEdits().length, 1)
+})
+
+test('a fill owed while the poster is paused spends its tries, one pause check each, and makes no Whapi call', async (t) => {
+  const h = await phone(t, { routes: fillAnswers({ status: 502, body: {} }) })
+  let { feed } = await h.tick(quiet(), LIVE, { firstPageMs: 150 })
+  assert.equal((await h.ledger('open.json')).stage, 'first')
+  h.g.issues.push(BOT_PAUSE)
+  const gh = h.g.calls.length
+  const calls = h.wa.requests.length
+  for (let i = 1; i <= EDIT_RETRIES + 2; i++) {
+    h.advance(21000)
+    feed = (await h.tick(stale(feed), LIVE)).feed
+    assert.equal(h.g.calls.length, gh + Math.min(i, EDIT_RETRIES), 'a pause check per try, none after the last')
+  }
+  assert.equal(h.wa.requests.length, calls, 'no edit, no session check')
+  assert.equal((await h.ledger('open.json')).fill.tries, EDIT_RETRIES)
+  assert.equal((await h.ledger('open.json')).stage, 'first', 'left as first sent')
+})
+
+test("the crawl's edit waits for the first page's: a slow fill never lands over the crawl's rows", async (t) => {
+  const h = await phone(t, {
+    routes: { 'POST /messages/text': (req) => (req.body.edit ? { delay: 250, body: { sent: true, message: { id: req.body.edit } } } : OK_POST) },
+  })
+  const { next } = await h.tick(quiet(), LIVE, { firstPageMs: 50, first: 3 })
+  const from = next.lastLive.from
+  const edits = h.fillEdits()
+  assert.deepEqual(edits.map((e) => e.body.body), [firstPageBody(LIVE, from, 3), renderOpen(postData(next))])
+  assert.notEqual(edits[0].body.body, edits[1].body.body)
+  assert.ok(edits[1].at - edits[0].at >= 240, 'the second was sent after the first was answered')
+  assert.equal((await h.ledger('open.json')).body, renderOpen(postData(next)))
+})
+
+test('dry, with the first page after the sight: prints the post at sight and the edit it would make, and calls nothing', async (t) => {
+  const h = await phone(t, { cfg: { whapi: { token: TOKEN } } })
+  const { next } = await h.tick(quiet(), LIVE, { firstPageMs: 150 })
+  const said = h.lines.join('\n')
+  assert.ok(said.includes(`would post:\n${sightBody(LIVE, next.lastLive.from)}`), said)
+  assert.ok(said.includes(`would edit it to:\n${firstPageBody(LIVE, next.lastLive.from)}`), said)
+  assert.equal(h.calls(), 0)
+  assert.equal(next.waAt, undefined)
+  assert.deepEqual(await readdir(h.dir), ['channel.json'])
 })
 
 // ---- 13. Never in the output -----------------------------------------------------------------------------

@@ -3,9 +3,15 @@
 //
 // From GitHub Actions (wa-post.mjs) the post lands 30-40 s after the phone sees
 // the window: the whole crawl, the push, the runner's queue and its setup.
-// October's windows lasted a median 4 min. From here it goes out at the
-// coupon's first page, beside the Telegram channel post, about 3 s after the
-// Telegram alert. The words are the same: renderOpen and renderOver from
+// October's windows lasted a median 4 min. From here it goes out the moment
+// the plain listing shows the code, beside the Telegram alert and the Telegram
+// channel post, once the pause check and the session check (both started
+// then) pass: about 1-2 s after the alert on mobile data. It says what is
+// known then (the code, its discount, the coupon page). About 3 s after the
+// sight, the coupon's first page has the count and the cheapest coins, and
+// the post is edited to say them; an edit pings nobody. If the checks are
+// still running when the first page comes, the post goes out whole instead,
+// with no edit. The words are the same: renderOpen and renderOver from
 // wa-post.mjs, TEMPLATES in notify.mjs.
 //
 // Actions stays the fallback, with no grace period. The send is awaited
@@ -36,6 +42,15 @@
 //                  that window, not posted again, unless it was posted over
 //                  ADOPT_MAX_AGE_MS ago: no window lasts that long, so it is
 //                  ended (an "Over" with no time) and the new one is posted.
+//                  `stage` is 'first' while the post says only what was known
+//                  at sight, 'full' once it carries the coins (none: 'full').
+//                  A post adopted at its 'first' stage (its first page never
+//                  came, or that tick was cut short) is filled in from this
+//                  tick's first page, else by the crawl's edit, else on the
+//                  next live ticks (`fill`: EDIT_RETRIES more tries at most,
+//                  EDIT_RETRY_GAP_MS apart, each after a pause check).
+//                  The Telegram channel's opening keeps its own record beside
+//                  it, telegram-open.json (notify.mjs).
 //   <key>.json     each ended post, with its edit's state; kept 30 days
 //   due.json       the keys of ended posts whose "Over" edit is still owed
 //   check.json     the last post, until its status is read once, 15 s or more
@@ -297,16 +312,22 @@ function phoneLedger(dir, { now, forced = false }) {
 /**
  * One tick's WhatsApp poster: the hooks step() calls. Every method is safe to
  * call in any order and never throws; every network call goes through `fetch`.
- *   onLive()          at an opening, beside the Telegram alert: starts the
- *                     pause check, then (when clear) the session check
- *   onFirstPage(p)    at an opening, before the Telegram channel post: starts
- *                     the post, which step() does not wait for
+ *   onLive(sight)     at an opening, beside the Telegram alert: starts the
+ *                     pause check, then (when clear) the session check, and
+ *                     the post, which step() does not wait for. It says what
+ *                     is known at sight, or the first page when that has come
+ *                     by the send
+ *   onFirstPage(p)    at the coupon's first page: the post filled in from it
+ *                     (an edit), off the crawl's path; the post itself starts
+ *                     here only when onLive could not start it
  *   settle()          after the crawl: waits for that post (bounded), and
  *                     starts the tick's one deadline
  *   refresh(next)     the post again, edited, if the full crawl's rows differ
+ *                     (after the first page's edit, never before it)
  *   close({previous, next})   a window ended: its post edited "Over"
  *   idle(next)        any other tick: a good read ends a post whose code it
- *                     does not show live; then the status read and the
+ *                     does not show live, or fills in one still at its first
+ *                     stage that it does; then the status read and the
  *                     "Over" edits still owed, if any
  *   marker(next)      `waAt` for the feed, or null
  */
@@ -398,7 +419,10 @@ export function phonePoster({
   let job = null
   let phase = 'pre' // 'pre' → 'sending' → 'done'; settle() waits only for a job past 'pre'
   let cutoff = false
-  let opened = null // { entry, channelId } once this tick's post went out
+  let opened = null // { entry, adopted? } once this tick's post went out, or one on file is this window's
+  let firstPage = null // the coupon's first page, once it came
+  let fill = null // the first page's edit, chained on the post
+  let dryShown = null // what a dry run printed it would post
 
   /** At an opening: held? paused? and, when clear, the session and the number linked. No Whapi call while paused. */
   const prepare = () =>
@@ -572,22 +596,30 @@ export function phonePoster({
 
   // ---- The opening ----------------------------------------------------------------
 
-  async function openJob(page) {
-    const key = `${page.code}-${Date.parse(page.from)}`
+  async function openJob(seed) {
+    const code = seed.code
+    const key = `${code}-${Date.parse(seed.from)}`
     // A window no ledger can name could never be ended; Actions refuses it too.
     if (!KEY_OK.test(key)) {
       say('open: this code cannot name a window; not posting')
       return 'deferred'
     }
-    const data = postData({ ...page, lastLive: { code: page.code, from: page.from } })
-    const body = renderOpen(data)
+    // What the post says at its send: the first page if it has come by then,
+    // else what was known at sight (no coins: no count and no rows).
+    const render = () => {
+      const src = firstPage?.code === code ? firstPage : seed
+      const data = postData({ ...src, lastLive: { code, from: seed.from } })
+      return { data, body: renderOpen(data), stage: src === firstPage ? 'full' : 'first' }
+    }
     const cur = await current()
     // The same code on file, posted under ADOPT_MAX_AGE_MS ago: no good read
-    // has seen that window end, so this is it again (a tick whose feed was
-    // lost posted it, or another run on this clone is posting it). Not posted
-    // twice. A post time that cannot be read counts as recent, for the same reason.
-    if (cur && cur.code === page.code && !(now() - Date.parse(cur.postedAt) >= ADOPT_MAX_AGE_MS)) {
-      say(`open: ${page.code} was posted at ${cur.postedAt} by an earlier tick whose feed was lost; not posting it again`)
+    // has seen that window end, so this is it again (a tick whose first page
+    // or feed write never came posted it, or another run on this clone is
+    // posting it). Not posted twice, but filled in if it needs to be. A post
+    // time that cannot be read counts as recent, for the same reason.
+    if (cur && cur.code === code && !(now() - Date.parse(cur.postedAt) >= ADOPT_MAX_AGE_MS)) {
+      say(`open: ${code} was posted at ${cur.postedAt} by an earlier tick that did not publish it; not posting it again`)
+      if (s.mode === 'live' && cur.state === 'sent' && MESSAGE_ID_OK.test(cur.messageId ?? '')) opened = { entry: cur, adopted: true }
       return 'adopted'
     }
     // Another code on file, or this code posted too long ago to be this
@@ -599,7 +631,8 @@ export function phonePoster({
       await retire(cur, null)
     }
     if (s.mode !== 'live') {
-      say(`DRY (${s.why}): would post:\n${body}`)
+      dryShown = render()
+      say(`DRY (${s.why}): would post:\n${dryShown.body}`)
       return 'dry'
     }
     let p
@@ -631,9 +664,10 @@ export function phonePoster({
       return 'deferred'
     }
     phase = 'sending'
-    const entry = { v: 1, key, code: page.code, from: page.from, state: 'sending', messageId: null, channelId: ch.channelId, channelTag: channelTag(s.token, ch.channelId), data, body, postedAt: iso(now()) }
+    const { data, body, stage } = render()
+    const entry = { v: 1, key, code, from: seed.from, state: 'sending', messageId: null, channelId: ch.channelId, channelTag: channelTag(s.token, ch.channelId), data, body, stage, postedAt: iso(now()) }
     if (!(await L.createOpen(entry))) {
-      say(`open: another run on this clone is posting ${page.code}; not posting it twice`)
+      say(`open: another run on this clone is posting ${code}; not posting it twice`)
       return 'taken'
     }
     try {
@@ -661,24 +695,135 @@ export function phonePoster({
     say('open: not at the send by the end of the crawl; the Actions poster takes this window')
     return 'late'
   }
+  const start = (seed) =>
+    openJob(seed)
+      .catch((e) => {
+        if (cutoff) return late()
+        say(`open failed: ${short(e)}`)
+        return 'error'
+      })
+      .finally(() => {
+        phase = 'done'
+      })
+
+  // ---- Filling it in ------------------------------------------------------------------
+
+  /** May a post on file be edited now? One this tick sent, yes; one adopted, only when this tick's checks are clear. */
+  async function clearToEdit() {
+    if (!opened?.adopted) return true
+    try {
+      return (await prepare()).pause === 'clear'
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * The post on file edited to the opening `src` gives, keeping its own "Live
+   * since". Its ledger entry is then 'full'. True when an edit was made, false
+   * when none was needed, null when it cannot be edited from here.
+   */
+  async function editOpen(entry, src) {
+    const data = postData({ ...src, lastLive: { code: entry.code, from: entry.from } })
+    const body = renderOpen(data)
+    const changed = body !== entry.body
+    if (changed && !(await editPost(entry, body))) return null
+    const { fill: _done, ...rest } = entry
+    const done = { ...rest, data, body, stage: 'full' }
+    const cur = await L.readOpen()
+    if (cur?.key === entry.key) {
+      const { fill: _f, ...kept } = cur
+      await L.replace(OPEN, { ...kept, data, body, stage: 'full' })
+    }
+    if (opened?.entry.key === entry.key) opened = { ...opened, entry: done }
+    return changed
+  }
+
+  /** A fill that failed, on file: `counted` for the idle tries; a 4xx (a 429 too) ends them. */
+  async function fillFailed(entry, err, counted) {
+    const refused = err instanceof WhapiError && err.status >= 400 && err.status < 500
+    const f = entry.fill ?? {}
+    const fill = { tries: (f.tries ?? 0) + (counted ? 1 : 0), lastTry: now(), ...(refused || f.state === 'refused' ? { state: 'refused' } : {}) }
+    const cur = await L.readOpen()
+    if (cur?.key === entry.key) await L.replace(OPEN, { ...cur, fill })
+    if (opened?.entry.key === entry.key) opened = { ...opened, entry: { ...entry, fill } }
+    return refused
+  }
+
+  /** At the first page: the post sent at sight, edited to the full opening. */
+  async function fillIn() {
+    const page = firstPage
+    if (!page) return
+    if (s.mode !== 'live') {
+      if (dryShown?.stage === 'first') {
+        const body = renderOpen(postData({ ...page, lastLive: { code: page.code, from: dryShown.data.from } }))
+        if (body !== dryShown.body) say(`DRY (${s.why}): would edit it to:\n${body}`)
+      }
+      return
+    }
+    const entry = opened?.entry
+    if (!entry || entry.code !== page.code || (entry.stage ?? 'full') !== 'first' || entry.fill?.state === 'refused') return
+    if (!(await clearToEdit())) return
+    try {
+      const r = await editOpen(entry, page)
+      if (r === null) {
+        await fillFailed(entry, new WhapiError('edit', 400, 'another Channel or token now'), false)
+        say(`open for ${entry.code} not filled in: it was made in another Channel, or under another Whapi token`)
+      } else say(`open filled in from the first page at ${iso(now())}`)
+    } catch (e) {
+      const refused = await fillFailed(entry, e, false).catch(() => false)
+      say(`open not filled in (${short(e)})${refused ? '; not tried again' : '; the crawl\'s edit tries again'}`)
+    }
+  }
+
+  /**
+   * A post still at its first stage, on a later live tick (its first page and
+   * the crawl's edit both failed): filled in from this read, at most
+   * EDIT_RETRIES times, EDIT_RETRY_GAP_MS apart, each after a pause check.
+   * A paused or unknown answer spends a try too: a long pause costs at most
+   * EDIT_RETRIES GitHub reads, and leaves the post as first sent.
+   */
+  async function owedFill(next) {
+    if (s.mode !== 'live' || next?.ok !== true) return
+    const code = liveCode(next)
+    if (!code) return
+    const cur = await current()
+    if (!cur || cur.code !== code || cur.state !== 'sent' || !MESSAGE_ID_OK.test(cur.messageId ?? '')) return
+    if ((cur.stage ?? 'full') !== 'first') return
+    const f = cur.fill ?? {}
+    if (f.state === 'refused' || (f.tries ?? 0) >= EDIT_RETRIES) return
+    if (f.lastTry && now() - f.lastTry < EDIT_RETRY_GAP_MS) return
+    if (rested || (await L.heldUntil())) return
+    const pz = await pausedNow()
+    if (pz !== false) {
+      // Paused, or could not tell: counts as a try, so neither becomes a GitHub call every tick.
+      await fillFailed(cur, null, true)
+      return
+    }
+    try {
+      const r = await editOpen(cur, next)
+      if (r === null) {
+        await fillFailed(cur, new WhapiError('edit', 400, 'another Channel or token now'), true)
+        say(`open for ${code} not filled in: it was made in another Channel, or under another Whapi token`)
+      } else say(`open filled in at ${iso(now())}, on a later tick`)
+    } catch (e) {
+      const refused = await fillFailed(cur, e, true)
+      say(`open not filled in (${short(e)})${refused ? '; not tried again' : '; tried again on a later tick'}`)
+    }
+  }
 
   return {
-    onLive(early) {
+    onLive(sight) {
       // Not for a code no ledger can name: that window is never posted from here.
-      if (s.mode !== 'live' || !KEY_OK.test(`${early?.code}-${now()}`)) return
-      prepare().catch(() => {}) // read, and reported, when the post awaits it
+      if (job || !KEY_OK.test(`${sight?.code}-${Date.parse(sight?.from)}`)) return
+      if (s.mode === 'live') prepare().catch(() => {}) // read, and reported, when the post awaits it
+      job = start(sight)
     },
     onFirstPage(page) {
-      if (job) return
-      job = openJob(page)
-        .catch((e) => {
-          if (cutoff) return late()
-          say(`open failed: ${short(e)}`)
-          return 'error'
-        })
-        .finally(() => {
-          phase = 'done'
-        })
+      firstPage = page
+      // onLive could not start the post (it threw, or the code could not name a window): the first page does, as before.
+      if (!job) job = start(page)
+      fill ??= job.then(fillIn).catch((e) => say(`open not filled in: ${short(e)}`))
     },
     async settle() {
       budget()
@@ -694,26 +839,27 @@ export function phonePoster({
       // Not at its send: cut off now, every call it started with it, so
       // nothing it does holds this process, and so the push, open.
       if (phase === 'pre') return cut()
-      // No post of this tick's to refresh: nothing left in flight is needed.
-      if ((await job) !== 'sent') cut()
+      await job
+      // No post of this tick's (or adopted by it) to fill in or refresh: nothing left in flight is needed.
+      if (!opened) cut()
     },
     async refresh(next) {
-      // The post went out from the first page's 50 coins; the crawl has them all.
+      // The post went out at sight (or from the first page's 50 coins); the crawl has them all.
       if (!opened?.entry.messageId) return
       budget()
       try {
-        if (windowKey(next) !== opened.entry.key) return
-        const data = postData(next)
-        const body = renderOpen(data)
-        if (body === opened.entry.body) return
-        if (!(await editPost(opened.entry, body))) return
-        const entry = { ...opened.entry, data, body }
-        const cur = await L.readOpen()
-        if (cur?.key === entry.key) await L.replace(OPEN, { ...cur, data, body })
-        opened = { entry }
-        say(`open refreshed with the full crawl at ${iso(now())}`)
+        // The first page's edit lands first: a late one must never overwrite the crawl's rows.
+        await fill
+        const entry = opened.entry
+        if (s.mode !== 'live' || liveCode(next) !== entry.code || entry.fill?.state === 'refused') return
+        if (!(await clearToEdit())) return
+        const r = await editOpen(entry, next)
+        if (r === null) await fillFailed(entry, new WhapiError('edit', 400, 'another Channel or token now'), false)
+        else if (r) say(`open refreshed with the full crawl at ${iso(now())}`)
       } catch (e) {
-        say(`open not refreshed (${short(e)}); it keeps the first page's rows`)
+        const entry = opened?.entry
+        if (entry && (entry.stage ?? 'full') === 'first') await fillFailed(entry, e, false).catch(() => {})
+        say(`open not refreshed (${short(e)}); it stays as it was`)
       }
     },
     async close({ previous, next }) {
@@ -751,6 +897,7 @@ export function phonePoster({
           const cur = await current()
           if (cur && cur.code !== liveCode(next)) await retire(cur, null)
         }
+        await owedFill(next)
         await checkStatus()
         await runDue({ atEdge: false })
       } catch (e) {

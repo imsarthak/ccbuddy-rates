@@ -23,8 +23,9 @@
 // (0 posts; anything else is dry).
 //
 // whapi makes the phone post each window's opening to the WhatsApp Channel
-// itself, through Whapi.Cloud, seconds after the Telegram alert, and edit it
-// "Over" at the end (scraper/wa-phone.mjs). It is dry unless dryRun is false;
+// itself, through Whapi.Cloud, the moment it sees the window (about 1-2 s
+// after the Telegram alert), fill it in from the coupon's first page seconds
+// later, and edit it "Over" at the end (scraper/wa-phone.mjs). It is dry unless dryRun is false;
 // without the block the phone does nothing for WhatsApp and the GitHub
 // Actions poster posts instead, as it always has. `node scraper/wa-phone.mjs
 // --setup` writes the block. Optional whapi.channelId (…@newsletter) pins the
@@ -35,9 +36,11 @@
 // unattended, as a spare admin number. Setup and risks: docs/whatsapp-tasker.md.
 //
 //   node scraper/notify.mjs --test       send a test message on every alert channel
-//   node scraper/notify.mjs --preview    print the open and close channel posts
-//                                        rendered from the captured window, send nothing
-//   node scraper/notify.mjs --post-test  send those two posts to telegram.channelId
+//   node scraper/notify.mjs --preview    print the channel posts rendered from the
+//                                        captured window (the opening at first sight,
+//                                        that post filled in, the close), send nothing
+//   node scraper/notify.mjs --post-test  send them to telegram.channelId: the opening,
+//                                        then the edit that fills it in, then the close
 //                                        (point it at a private test channel first)
 //
 // Two different things go out of here. The ALERT is the private ping to
@@ -46,7 +49,10 @@
 // the Telegram channel (telegram.channelId — the bot must be an admin of it)
 // and, one tap away, to the WhatsApp Channel: the local notification carries a
 // "Post to channel" button that copies the post and opens the channel
-// (whatsappChannel.url); an admin pastes and sends.
+// (whatsappChannel.url); an admin pastes and sends. The Telegram opening goes
+// out the moment the window is seen and is edited, seconds later, into the
+// full post (channelPoster, below); the notification and Tasker wait for the
+// full post, as they cannot be edited.
 //
 // The WhatsApp Channel can also be posted unattended through Whapi.Cloud, as a
 // spare admin number: by this phone itself (scraper/wa-phone.mjs, the `whapi`
@@ -68,7 +74,7 @@
 //             sees the message text. Keep alerts free of anything private —
 //             a coupon code is public information, so this is fine here.
 
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile, writeFile, mkdir, rename, unlink, link } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execFile } from 'node:child_process'
@@ -77,6 +83,7 @@ import { promisify } from 'node:util'
 const execFileAsync = promisify(execFile)
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const TIMEOUT_MS = 15000
+export const TELEGRAM_API = 'https://api.telegram.org'
 
 /** .notify.env with the environment on top. Shared with wa-phone.mjs. */
 export async function loadConfig() {
@@ -113,9 +120,9 @@ export function applyEnv(cfg, env) {
   return out
 }
 
-async function sendTelegram(cfg, text) {
+async function sendTelegram(cfg, text, { base = TELEGRAM_API } = {}) {
   if (!cfg?.token || !cfg?.chatId) return null
-  const res = await fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
+  const res = await fetch(`${base}/bot${cfg.token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: cfg.chatId, text, disable_web_page_preview: true }),
@@ -128,6 +135,53 @@ async function sendTelegram(cfg, text) {
     throw new Error(`telegram HTTP ${res.status}${why ? `: ${why}` : ''}`)
   }
   return 'sent'
+}
+
+/**
+ * A Bot API call that says how it failed. `status` is the HTTP status (0 when
+ * no answer came); `unsent` is true only when no connection was ever made, so
+ * the request cannot have reached Telegram. The token is never in the message.
+ */
+export class TelegramError extends Error {
+  constructor(status, description = '', { unsent = false, why = '' } = {}) {
+    super(status ? `telegram HTTP ${status}${description ? `: ${description}` : ''}` : `telegram: no answer (${why})`)
+    this.status = status
+    this.description = description
+    this.unsent = unsent
+  }
+}
+
+// Errors from before a connection exists (the same list as wa-post.mjs, which
+// cannot be imported from here: it imports this file).
+const NEVER_CONNECTED = new Set(['ENOTFOUND', 'EAI_AGAIN', 'ECONNREFUSED', 'ENETUNREACH', 'EHOSTUNREACH', 'ENETDOWN'])
+const neverConnected = (e) => {
+  const c = e?.cause ?? e
+  if (NEVER_CONNECTED.has(c?.code)) return true
+  const all = Array.isArray(c?.errors) ? c.errors : []
+  return all.length > 0 && all.every((x) => NEVER_CONNECTED.has(x?.code))
+}
+
+/** One Bot API call: its `result`, or a TelegramError. `signal` cuts it short beside its own 15 s. */
+export async function telegramApi(token, method, payload, { base = TELEGRAM_API, signal } = {}) {
+  let res
+  try {
+    res = await fetch(`${base}/bot${token}/${method}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: signal ? AbortSignal.any([AbortSignal.timeout(TIMEOUT_MS), signal]) : AbortSignal.timeout(TIMEOUT_MS),
+    })
+  } catch (e) {
+    const stopped = e?.name === 'TimeoutError' || e?.name === 'AbortError'
+    throw new TelegramError(0, '', { unsent: !stopped && neverConnected(e), why: stopped ? 'timed out' : 'network error' })
+  }
+  const j = await res.json().catch(() => null)
+  if (!res.ok || j?.ok !== true) {
+    // Nothing token-like, and no long number (a chat or message id), is repeated into the log.
+    const why = typeof j?.description === 'string' ? j.description.replace(/(bot)?\d+:[\w-]+/g, '<token>').replace(/\d{5,}/g, '<n>') : ''
+    throw new TelegramError(res.status, why.replace(/\s+/g, ' ').slice(0, 120))
+  }
+  return j.result
 }
 
 async function sendSms(cfg, text) {
@@ -199,6 +253,9 @@ async function fanOut(jobs) {
   )
   return out
 }
+
+/** A per-channel result, for the log. */
+export const fmtResults = (res) => Object.entries(res ?? {}).map(([k, v]) => `${k}:${v}`).join(' ') || '(no channels configured)'
 
 /** A coin's weight in grams, read from its name or info line; null if neither says. */
 export function gramsOf(s) {
@@ -298,9 +355,13 @@ export function composeAlert(feed) {
 // ---- Channel posts ---------------------------------------------------------
 //
 // Public, two per window: one when it opens, one when it closes. Every word a
-// follower reads is in TEMPLATES and nowhere else. The open post goes out
-// from the coupon's first page (see onFirstPage in blinkdeal.mjs), so it
-// knows the coverage count and has fifty real prices for the cheapest ₹/g.
+// follower reads is in TEMPLATES and nowhere else. The open post goes out the
+// moment the plain listing shows the code (onLive in blinkdeal.mjs), with what
+// is known then: the code, its discount and the coupon page; TEMPLATES.open
+// leaves out the count and the cheapest ₹/g it does not have yet. About 3 s
+// later the coupon's first page (onFirstPage) knows the coverage count and has
+// fifty real prices for the cheapest ₹/g, and the post is edited to say them.
+// An edit pings nobody, so followers hear of the window once, at first sight.
 
 export const APP_LINK = 'https://ccbuddy.app/blinkdeal'
 
@@ -376,13 +437,13 @@ export function buttonAction(text, url, { binDir = TERMUX_BIN } = {}) {
  * The notification with the button, on the watcher phone. Without a channel
  * URL it is a plain notification carrying the post text.
  */
-async function sendLocalPost(kind, text, cfg) {
+async function sendLocalPost(kind, text, cfg, { exec = execFileAsync, signal } = {}) {
   const url = cfg.whatsappChannel?.url
   const title = kind === 'close' ? TEMPLATES.closeTitle : TEMPLATES.openTitle
   const args = ['--id', NOTIFICATION_ID, '--title', title, '--content', text, '--priority', 'max']
   if (url) args.push('--button1', TEMPLATES.button, '--button1-action', buttonAction(text, url))
   try {
-    await execFileAsync('termux-notification', args, { timeout: TIMEOUT_MS })
+    await exec('termux-notification', args, signal ? { timeout: TIMEOUT_MS, signal } : { timeout: TIMEOUT_MS })
     return url ? 'sent+button' : 'sent'
   } catch {
     return null // not on Termux
@@ -419,11 +480,11 @@ export function intentArgs(kind, { code, text, url }, { pkg = TASKER_PACKAGE, us
   ]
 }
 
-async function sendTaskerIntent(kind, w, text, cfg) {
+async function sendTaskerIntent(kind, w, text, cfg, { exec = execFileAsync, signal } = {}) {
   const wa = cfg.whatsappChannel
   if (!wa?.autopost) return null
   if (!wa.url) throw new Error('whatsappChannel.autopost is on but whatsappChannel.url is not set')
-  await execFileAsync('am', intentArgs(kind, { code: w.code, text, url: wa.url }, { pkg: wa.taskerPackage }), {
+  await exec('am', intentArgs(kind, { code: w.code, text, url: wa.url }, { pkg: wa.taskerPackage }), signal ? { timeout: TIMEOUT_MS, signal } : {
     timeout: TIMEOUT_MS,
   })
   return 'broadcast'
@@ -437,7 +498,8 @@ export function formatDuration(ms) {
 
 /**
  * Render one post from the window as the watcher knows it at that moment.
- *   open   { code, discountPct, totalCount?, skus, source }
+ *   open   { code, discountPct, totalCount?, skus, source }: at first sight
+ *          skus is [] and totalCount null, so there is no count and no Best line
  *   close  { code, from, to, approx?, maxSkus? | skuCount? }
  * An `approx` close is one the watcher did not see happen: its `to` is the
  * last time the window was seen live, so to − from is only a lower bound,
@@ -469,19 +531,327 @@ export function composePost(kind, w) {
  * notify(): never throws, never blocks the watcher, returns a per-channel
  * result for the log. `dryRun` prints the post and sends nothing — the way
  * to exercise this anywhere without a real channel ever seeing it.
+ *
+ * An opening comes in two stages, sharing `tg` ({ state, messageId }, the
+ * Telegram post of this window so far):
+ *   'sight'  the Telegram channel alone: sendMessage, then tg.state is 'sent'
+ *            (with messageId when Telegram gave an integer one), 'unknown' (no
+ *            answer, or a 5xx: it may have gone out) or 'unsent' (a 4xx, or no
+ *            connection at all). Unset when no channel is configured.
+ *   'full'   (and no stage, the single post) the Telegram post edited to this
+ *            text when it has a message id ("message is not modified" counts
+ *            as done); else sent, once, when none went out ('unsent' or
+ *            unset); else left as it is ('unknown': it may be out, and a
+ *            second could never be taken back). Plus the local notification
+ *            and the Tasker intent, which cannot be edited, so they wait for
+ *            this stage.
+ * A close at stage 'sight' is the Telegram channel alone too: the end of an
+ * opening that never got past its first sight, which no notification or
+ * Tasker ever carried. `signal` cuts the opening's calls short (step()'s
+ * bound). `config`, `base` and `exec` are for tests.
  */
-export async function postWindow(kind, w, { dryRun = false } = {}) {
+export async function postWindow(kind, w, { dryRun = false, stage = null, tg = {}, config, base = TELEGRAM_API, signal, exec = execFileAsync } = {}) {
   const text = composePost(kind, w)
   if (dryRun) {
-    console.log(`DRY-RUN ${kind} post:\n${text}`)
+    const edit = kind === 'open' && stage !== 'sight' && tg.state === 'dry'
+    console.log(`DRY-RUN ${kind} post${edit ? ', edited to' : ''}:\n${text}`)
+    if (kind === 'open' && stage === 'sight') tg.state = 'dry'
     return { dryRun: 'printed' }
   }
-  const cfg = await loadConfig()
+  const cfg = config ?? (await loadConfig())
+  const channel = { token: cfg.telegram?.token, chatId: cfg.telegram?.channelId, base, signal }
+  if (stage === 'sight') {
+    return fanOut([['telegramChannel', () => (kind === 'open' ? openAtSight(channel, text, tg) : sendTelegram(channel, text, { base }))]])
+  }
+  if (kind === 'open') {
+    return fanOut([
+      ['telegramChannel', () => openInFull(channel, text, tg)],
+      ['local', () => sendLocalPost(kind, text, cfg, { exec, signal })],
+      ['tasker', () => sendTaskerIntent(kind, w, text, cfg, { exec, signal })],
+    ])
+  }
   return fanOut([
-    ['telegramChannel', () => sendTelegram({ token: cfg.telegram?.token, chatId: cfg.telegram?.channelId }, text)],
-    ['local', () => sendLocalPost(kind, text, cfg)],
-    ['tasker', () => sendTaskerIntent(kind, w, text, cfg)],
+    ['telegramChannel', () => sendTelegram(channel, text, { base })],
+    ['local', () => sendLocalPost(kind, text, cfg, { exec })],
+    ['tasker', () => sendTaskerIntent(kind, w, text, cfg, { exec })],
   ])
+}
+
+/** The opening, sent to the Telegram channel; `tg` says how it went. */
+async function openAtSight({ token, chatId, base, signal }, text, tg) {
+  if (!token || !chatId) return null
+  try {
+    const result = await telegramApi(token, 'sendMessage', { chat_id: chatId, text, disable_web_page_preview: true }, { base, signal })
+    tg.state = 'sent'
+    tg.messageId = Number.isInteger(result?.message_id) ? result.message_id : null
+    return 'sent'
+  } catch (e) {
+    tg.state = e?.unsent || (e?.status >= 400 && e?.status < 500) ? 'unsent' : 'unknown'
+    throw e
+  }
+}
+
+/** The opening in full: the post edited, or sent once when none is out, or left as it is. */
+async function openInFull({ token, chatId, base, signal }, text, tg) {
+  if (!token || !chatId) return null
+  if (Number.isInteger(tg.messageId)) {
+    try {
+      await telegramApi(token, 'editMessageText', { chat_id: chatId, message_id: tg.messageId, text, disable_web_page_preview: true }, { base, signal })
+    } catch (e) {
+      if (!(e?.status === 400 && /message is not modified/i.test(e.description ?? ''))) throw e
+    }
+    return 'edited'
+  }
+  if (tg.state && tg.state !== 'unsent') return 'not sent again'
+  return openAtSight({ token, chatId, base, signal }, text, tg)
+}
+
+// ---- The Telegram opening, once per window --------------------------------------
+//
+// Posting at first sight makes an opening that never reaches its first page
+// (the fetch failed, or the phone restarted) post again on the next tick: that
+// tick's feed was never live, so it is an opening too. A record on the phone,
+// beside the WhatsApp ledger, stops it: telegram-open.json, the one opening
+// out and not yet ended { v, code, from, state, messageId, filled, postedAt }.
+//   state   'sending' (written before the send), 'sent', 'unknown' (may be
+//           out), 'none' (no Telegram post: no channel, or it was refused)
+//   filled  the first page's stage is done (or under way): the edit, the
+//           notification and Tasker are never made twice
+// Created exclusively (one run posts), each write whole. Every good read that
+// does not show its code live ends it; one never published then gets its
+// "is over" (TEMPLATES.close with no length), as WhatsApp gets its "Over.".
+// One older than TG_ADOPT_MAX_AGE_MS is never taken for the window opening now.
+
+export const TG_OPEN_PATH = join(ROOT, '.wa-ledger', 'telegram-open.json')
+// The same bound as wa-phone.mjs ADOPT_MAX_AGE_MS: no window lasts that long.
+export const TG_ADOPT_MAX_AGE_MS = 2 * 3600 * 1000
+
+/** The record at `path`, or (null) one in memory only, for tests, dry runs and replays. */
+export function telegramRecord(path = null) {
+  if (!path) {
+    let held = null
+    const copy = (v) => (v ? JSON.parse(JSON.stringify(v)) : null)
+    return {
+      read: async () => copy(held),
+      create: async (rec) => (held ? false : ((held = copy(rec)), true)),
+      replace: async (rec) => {
+        held = copy(rec)
+      },
+      remove: async () => {
+        held = null
+      },
+    }
+  }
+  const dir = dirname(path)
+  const text = (v) => `${JSON.stringify(v, null, 1)}\n`
+  const tmpName = () => `${path}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`
+  return {
+    /** The record, or null. One that cannot be read is moved aside: every write here is whole. */
+    async read() {
+      let raw
+      try {
+        raw = await readFile(path, 'utf8')
+      } catch {
+        return null
+      }
+      try {
+        const o = JSON.parse(raw)
+        if (o && typeof o === 'object' && typeof o.code === 'string') return o
+      } catch {
+        /* below */
+      }
+      await rename(path, path.replace(/\.json$/, `.bad-${Date.now()}.json`)).catch(() => {})
+      return null
+    },
+    /** Created only if there is none, whole, in one step (a hard link of a finished file). False when one exists. */
+    async create(rec) {
+      await mkdir(dir, { recursive: true })
+      const tmp = tmpName()
+      await writeFile(tmp, text(rec))
+      try {
+        await link(tmp, path)
+        return true
+      } catch (e) {
+        if (e?.code === 'EEXIST') return false
+        try {
+          await writeFile(path, text(rec), { flag: 'wx' })
+          return true
+        } catch (e2) {
+          if (e2?.code === 'EEXIST') return false
+          throw e2
+        }
+      } finally {
+        await unlink(tmp).catch(() => {})
+      }
+    },
+    /** Written beside it, then renamed over it. */
+    async replace(rec) {
+      await mkdir(dir, { recursive: true })
+      const tmp = tmpName()
+      await writeFile(tmp, text(rec))
+      await rename(tmp, path)
+    },
+    async remove() {
+      await unlink(path).catch(() => {})
+    },
+  }
+}
+
+const liveCodeOf = (feed) => (feed?.live === true ? feed.lastLive?.code ?? feed.code ?? null : null)
+
+/**
+ * One tick's Telegram channel opening, for step() in blinkdeal.mjs:
+ *   sight(w)   at the plain listing: the opening as known then, sent now
+ *   page(w)    at the coupon's first page: that post edited to the full
+ *              opening, the notification and Tasker (after sight's send)
+ *   settle()   before the feed is written: waits for both, until boundMs
+ *              after the first page (or the sight, when no page came), then
+ *              cuts whatever is still in flight
+ *   posted()   whether either stage was made (the feed's postedAt)
+ *   idle({ previous, next })   any tick that is not an opening, after its
+ *              close post: a good read that does not show the record's code
+ *              live ends it, posting "is over" for one never published
+ * Nothing is awaited by the caller but settle() and idle(), and nothing
+ * throws. `record` is telegramRecord(); `post` is postWindow or a test's fake.
+ */
+export function channelPoster({ post = postWindow, record = telegramRecord(null), dryRun = false, log = console.log, error = console.error, boundMs = TIMEOUT_MS, now = Date.now } = {}) {
+  const ctrl = new AbortController()
+  const tg = {}
+  let chain = null
+  let sightAt = null
+  let pageAt = null
+  let made = false
+  let taken = false // another run on this clone holds the record: this one posts nothing
+  let rec = null // this tick's record, as last written
+  const stamp = () => new Date().toISOString()
+  const short = (e) => String(e?.message ?? e).slice(0, 80)
+  // A record that cannot be read or written never stops a post.
+  const safely = async (what, fn) => {
+    try {
+      return await fn()
+    } catch (e) {
+      error(`POST open: the record could not be ${what} (${short(e)})`)
+      return undefined
+    }
+  }
+  const send = async (stage, w) => {
+    try {
+      const res = await post('open', w, { dryRun, stage, tg, signal: ctrl.signal })
+      made = true
+      log(`POST open${stage === 'full' ? ' filled in' : ''} ${fmtResults(res)} at ${stamp()}`)
+    } catch (e) {
+      // A channel failing must never cost the window its crawl and publish.
+      error(`POST open failed: ${short(e)}`)
+    }
+  }
+  const outcome = () => (tg.state === 'sent' || tg.state === 'unknown' ? tg.state : null)
+  const entry = (w, filled) => ({ v: 1, code: w.code, from: w.from ?? null, state: 'sending', messageId: null, filled, postedAt: stamp() })
+
+  return {
+    sight(w) {
+      if (chain) return
+      sightAt = now()
+      chain = (async () => {
+        const r = await safely('read', () => record.read())
+        if (r && r.code === w.code && !(now() - Date.parse(r.postedAt) >= TG_ADOPT_MAX_AGE_MS)) {
+          // This window, posted by an earlier tick whose first page or feed write never came: not again.
+          rec = r
+          tg.state = r.state === 'sending' ? 'unknown' : r.state
+          if (Number.isInteger(r.messageId)) tg.messageId = r.messageId
+          log(`POST open: ${w.code} was posted at ${r.postedAt} by an earlier tick that did not publish it; not posting it again`)
+          return
+        }
+        // Another code, or too old to be this window: ended without a post, as a code change always was.
+        if (r) await safely('removed', () => record.remove())
+        const first = entry(w, false)
+        const ok = await safely('written', () => record.create(first))
+        if (ok === false) {
+          taken = true
+          log(`POST open: another run on this clone is posting ${w.code}; not posting it twice`)
+          return
+        }
+        rec = ok ? first : null
+        await send('sight', w)
+        if (!rec) return
+        const state = outcome()
+        if (state) {
+          rec = { ...rec, state, messageId: tg.messageId ?? null }
+          await safely('written', () => record.replace(rec))
+        } else {
+          // Nothing went out: the first page posts it whole, as before.
+          rec = null
+          await safely('removed', () => record.remove())
+        }
+      })()
+    },
+    page(w) {
+      pageAt = now()
+      chain = (chain ?? Promise.resolve()).then(async () => {
+        if (taken) return
+        if (rec?.filled) {
+          log(`POST open: ${w.code} was filled in by an earlier tick; not again`)
+          return
+        }
+        // Written first: the notification and Tasker go once, whatever happens next.
+        if (rec) {
+          rec = { ...rec, filled: true }
+          await safely('written', () => record.replace(rec))
+        } else {
+          const full = entry(w, true)
+          const ok = await safely('written', () => record.create(full))
+          if (ok === false) {
+            taken = true
+            log(`POST open: another run on this clone is posting ${w.code}; not posting it twice`)
+            return
+          }
+          rec = ok ? full : null
+        }
+        const fresh = !Number.isInteger(tg.messageId) && (!tg.state || tg.state === 'unsent')
+        await send('full', w)
+        if (rec && fresh) {
+          rec = { ...rec, state: outcome() ?? 'none', messageId: tg.messageId ?? null }
+          await safely('written', () => record.replace(rec))
+        }
+      })
+    },
+    async settle() {
+      try {
+        if (!chain) return
+        const wait = (ms) => {
+          let t
+          return [new Promise((r) => (t = setTimeout(() => r(false), Math.max(0, ms)))), () => clearTimeout(t)]
+        }
+        const [timer, stop] = wait((pageAt ?? sightAt) + boundMs - now())
+        const done = await Promise.race([chain.then(() => true), timer])
+        stop()
+        if (done) return
+        ctrl.abort(new DOMException('the channel post time for this tick is up', 'TimeoutError'))
+        error(`POST open: not done ${boundMs / 1000} s after the ${pageAt ? 'first page' : 'first sight'}; cut off`)
+        // What is left is the record's last write, on this phone.
+        const [grace, stop2] = wait(1000)
+        await Promise.race([chain, grace])
+        stop2()
+      } catch (e) {
+        error(`POST open: settle failed (${short(e)})`)
+      }
+    },
+    posted: () => made,
+    async idle({ previous, next } = {}) {
+      try {
+        if (next?.ok !== true) return
+        const r = await record.read()
+        if (!r || liveCodeOf(next) === r.code) return
+        await record.remove()
+        // Shown live by the feed before: that window's close is step()'s own close post.
+        if (liveCodeOf(previous) === r.code) return
+        if (!['sent', 'unknown', 'sending'].includes(r.state)) return
+        const res = await post('close', { code: r.code, approx: true }, { dryRun, stage: r.filled ? null : 'sight' })
+        log(`POST close ${fmtResults(res)} at ${stamp()} (${r.code}: posted at ${r.postedAt}, never published)`)
+      } catch (e) {
+        error(`POST close failed: ${short(e)}`)
+      }
+    },
+  }
 }
 
 /**
@@ -539,10 +909,16 @@ if (process.argv[1] && process.argv[1].replace(/\\/g, '/').toLowerCase().endsWit
     const open = { ...fx, discountPct: fx.discountPct ?? 6 }
     const from = fx.lastLive?.from ?? fx.generated
     const close = { code: fx.code, from, to: new Date(Date.parse(from) + 36 * 60000).toISOString(), maxSkus: fx.totalCount }
+    // What the plain listing knows: the code, its discount, the coupon page.
+    const sight = { code: fx.code, couponId: fx.couponId, source: fx.source, discountPct: open.discountPct, skus: [], totalCount: null }
     const dryRun = !process.argv.includes('--post-test')
-    for (const [kind, w] of [['open', open], ['close', close]]) {
-      const res = await postWindow(kind, w, { dryRun })
-      if (!dryRun) console.log(`${kind}:`, JSON.stringify(res))
+    // One opening, as a window has it: sent at first sight, then edited in full (the bot needs
+    // to be able to edit its own channel posts), then the close.
+    const tg = {}
+    for (const [kind, w, stage] of [['open', sight, 'sight'], ['open', open, 'full'], ['close', close, null]]) {
+      if (!dryRun && stage === 'full') await new Promise((r) => setTimeout(r, 3000))
+      const res = await postWindow(kind, w, { dryRun, stage, tg })
+      if (!dryRun) console.log(`${kind}${stage ? ` (${stage})` : ''}:`, JSON.stringify(res))
     }
     process.exit(0)
   }
