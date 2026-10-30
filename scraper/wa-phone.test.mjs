@@ -23,7 +23,7 @@ import { execFile } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
 import {
   phonePoster, phoneSettings, pauseCheck, runSetup, runPhoneCheck, INERT, userTag,
-  EDIT_RETRIES, CHANNEL_MAX_AGE_MS, SETTLE_MS, PHONE_TIMEOUT_MS,
+  EDIT_RETRIES, CHANNEL_MAX_AGE_MS, SETTLE_MS, PHONE_TIMEOUT_MS, ADOPT_MAX_AGE_MS,
 } from './wa-phone.mjs'
 import { postData, renderOpen, renderOver, edge, windowKey, channelTag, PAUSE_TITLE, OPEN_MAX_AGE_MS, REST_MS, VERIFY_AFTER_MS } from './wa-post.mjs'
 import { applyEnv } from './notify.mjs'
@@ -219,6 +219,10 @@ test('the default in step() is inert: an importer or a test can never reach Whap
   for (const k of ['onLive', 'onFirstPage', 'settle', 'refresh', 'close', 'idle', 'marker']) assert.equal(typeof INERT[k], 'function')
   assert.equal(await INERT.marker({ live: true }), null)
   assert.ok(Object.isFrozen(INERT))
+  // A tick without a Whapi token does not even load this module.
+  const src = await readFile(join(HERE, 'blinkdeal.mjs'), 'utf8')
+  assert.doesNotMatch(src, /^import[^\n]*wa-phone/m, 'no static import')
+  assert.match(src, /if \(typeof token !== 'string' \|\| !token\.trim\(\)\) return undefined\s+const \{ phoneFromConfig \} = await import\('\.\/wa-phone\.mjs'\)/, 'imported only with a token')
 })
 
 // ---- 2. Dry ---------------------------------------------------------------------------
@@ -538,6 +542,30 @@ test('back more than 15 min later, the window still live and its feed lost: not 
   assert.ok(next.waAt)
   assert.equal(edge(quiet(), next, Date.now()).open, null, 'Actions stands down')
   assert.match(h.lines.join('\n'), /not posting it again/)
+})
+
+test('a lost feed write, 3 h with no good read, then the same code live: a new window, posted, and the old post ended with no time', async (t) => {
+  assert.ok(ADOPT_MAX_AGE_MS < 3 * 60 * MIN && ADOPT_MAX_AGE_MS > OPEN_MAX_AGE_MS + MIN, 'between a restart in one window and the next window')
+  const h = await phone(t)
+  await h.tick(quiet(), LIVE) // posted; the feed write is lost, then the phone is off (or every read fails)
+  const old = await h.ledger('open.json')
+  await pause(5)
+  h.advance(3 * 60 * MIN)
+  // Another BLINKDEAL6 window is live; the feed on file is still the quiet one from before the first.
+  const { next } = await h.tick(quiet(), LIVE)
+  assert.equal(h.fresh().length, 2, 'the new window is posted')
+  assert.equal(h.fresh()[1].body.body, firstPageBody(LIVE, next.lastLive.from))
+  assert.ok(next.waAt)
+  assert.equal(edge(quiet(), next, Date.now()).open, null, 'posted once, by the phone')
+  assert.equal((await h.ledger('open.json')).key, windowKey(next))
+  assert.deepEqual(await h.ledger('due.json'), [old.key])
+  assert.equal(h.edits().length, 0, 'nothing in the way of the post')
+  // The old post's end is made on the next tick: "Over." with no time, never the new window's.
+  await h.tick(next, LIVE)
+  assert.equal(h.edits().length, 1)
+  assert.deepEqual(h.edits()[0].body, { to: CHANNEL, edit: old.messageId, body: renderOver(old.data, null), no_link_preview: true })
+  assert.match(h.edits()[0].body.body, /^Over\. These prices no longer apply\./)
+  assert.equal((await h.ledger('open.json')).key, windowKey(next), 'the new post stays open')
 })
 
 test('a lost feed write, then quiet reads: the first good read ends the post, and the same code reopening is a new window, posted', async (t) => {

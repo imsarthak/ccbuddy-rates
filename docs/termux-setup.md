@@ -93,7 +93,9 @@ happens.
 
 It also refuses to start while another loop is running in the same clone
 (say, Termux:Boot's, below, and one started by hand): two would send two
-alerts per window. If it refuses, the loop is already running.
+alerts per window. If it refuses, the loop is already running. If you have
+just stopped that loop, it may still be finishing a check: wait a minute and
+run it again.
 
 **Not optional: make it survive a reboot.** On 2026-10-04 the phone switched
 off, came back, and the loop did not: windows went unseen for days. Install

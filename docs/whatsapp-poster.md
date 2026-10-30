@@ -99,9 +99,12 @@ time.
 - **The phone or Actions, never both.** The phone writes its record of a post
   (`.wa-ledger/` in the clone on the phone) *before* it sends, and waits for
   the send before it writes the feed. A post not at its send when the crawl
-  ends is dropped then and there, and left to the job; a send gets 8 seconds
-  at most; everything else the phone does with WhatsApp or GitHub after the
-  crawl (an "Over" edit, a status read) shares one 8-second limit. While a
+  ends gets up to 8 seconds more to reach it; if it does not, it is dropped
+  and left to the job, which then posts up to 8 seconds later than it would
+  have. A send, once started, gets 8 seconds of its own, so the feed waits at
+  most about 16 seconds after the crawl; usually the post is out well before
+  the crawl ends. Everything else the phone does with WhatsApp or GitHub after
+  the crawl (an "Over" edit, a status read) shares one 8-second limit. While a
   window it posted, or may have posted, is live, every feed it pushes carries
   `waAt`, and the Actions job then neither posts that window nor edits its
   end. A post that may have gone out (no answer, or a server error) is never
@@ -110,7 +113,9 @@ time.
   phone restart, a lost push, a heartbeat or a failed read never posts again:
   the record on the phone says the window is already out. The first good read
   that does not show that window live ends the post, even when the push that
-  carried it was lost.
+  carried it was lost. A record over 2 hours old is not taken for the window
+  opening now, even with the same code: that earlier post is ended "Over"
+  with no time, and the new window is posted.
 - **Delivery is checked.** A 200 from Whapi is not delivery. The phone looks
   at the status of each post once, on its first check 15 seconds or more after
   the send, as the job does. If WhatsApp marked it failed, the phone posts

@@ -16,11 +16,15 @@
 // has. Whoever posted a window also ends it: the phone from its own ledger
 // here, Actions from its cache.
 //
-// Bounded. A post not at its send when the crawl ends is cut off then and
-// there, every call it had started with it. A send, once started, gets
-// PHONE_TIMEOUT_MS. Everything else a tick does with Whapi or GitHub after the
-// crawl (the full crawl's edit, an "Over" edit, a status read) shares one
-// deadline of PHONE_TIMEOUT_MS, so the feed is written, and pushed, soon after.
+// Bounded. A post not yet at its send when the crawl ends gets SETTLE_MS more
+// to reach it. If it does not, it is cut off then, every call it had started
+// with it, and Actions takes the window up to SETTLE_MS later than it would
+// with no phone. A send, once started, gets PHONE_TIMEOUT_MS of its own. So
+// the feed waits at most SETTLE_MS + PHONE_TIMEOUT_MS (about 16 s) after the
+// crawl; in a 20-25 s crawl the post is usually out well before it ends.
+// Everything else a tick does with Whapi or GitHub after the crawl (the full
+// crawl's edit, an "Over" edit, a status read) shares one deadline of
+// PHONE_TIMEOUT_MS, so the feed is written, and pushed, soon after.
 //
 // Exactly once. The ledger is `.wa-ledger/` at the clone root, on the phone
 // only (gitignored; nothing in the watcher loop touches ignored files):
@@ -29,7 +33,9 @@
 //                  it. A post that may have gone out is never sent again.
 //                  Every good read that does not show its code live ends it,
 //                  so one still on file at an opening of the same code is
-//                  that window: it is not posted again, whatever its age.
+//                  that window, not posted again, unless it was posted over
+//                  ADOPT_MAX_AGE_MS ago: no window lasts that long, so it is
+//                  ended (an "Over" with no time) and the new one is posted.
 //   <key>.json     each ended post, with its edit's state; kept 30 days
 //   due.json       the keys of ended posts whose "Over" edit is still owed
 //   check.json     the last post, until its status is read once, 15 s or more
@@ -83,6 +89,12 @@ export const PHONE_TIMEOUT_MS = 8000
 // reached its send. Then the job is cut off: the feed is about to be written
 // without `waAt`, and Actions will post.
 export const SETTLE_MS = 8000
+// A post on file of the code now opening is that window only while it is
+// younger than this. Every window seen ran well under an hour, and one code
+// (BLINKDEAL6) names window after window, so an older one is an earlier
+// window whose end nobody saw (its feed lost, then the phone off or every read
+// failed): it is ended, and the new window posted.
+export const ADOPT_MAX_AGE_MS = 2 * 3600 * 1000
 export const CHANNEL_MAX_AGE_MS = 24 * 3600 * 1000
 export const EDIT_RETRIES = 3
 export const EDIT_RETRY_GAP_MS = 20 * 1000
@@ -570,15 +582,17 @@ export function phonePoster({
     const data = postData({ ...page, lastLive: { code: page.code, from: page.from } })
     const body = renderOpen(data)
     const cur = await current()
-    // The same code on file: no good read has seen that window end, so this
-    // is it again (a tick whose feed was lost posted it, or another run on
-    // this clone is posting it). Not posted twice, whatever its age.
-    if (cur && cur.code === page.code) {
+    // The same code on file, posted under ADOPT_MAX_AGE_MS ago: no good read
+    // has seen that window end, so this is it again (a tick whose feed was
+    // lost posted it, or another run on this clone is posting it). Not posted
+    // twice. A post time that cannot be read counts as recent, for the same reason.
+    if (cur && cur.code === page.code && !(now() - Date.parse(cur.postedAt) >= ADOPT_MAX_AGE_MS)) {
       say(`open: ${page.code} was posted at ${cur.postedAt} by an earlier tick whose feed was lost; not posting it again`)
       return 'adopted'
     }
-    // Another code on file ended unseen (the code changed): its end is owed,
-    // and made on a later tick, never in the way of this post.
+    // Another code on file, or this code posted too long ago to be this
+    // window, ended unseen: its end is owed ("Over", with no time), and made
+    // on a later tick, never in the way of this post.
     if (cur && s.forced) {
       say(`DRY (${s.why}): would edit the post for ${cur.code} to:\n${renderOver(cur.data, null)}`)
     } else if (cur) {
@@ -797,10 +811,10 @@ async function readJson(path) {
   }
 }
 
-/** The poster for blinkdeal.mjs's main(): from .notify.env, never throwing. */
-export async function phoneFromConfig({ forceDry = false, log = console.log } = {}) {
+/** The poster for blinkdeal.mjs's main(): from .notify.env (or the `config` it already read), never throwing. */
+export async function phoneFromConfig({ forceDry = false, log = console.log, config } = {}) {
   try {
-    const cfg = await loadConfig()
+    const cfg = config ?? (await loadConfig())
     return phonePoster({ settings: phoneSettings(cfg, { forceDry }), repo: process.env.BLINKDEAL_REPO || REPO, log })
   } catch (e) {
     log(`WA: config unreadable (${redact(e?.message)}); nothing posted from this phone`)

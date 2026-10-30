@@ -89,21 +89,35 @@ fi
 # ONE LOOP PER CLONE. Termux:Boot starts one at every boot; a second started
 # by hand would tick beside it on the same feed and the same .wa-ledger/: two
 # Telegram alerts per window, and two feeds racing each other to master. The
-# lock is a directory (mkdir is atomic) holding this loop's pid. One left by a
-# loop that was killed (its pid gone, or now another program's) is taken over.
+# lock is a directory (mkdir is atomic) holding this loop's pid, its start time
+# (field 22 of /proc/<pid>/stat) and the boot's id. One left by a loop that was
+# killed is taken over: its pid gone, or since handed to another process (after
+# a reboot most of all, and this loop's own children are among the takers),
+# which a different start time or boot gives away.
 LOCK="$LOG_DIR/watch.lock"
+started() { s=$(cat "/proc/$1/stat" 2>/dev/null) || return 1; set -- ${s##*) }; echo "${20:-}"; }
+boot_id() { cat /proc/sys/kernel/random/boot_id 2>/dev/null; }
+# Sets `holder`. Not run in a $( ) subshell: that would pass every check for itself.
 lock_holder() {
-  pid=$(cat "$LOCK/pid" 2>/dev/null) || return 1
-  [ -n "$pid" ] && [ "$pid" != "$$" ] && kill -0 "$pid" 2>/dev/null &&
-    grep -qa 'watch-termux' "/proc/$pid/cmdline" 2>/dev/null &&
-    [ "$(readlink "/proc/$pid/cwd" 2>/dev/null)" = "$(pwd -P)" ] && echo "$pid"
+  holder=
+  set -- $(cat "$LOCK/pid" 2>/dev/null)
+  local pid=${1:-} start=${2:-} boot=${3:-}
+  [ -n "$pid" ] && [ "$pid" != "$$" ] && kill -0 "$pid" 2>/dev/null || return 1
+  if [ -n "$start" ]; then
+    [ "$(started "$pid")" = "$start" ] || return 1
+    [ -z "$boot" ] || [ "$(boot_id)" = "$boot" ] || return 1
+  fi
+  # Running this script (an argument named watch-termux.sh), in this clone.
+  tr '\0' '\n' 2>/dev/null < "/proc/$pid/cmdline" | grep -qxE '(.*/)?watch-termux\.sh' &&
+    [ "$(readlink "/proc/$pid/cwd" 2>/dev/null)" = "$(pwd -P)" ] && holder=$pid
 }
 take_lock() {
   if ! mkdir "$LOCK" 2>/dev/null; then
     # A loop starting this very moment may not have written its pid yet.
     [ -s "$LOCK/pid" ] || sleep 1
-    if holder=$(lock_holder); then
+    if lock_holder; then
       echo "Refusing to start: a watcher loop is already running in this clone (pid $holder)."
+      echo "If you have just stopped it, it may still be finishing a check: wait a minute and run this again."
       return 1
     fi
     rm -f "$LOCK/pid"
@@ -113,10 +127,11 @@ take_lock() {
       return 1
     fi
   fi
-  echo "$$" > "$LOCK/pid"
+  echo "$$ $(started $$) $(boot_id)" > "$LOCK/pid"
 }
 release_lock() {
-  if [ "$(cat "$LOCK/pid" 2>/dev/null)" = "$$" ]; then
+  set -- $(cat "$LOCK/pid" 2>/dev/null)
+  if [ "${1:-}" = "$$" ]; then
     rm -f "$LOCK/pid"
     rmdir "$LOCK" 2>/dev/null
   fi
@@ -127,7 +142,14 @@ trap release_lock EXIT
 # Keep the CPU awake. Without this Android's doze mode suspends the loop
 # within minutes of the screen going off, which is most of the time.
 command -v termux-wake-lock >/dev/null 2>&1 && termux-wake-lock
-trap 'command -v termux-wake-unlock >/dev/null 2>&1 && termux-wake-unlock; say "stopped"; exit 0' INT TERM
+
+# Bash runs a trap only once the command in front of it ends, so a kill during
+# a plain `sleep 300` left the loop holding the lock for up to five minutes,
+# and a restart in that gap was refused. Sleeping in the background and
+# waiting on it lets INT and TERM stop the loop at once.
+napper=
+nap() { sleep "$1" & napper=$!; wait "$napper"; napper=; }
+trap '[ -n "$napper" ] && kill "$napper" 2>/dev/null; command -v termux-wake-unlock >/dev/null 2>&1 && termux-wake-unlock; say "stopped"; exit 0' INT TERM
 
 ist_hour() { TZ='Asia/Kolkata' date +%-H; }
 ist_sec_of_hour() { TZ='Asia/Kolkata' date +'%-M %-S' | { read -r m s; echo $(( m * 60 + s )); }; }
@@ -211,7 +233,7 @@ while true; do
     blocked_streak=$((blocked_streak + 1))
     if [ "$blocked_streak" -ge 3 ]; then
       say "BLOCKED x${blocked_streak} — backing off ${BLOCK_BACKOFF}s. If this persists, the home IP is refused."
-      sleep "$BLOCK_BACKOFF"
+      nap "$BLOCK_BACKOFF"
       continue
     fi
   else
@@ -234,5 +256,5 @@ while true; do
     fi
   fi
 
-  sleep $(( $(interval_now) + $(jitter) ))
+  nap $(( $(interval_now) + $(jitter) ))
 done

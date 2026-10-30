@@ -16,8 +16,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { notify, composeAlert, postWindow } from './notify.mjs'
-import { INERT as INERT_WA, phoneFromConfig } from './wa-phone.mjs'
+import { notify, composeAlert, postWindow, loadConfig } from './notify.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const ARGS = process.argv.slice(2)
@@ -465,6 +464,20 @@ export function closeWindow(previous, now) {
 
 const fmtResults = (res) => Object.entries(res).map(([k, v]) => `${k}:${v}`).join(' ') || '(no channels configured)'
 
+// What step() calls when the phone's WhatsApp poster is not wired in: nothing,
+// ever. Its own copy, so a tick without a Whapi token never loads wa-phone.mjs.
+const INERT_WA = Object.freeze({
+  onLive() {},
+  onFirstPage() {},
+  async settle() {},
+  async refresh() {},
+  async close() {},
+  async idle() {},
+  async marker() {
+    return null
+  },
+})
+
 /**
  * One watcher step, host-agnostic: given the previous feed, return what to
  * publish now (null when nothing material changed and the hourly heartbeat
@@ -476,9 +489,12 @@ const fmtResults = (res) => Object.entries(res).map(([k, v]) => `${k}:${v}`).joi
  * can reach Whapi. Its post starts at the first page, beside the Telegram
  * channel post, and runs off the crawl's path; it is awaited (bounded) only
  * after the crawl, so the feed written here says whether the phone took the
- * window (`waAt`). A post not at its send by then is cut off; a send gets
- * 8 s; everything else after the crawl shares one 8 s deadline. Nothing it
- * does can throw into the tick.
+ * window (`waAt`). A post not at its send by then gets up to 8 s more to reach
+ * it, and is cut off if it does not; a send, once started, gets 8 s of its
+ * own. So the feed can wait up to about 16 s after the crawl, and a post that
+ * is cut off leaves the window to Actions up to 8 s later. Everything else
+ * after the crawl shares one 8 s deadline. Nothing it does can throw into the
+ * tick.
  */
 export async function step(previous, deps = {}) {
   const detectFn = deps.detect ?? detect
@@ -635,6 +651,20 @@ export function appendWindow(history, w, generated = new Date().toISOString()) {
   return { generated, windows: [...(history?.windows ?? []), w].slice(-100) }
 }
 
+/** wa-phone.mjs's poster when .notify.env (or the environment) holds a Whapi token, else undefined. Never throws. */
+async function phoneWa() {
+  try {
+    const cfg = await loadConfig()
+    const token = cfg?.whapi?.token
+    if (typeof token !== 'string' || !token.trim()) return undefined
+    const { phoneFromConfig } = await import('./wa-phone.mjs')
+    return await phoneFromConfig({ forceDry: DRY_RUN, config: cfg })
+  } catch (e) {
+    console.error(`WA: not loaded (${String(e?.message ?? e).slice(0, 80)}); nothing posted from this phone`)
+    return undefined
+  }
+}
+
 async function main() {
   if (PROBE) return probe()
 
@@ -646,9 +676,10 @@ async function main() {
     }
   }
   const previous = await readJson(OUT, {})
-  // The phone's own WhatsApp poster, from .notify.env: nothing without its
-  // `whapi` block, print-only on --dry-run, and never on a test or replay run.
-  const wa = SILENT ? undefined : await phoneFromConfig({ forceDry: DRY_RUN })
+  // The phone's own WhatsApp poster, from .notify.env: print-only on
+  // --dry-run, never on a test or replay run, and not even loaded without a
+  // Whapi token, so such a tick runs exactly as it did before the poster.
+  const wa = SILENT ? undefined : await phoneWa()
   const { next, closedWindow } = await step(previous, { wa })
   if (closedWindow) {
     const history = appendWindow(await readJson(HISTORY, null), closedWindow, new Date().toISOString())
