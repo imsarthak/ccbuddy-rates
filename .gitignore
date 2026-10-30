@@ -11,8 +11,11 @@
 # Watcher logs, local to whatever device is running it
 logs/
 
-# Local-only alert channel config, tokens inside (never commit)
+# Local-only alert channel config, tokens inside (never commit), and the
+# temporary copy wa-phone.mjs --setup writes before swapping it in
 .notify.env
+.notify.env.*.tmp
 
-# The WhatsApp poster's per-window ledger, kept in the Actions cache only
+# The WhatsApp poster's per-window ledger: in the Actions cache, and on the
+# watcher phone
 .wa-ledger/

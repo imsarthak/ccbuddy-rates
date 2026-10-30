@@ -332,3 +332,28 @@ test('the WhatsApp edit on a gap close does not print the last sighting as the e
   assert.equal(e.close.key.startsWith('BLINKDEAL6-'), true)
   assert.equal(e.close.to, null)
 })
+
+// ---- waAt: the phone posted the WhatsApp opening ----------------------------------
+//
+// While a window the phone posted to WhatsApp is live, every feed it writes
+// carries `waAt` (wa-phone.mjs), so the Actions poster stands down. The app
+// ignores keys it does not name; this proves the shipped guard agrees.
+
+test('the live app accepts every feed carrying waAt, and no history row or lastLive ever carries it', async () => {
+  // Stands in for the phone's poster: only the marker matters here.
+  const wa = { onLive() {}, onFirstPage() {}, async settle() {}, async refresh() {}, async close() {}, async idle() {}, marker: async (next) => (next.live ? next.lastLive.from : null) }
+  const tick = (previous, result) => step(previous, { detect: fakeDetect(result), notify: async () => ({}), post: async () => ({}), wa })
+  const opened = (await tick({ checkedAt: ago(MIN), ok: true, live: false, knownIds: [] }, LIVE)).next
+  const beat = (await tick({ ...opened, checkedAt: ago(3 * MIN) }, LIVE)).next
+  const failed = (await tick(beat, new Error('fetch failed'))).next
+  for (const [what, f] of [['opening', opened], ['heartbeat', beat], ['failed read', failed]]) {
+    assert.equal(f.waAt, f.lastLive.from, what)
+    assert.ok(isBlinkdealFeed(f), what)
+    assert.equal('waAt' in f.lastLive, false, what)
+  }
+  const { next, closedWindow } = await tick(failed, QUIET)
+  assert.equal(next.waAt, undefined)
+  assert.ok(isBlinkdealFeed(next))
+  assert.equal('waAt' in closedWindow, false)
+  assert.ok(isBlinkdealHistory(appendWindow(published, closedWindow, iso(Date.now()))))
+})

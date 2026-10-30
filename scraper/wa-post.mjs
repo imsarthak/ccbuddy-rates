@@ -1,5 +1,5 @@
-// BLINKDEAL windows to the WhatsApp Channel, through Whapi.Cloud, from
-// GitHub Actions.
+// BLINKDEAL windows to the WhatsApp Channel, through Whapi.Cloud: the GitHub
+// Actions path, which is the FALLBACK once the watcher phone posts itself.
 //
 // Meta's Cloud API cannot post to Channels. Whapi can: it holds a linked-device
 // session of a WhatsApp number and posts as that number. The number linked is
@@ -7,6 +7,14 @@
 // never linked — a ban there would take the channel with it — and the poster
 // refuses to post if it ever finds the owner on the other end. Setup, and the
 // steps only the owner can do: docs/whatsapp-poster.md.
+//
+// The phone posts first when it is set up (scraper/wa-phone.mjs, its own
+// `whapi` block in .notify.env): about 3 s after the Telegram alert, against
+// 30-40 s from here. A feed it pushes then carries `waAt` while that window is
+// live, and this job stands down for that window: no post, and no edit at its
+// end, which the phone makes from its own ledger. A feed without `waAt` (the
+// phone not set up, dry, paused, or sure its post did not go out) is posted
+// from here exactly as before.
 //
 // .github/workflows/wa-post.yml runs this on every phone push that touches
 // docs/blinkdeal.json, and compares the feed before the push with after it:
@@ -88,15 +96,15 @@ const TIMEOUT_MS = 15000
 // else is ever retried: a 429 is a soft ban, and a 5xx may have been sent.
 const RETRY_401 = 3
 const RETRY_GAP_MS = 3000
-const VERIFY_AFTER_MS = 15000
+export const VERIFY_AFTER_MS = 15000
 const TEST_EDIT_AFTER_MS = 20000
-const REST_MS = 2 * 24 * 3600 * 1000 // Whapi's advice after a 429: rest "a day or two"
+export const REST_MS = 2 * 24 * 3600 * 1000 // Whapi's advice after a 429: rest "a day or two"
 
 const CODE_OK = /^[A-Z0-9]{3,30}$/i
-const KEY_OK = /^[A-Z0-9]{3,30}-\d{10,16}$/i
-const NEWSLETTER_OK = /^\d{10,18}@newsletter$/
+export const KEY_OK = /^[A-Z0-9]{3,30}-\d{10,16}$/i
+export const NEWSLETTER_OK = /^\d{10,18}@newsletter$/
 // Whapi's MessageID pattern (OpenAPI 1.8.7, `edit` on POST /messages/text).
-const MESSAGE_ID_OK = /^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$/
+export const MESSAGE_ID_OK = /^[A-Za-z0-9._]{4,30}-[A-Za-z0-9._]{4,30}(-[A-Za-z0-9._]{2,30})?(-[A-Za-z0-9._]{2,30})?$/
 // Session states that settle by themselves in seconds; anything else needs a hand.
 const SETTLING = new Set(['NOT_INIT', 'INIT', 'LAUNCH'])
 // States the watchdog probe pauses on: each needs the owner, none fixes itself.
@@ -154,8 +162,9 @@ export function renderOver(data, to) {
 // file, records it when the close is in this push. Unknown (null) when the
 // watcher had stopped before it: then the recorded end is either the restart
 // (a watcher from before blinkdeal.mjs closeWindow) or the last sighting,
-// marked approx, and neither is when the window ended.
-function endOf(before, after, history) {
+// marked approx, and neither is when the window ended. Exported for the
+// phone, which ends its own posts by the same rule.
+export function endOf(before, after, history) {
   const code = before.lastLive?.code ?? before.code
   const from = Date.parse(before.lastLive.from)
   const seen = [after?.lastLive, ...[...(Array.isArray(history?.windows) ? history.windows : [])].reverse()]
@@ -172,6 +181,20 @@ function endOf(before, after, history) {
 const isFeed = (f) => !!f && typeof f === 'object' && !Array.isArray(f)
 
 /**
+ * Did the watcher phone take this feed's window? It writes `waAt` (an ISO
+ * time, never before the window's start) on every feed of a window it posted,
+ * or may have. One that parses as earlier than the window's start is left
+ * over from an older window and does not count. Anything else that is there
+ * counts, malformed or not: a missed post is better than a second one.
+ */
+export function phoneTook(feed) {
+  if (!isFeed(feed) || feed.waAt == null) return false
+  const at = typeof feed.waAt === 'string' ? Date.parse(feed.waAt) : NaN
+  const from = Date.parse(feed.lastLive?.from ?? '')
+  return !(Number.isFinite(at) && Number.isFinite(from) && at < from)
+}
+
+/**
  * The edge one push makes, from the feed before it and after it. Pure.
  *   open   the feed now shows a window it did not show before, opened at most
  *          OPEN_MAX_AGE_MS ago
@@ -184,6 +207,8 @@ const isFeed = (f) => !!f && typeof f === 'object' && !Array.isArray(f)
  * is not an object, or { unreadable: true } from the workflow, means it could
  * not be read, and then nothing happens: a heartbeat push mid-window would
  * otherwise look like the opening and post the window a second time.
+ * A window the phone took (phoneTook) is neither posted nor ended here: the
+ * phone posted it and ends it itself.
  */
 export function edge(before, after, nowMs = Date.now(), history = null) {
   const out = { open: null, close: null, notes: [] }
@@ -202,10 +227,14 @@ export function edge(before, after, nowMs = Date.now(), history = null) {
     return out
   }
   if (after.live === true && !now) out.notes.push('the feed says live but its window is unreadable; not posting')
-  if (was && was !== now) out.close = { key: was, data: postData(before), to: endOf(before, after, history) }
+  if (was && was !== now) {
+    if (phoneTook(before)) out.notes.push(`${was}: the phone posted this window, and the phone ends its own post`)
+    else out.close = { key: was, data: postData(before), to: endOf(before, after, history) }
+  }
   if (now && now !== was) {
     const age = nowMs - Date.parse(after.lastLive.from)
-    if (age > OPEN_MAX_AGE_MS) out.notes.push(`${now} opened ${Math.round(age / 60000)} min before this run; too late to post`)
+    if (phoneTook(after)) out.notes.push(`${now}: the phone posted this window (or may have); not posting it from here`)
+    else if (age > OPEN_MAX_AGE_MS) out.notes.push(`${now} opened ${Math.round(age / 60000)} min before this run; too late to post`)
     else if (age < -CLOCK_SKEW_MS) out.notes.push(`${now} opens in the future; not posting a feed that says so`)
     else out.open = { key: now, data: postData(after) }
   }
@@ -223,7 +252,7 @@ export async function readLedger(dir, key) {
   }
 }
 
-async function writeLedger(dir, key, entry) {
+export async function writeLedger(dir, key, entry) {
   if (!KEY_OK.test(key)) throw new Error(`refusing ledger key ${key}`)
   await mkdir(dir, { recursive: true })
   await writeFile(join(dir, `${key}.json`), `${JSON.stringify(entry, null, 1)}\n`)
@@ -235,7 +264,19 @@ export class WhapiError extends Error {
   constructor(what, status, detail) {
     super(`Whapi ${what}: ${status ? `HTTP ${status}` : 'no answer'}${detail ? ` (${detail})` : ''}`)
     this.status = status
+    // True only when no connection was ever made (DNS, refused, unreachable),
+    // so the request cannot have reached Whapi. A timeout or a reset may have.
+    this.unsent = false
   }
+}
+
+// Errors from before a connection exists: the request was never sent.
+const NEVER_CONNECTED = new Set(['ENOTFOUND', 'EAI_AGAIN', 'ECONNREFUSED', 'ENETUNREACH', 'EHOSTUNREACH', 'ENETDOWN'])
+const neverConnected = (e) => {
+  const c = e?.cause ?? e
+  if (NEVER_CONNECTED.has(c?.code)) return true
+  const all = Array.isArray(c?.errors) ? c.errors : []
+  return all.length > 0 && all.every((x) => NEVER_CONNECTED.has(x?.code))
 }
 
 /** Strip anything that could be a secret or a number out of text from outside. */
@@ -252,8 +293,12 @@ const realSleep = (ms) => new Promise((r) => setTimeout(r, ms))
  * carries a path with the channel or message id in it. A 401 is retried on
  * every call, reads included (Whapi: "add retry logic for API calls that fail
  * with 401"), so a 2-3 s reconnect never pauses the poster; nothing else is.
+ * `retries401` is how many times (the phone passes 0: it leaves a 401 to the
+ * Actions path, which retries, rather than hold the window's post 9 s).
+ * `signal`, when given, cuts every call short beside its own timeout (the
+ * phone's one deadline for a tick).
  */
-export function whapi({ token, base = WHAPI, fetch: fetchFn, timeoutMs = TIMEOUT_MS, sleep = realSleep, log = () => {} }) {
+export function whapi({ token, base = WHAPI, fetch: fetchFn, timeoutMs = TIMEOUT_MS, sleep = realSleep, log = () => {}, retries401 = RETRY_401, signal }) {
   const doFetch = fetchFn ?? ((...a) => globalThis.fetch(...a))
   async function once(what, method, path, body) {
     let res
@@ -266,10 +311,12 @@ export function whapi({ token, base = WHAPI, fetch: fetchFn, timeoutMs = TIMEOUT
           ...(body ? { 'content-type': 'application/json' } : {}),
         },
         body: body ? JSON.stringify(body) : undefined,
-        signal: AbortSignal.timeout(timeoutMs),
+        signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(timeoutMs)]) : AbortSignal.timeout(timeoutMs),
       })
     } catch (e) {
-      throw new WhapiError(what, 0, e?.name === 'TimeoutError' ? 'timed out' : 'network error')
+      const err = new WhapiError(what, 0, e?.name === 'TimeoutError' ? 'timed out' : 'network error')
+      err.unsent = e?.name !== 'TimeoutError' && neverConnected(e)
+      throw err
     }
     const json = await res.json().catch(() => null)
     if (!res.ok) throw new WhapiError(what, res.status, redact(json?.error?.message, [token]))
@@ -280,8 +327,8 @@ export function whapi({ token, base = WHAPI, fetch: fetchFn, timeoutMs = TIMEOUT
       try {
         return await once(what, method, path, body)
       } catch (e) {
-        if (e instanceof WhapiError && e.status === 401 && attempt <= RETRY_401) {
-          log(`Whapi ${what}: 401, the session may be reconnecting: retry ${attempt} of ${RETRY_401} in ${RETRY_GAP_MS / 1000} s`)
+        if (e instanceof WhapiError && e.status === 401 && attempt <= retries401) {
+          log(`Whapi ${what}: 401, the session may be reconnecting: retry ${attempt} of ${retries401} in ${RETRY_GAP_MS / 1000} s`)
           await sleep(RETRY_GAP_MS)
           continue
         }
@@ -291,7 +338,7 @@ export function whapi({ token, base = WHAPI, fetch: fetchFn, timeoutMs = TIMEOUT
   }
 }
 
-async function sessionStatus(call, sleep, { wakeup }) {
+export async function sessionStatus(call, sleep, { wakeup }) {
   let status = 'UNKNOWN'
   for (let i = 0; i < 3; i++) {
     const h = await call('health', 'GET', wakeup ? '/health' : '/health?wakeup=false')
@@ -322,7 +369,7 @@ const roleText = (role) => (role ? String(role).replace(/[^a-z_]/gi, '').slice(0
 const about = (n) => ({ role: roleOf(n), owner: ownedBy(n), name: nameOf(n), followers: followersOf(n) })
 
 /** This number's role in the channel with this id (WHAPI_CHANNEL_ID, or the test channel's). */
-async function roleIn(call, channelId) {
+export async function roleIn(call, channelId) {
   try {
     // `@` is legal in a path segment; every caller has checked the id's shape.
     const one = await call('channel', 'GET', `/newsletters/${channelId}`)
@@ -338,7 +385,7 @@ async function roleIn(call, channelId) {
 // read, so it never holds a channel id: only this fingerprint of one, keyed
 // with the token, enough to tell whether an end is being edited in the
 // Channel its post went to.
-const channelTag = (token, channelId) => createHmac('sha256', token).update(channelId).digest('hex').slice(0, 16)
+export const channelTag = (token, channelId) => createHmac('sha256', token).update(channelId).digest('hex').slice(0, 16)
 
 // GET /newsletters answers at most `count` channels a call (OpenAPI 1.8.7:
 // count 1-500, offset; { newsletters, count, total, offset }). One page is
@@ -354,7 +401,7 @@ const LIST_PAGE = 100
  * Returns { admins, channel } or { admins, reason }; `test` is the test
  * channel's entry when the list has it. Nothing here is ever logged as is.
  */
-async function findChannel(call, testId = '') {
+export async function findChannel(call, testId = '') {
   const test = NEWSLETTER_OK.test(testId) ? testId : ''
   const list = await call('channels', 'GET', `/newsletters?count=${LIST_PAGE}`)
   const all = (Array.isArray(list?.newsletters) ? list.newsletters : []).filter((n) => n && typeof n === 'object')
@@ -404,8 +451,8 @@ async function preflight(call, channelId, sleep, testId = '') {
 // A 401 is retried inside the client; a 429, 5xx or timeout never is.
 const send = (call, body) => call(body.edit ? 'edit' : 'send', 'POST', '/messages/text', body)
 
-/** A 200 is not delivery (Whapi: unsupported posts sit in `pending`). Look once. */
-async function verify(call, id, { sleep, log }) {
+/** A 200 is not delivery (Whapi: unsupported posts sit in `pending`). Look once. The phone reads its posts by the same rule. */
+export async function verify(call, id, { sleep, log }) {
   await sleep(VERIFY_AFTER_MS)
   try {
     const m = await call('status', 'GET', `/messages/${encodeURIComponent(id)}`)

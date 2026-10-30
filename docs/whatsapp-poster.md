@@ -1,20 +1,31 @@
 # BLINKDEAL to the WhatsApp Channel, unattended
 
-When a BLINKDEAL window opens, a GitHub Actions job posts it to the WhatsApp
-Channel; when the window ends, the job edits that same post to say it is
-over. It posts through [Whapi.Cloud](https://whapi.cloud) as a **spare number
-that is an admin of the channel**. Your own number stays the channel's owner
-and is never linked to anything.
+When a BLINKDEAL window opens, it is posted to the WhatsApp Channel; when the
+window ends, that same post is edited to say it is over. It posts through
+[Whapi.Cloud](https://whapi.cloud) as a **spare number that is an admin of the
+channel**. Your own number stays the channel's owner and is never linked to
+anything.
 
-Code: `scraper/wa-post.mjs`. Workflow: `.github/workflows/wa-post.yml`. Tests:
-`node --test scraper/wa-post.test.mjs` (a local fake Whapi; nothing leaves the
-machine).
+Two things can post it, and each window is posted once:
+
+- **The watcher phone**, once you have run the one command in step 9. It
+  posts at the coupon's first page, about 3 seconds after the Telegram alert,
+  and ends its own post. Code: `scraper/wa-phone.mjs`.
+- **A GitHub Actions job**, the fallback. It posts every window the phone did
+  not take (the phone not set up, dry, paused, or sure its post did not go
+  out), 30-40 seconds after the phone saw it. Code: `scraper/wa-post.mjs`.
+  Workflow: `.github/workflows/wa-post.yml`.
+
+Tests: `node --test scraper/wa-post.test.mjs scraper/wa-phone.test.mjs` (a
+local fake Whapi; nothing leaves the machine).
 
 **It ships switched off.** Until you set the repo variable `WA_DRY_RUN` to
 `0`, every run on a phone push prints the post it would send and calls
 nothing. Before that, Whapi is only called by the runs you start by hand
 (step 6) and by the watchdog's read-only session check, and only once the
-`WHAPI_TOKEN` secret exists.
+`WHAPI_TOKEN` secret exists. The phone posts nothing, and calls nothing,
+until you run its one command (step 9); it has its own switch, which that
+command turns on only when its check passes.
 
 ## What followers see
 
@@ -85,23 +96,62 @@ time.
   the channel has changed since, the post is left as it is. Re-running a
   workflow run never posts. If the job cannot read the feed as it was before
   the push, it posts nothing: it could not tell the opening from a heartbeat.
+- **The phone or Actions, never both.** The phone writes its record of a post
+  (`.wa-ledger/` in the clone on the phone) *before* it sends, and waits for
+  the send before it writes the feed. A post not at its send when the crawl
+  ends gets up to 8 seconds more to reach it; if it does not, it is dropped
+  and left to the job, which then posts up to 8 seconds later than it would
+  have. A send, once started, gets 8 seconds of its own, so the feed waits at
+  most about 16 seconds after the crawl; usually the post is out well before
+  the crawl ends. Everything else the phone does with WhatsApp or GitHub after
+  the crawl (an "Over" edit, a status read) shares one 8-second limit. While a
+  window it posted, or may have posted, is live, every feed it pushes carries
+  `waAt`, and the Actions job then neither posts that window nor edits its
+  end. A post that may have gone out (no answer, or a server error) is never
+  sent again. A post that certainly did not go out (any 4xx, or no connection
+  at all) leaves no `waAt`, so Actions posts the window, with no delay. A
+  phone restart, a lost push, a heartbeat or a failed read never posts again:
+  the record on the phone says the window is already out. The first good read
+  that does not show that window live ends the post, even when the push that
+  carried it was lost. A record over 2 hours old is not taken for the window
+  opening now, even with the same code: that earlier post is ended "Over"
+  with no time, and the new window is posted.
+- **Delivery is checked.** A 200 from Whapi is not delivery. The phone looks
+  at the status of each post once, on its first check 15 seconds or more after
+  the send, as the job does. If WhatsApp marked it failed, the phone posts
+  nothing for 2 days and leaves each window to the job, which meets the same
+  failure and opens the pause issue.
 - **One off switch.** An issue titled **WhatsApp poster is paused** stops it
-  completely: while the issue is open, the job does not call Whapi at all and
-  only comments on each window it skipped. The job opens it itself when
-  something needs you; you can also open one with that exact title to pause
-  it by hand. Close it to resume. The repo is public, so an issue with that
-  title counts only if the workflow, you, or a collaborator opened it.
+  completely, on the phone and in Actions: while the issue is open, neither
+  calls Whapi at all, and the job only comments on each window it skipped.
+  The job opens it itself when something needs you; you can also open one
+  with that exact title to pause it by hand. Close it to resume. The repo is
+  public, so an issue with that title counts only if the workflow, you, or a
+  collaborator opened it. The phone reads the open issues without any
+  credential, once per window opening, once per end and once for the status
+  read. It forgets the channel it found when it sees the issue open, and finds
+  it again (with the same checks as the job) before its next post. It never opens or
+  comments on an issue: when Whapi refuses it, it leaves the window to the
+  job, which meets the same refusal and opens the issue with the right words.
+  If the phone cannot read the issues, it leaves the window to the job.
 - **No retry storms.** A 429 from Whapi means WhatsApp has soft-blocked the
   number. The job never retries it: it pauses and says how long to rest the
   number. A 401 (a session reconnecting for 2-3 seconds) is retried three
   times, 3 seconds apart, on every call. A server error is never retried,
   because the post may already have gone out. The run fails instead, and
-  GitHub emails you.
+  GitHub emails you. The phone retries no post at all: a 401 or any other
+  refusal leaves the window to the job, which retries a 401. After a 429 the
+  phone makes no Whapi call for 2 days. A failed "Over" edit is the one thing
+  the phone tries again, since an edit cannot post twice: 3 more times, at
+  least 20 seconds apart, and not while the poster is paused.
 - **Public logs.** This repo is public, so its Actions logs and issues are
   too. The job prints the post text, the session status, the channel name and
   role, and message ids. It never prints the token, either channel id, the
   linked number or a raw Whapi response. That is why all three ids are
   secrets: GitHub prints a step's settings in its log and masks only secrets.
+  The public feed carries only `waAt`, a time. The phone keeps the token in
+  `.notify.env` and the channel and message ids in `.wa-ledger/`, both
+  ignored by git, and its log prints none of them.
 - **Session watch.** The watchdog workflow also asks Whapi, read-only, whether
   the session is still connected, on its schedule only (a phone push or the
   ccbuddy Worker also starts that workflow, many times a day). It opens the pause issue if the spare phone
@@ -223,7 +273,38 @@ with the value:
 
 To switch it off again, delete the variable or set it to anything else.
 
-**9. Ongoing.**
+**9. Post from the phone.** This makes posts land about 3 seconds after the
+Telegram alert instead of 30-40. Do it when no window is live.
+
+1. On the watcher phone, open panel.whapi.cloud in the browser, open the
+   channel the spare number is linked to, and tap the copy icon after
+   `Token:` (the same token as step 5).
+2. In Termux:
+
+```bash
+cd ~/ccbuddy-rates && node scraper/wa-phone.mjs --setup
+```
+
+It reads the token from the clipboard (that needs the Termux:API app, as in
+[termux-setup.md](termux-setup.md)), runs the same read-only check as step 6,
+and saves the token in `.notify.env` on the phone. Expect
+`Ready: connected, and an admin of the channel.`, then
+`Saved to .notify.env, posting on`. The watcher picks it up at its next
+tick; nothing to restart. If it says `Not ready`, it saved posting off, the
+Actions job keeps posting, and the lines above it say what to fix; run it
+again after.
+
+To see the saved state, and whether the pause issue is open, any time:
+
+```bash
+cd ~/ccbuddy-rates && node scraper/wa-phone.mjs --check
+```
+
+To stop the phone posting, set `"dryRun": true` in the `whapi` block of
+`.notify.env`; the Actions job then posts every window. Don't delete the
+`whapi` block while a window is live: the phone could then not end its post.
+
+**10. Ongoing.**
 
 - Open WhatsApp on the spare phone at least every 10 days. WhatsApp logs out
   linked devices after 14 days without the phone.
@@ -231,6 +312,10 @@ To switch it off again, delete the variable or set it to anything else.
   notification while this is live. Either would post every window twice.
 - If **WhatsApp poster is paused** opens, do what its body says, then close
   it.
+- Don't re-clone the repo on the watcher phone while a window is live. If you
+  re-clone, copy `.wa-ledger/` (and `.notify.env`) into the new clone first:
+  it is the phone's record of what it posted, and without it a post the phone
+  made is never edited to "Over".
 
 ## When the pause issue opens
 
@@ -256,8 +341,12 @@ only a person knows when the number has rested.
 
 | Setting | Effect |
 |---|---|
-| Variable `WA_DRY_RUN` = `0` | Posts for real. Unset or anything else: prints only. |
-| Variable `WA_CLOSE` = `off` | No "Over" edit. The open post stays as it is. |
+| Variable `WA_DRY_RUN` = `0` | The Actions job posts for real. Unset or anything else: prints only. |
+| Variable `WA_CLOSE` = `off` | The Actions job makes no "Over" edit; its open post stays as it is. The phone always ends its own post. |
+| `whapi.dryRun` in `.notify.env` on the phone | `false` (step 9 sets it): the phone posts. Anything else: it prints the post in its log, posts nothing, and leaves each window to the Actions job. A post it made before still gets its "Over" edit. |
+| `whapi.channelId` in `.notify.env` on the phone | Optional, like `WHAPI_CHANNEL_ID`: only if the spare number admins more than one Channel. |
+| `BLINKDEAL_WA_DRY_RUN` = `0` on the phone | Instead of the file, as `BLINKDEAL_WHAPI_TOKEN` and `BLINKDEAL_WHAPI_CHANNEL_ID` are. |
+| Issue **WhatsApp poster is paused** | Stops both, the phone and the job. |
 | Secret `WHAPI_CHANNEL_ID` | Optional. Only if the spare number admins more than one Channel: the one to post to. Unset, it posts to the one Channel the spare number admins. |
 | Secret `WA_TEST_CHANNEL_ID` | Where `test-post` posts. Never the real channel. Also left out when the poster looks for the real one. |
 
@@ -273,12 +362,20 @@ only a person knows when the number has rested.
   `Channels this number admins: 0` though the spare number is an admin, set
   `WHAPI_CHANNEL_ID`.
 - Whether the free Sandbox plan can post to Channels, and whether the session
-  checks count against its 1,000 requests a month (about 7 per window: 4 for
-  the post, 3 for the edit; plus the watchdog's check 4-8 times a day, about
-  180 a month). October's pace, 5.4 windows a day, would make that about
-  1,320 a month.
+  checks count against its 1,000 requests a month (about 7 per window from
+  the Actions job: 4 for the post, 3 for the edit; plus the watchdog's check
+  4-8 times a day, about 180 a month). October's pace, 5.4 windows a day,
+  would make that about 1,320 a month. From the phone it is about 4 per
+  window (a session check at the opening, the post, one status read, the
+  edit), one more when the full crawl changes the first page's prices, and
+  one more (the channel list) when the channel was last found over a day ago
+  or the number linked has changed: about 650-850 a month at October's pace.
+  The phone also makes 2-3 GitHub reads per window (the pause issue), without
+  a credential, from the home connection.
 - Whapi renamed the role field `user_role`; its API reference still says
   `role`. The job reads both.
-- Speed: the post lands about 30-40 seconds after the phone sees the window.
-  The Telegram post goes out in about 3 seconds. October's windows lasted a
-  median 4 minutes, the longest 29 (rival channels' posts, 19-27 Oct).
+- Speed: from the phone (step 9) the post goes out about 3 seconds after the
+  Telegram alert, at the coupon's first page, before the full crawl. From the
+  Actions job it lands about 30-40 seconds after the phone sees the window.
+  October's windows lasted a median 4 minutes, the longest 29 (rival
+  channels' posts, 19-27 Oct).

@@ -16,7 +16,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { notify, composeAlert, postWindow } from './notify.mjs'
+import { notify, composeAlert, postWindow, loadConfig } from './notify.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const ARGS = process.argv.slice(2)
@@ -464,16 +464,60 @@ export function closeWindow(previous, now) {
 
 const fmtResults = (res) => Object.entries(res).map(([k, v]) => `${k}:${v}`).join(' ') || '(no channels configured)'
 
+// What step() calls when the phone's WhatsApp poster is not wired in: nothing,
+// ever. Its own copy, so a tick without a Whapi token never loads wa-phone.mjs.
+const INERT_WA = Object.freeze({
+  onLive() {},
+  onFirstPage() {},
+  async settle() {},
+  async refresh() {},
+  async close() {},
+  async idle() {},
+  async marker() {
+    return null
+  },
+})
+
 /**
  * One watcher step, host-agnostic: given the previous feed, return what to
  * publish now (null when nothing material changed and the hourly heartbeat
  * is not yet due) plus a closed window to append to the history, if any.
- * `deps` lets a test stand in for the network: { detect, notify, post }.
+ * `deps` lets a test stand in for the network: { detect, notify, post, wa }.
+ *
+ * `wa` is the phone's own WhatsApp Channel poster (wa-phone.mjs). Only main()
+ * passes the real one; the default does nothing, so no test and no importer
+ * can reach Whapi. Its post starts at the first page, beside the Telegram
+ * channel post, and runs off the crawl's path; it is awaited (bounded) only
+ * after the crawl, so the feed written here says whether the phone took the
+ * window (`waAt`). A post not at its send by then gets up to 8 s more to reach
+ * it, and is cut off if it does not; a send, once started, gets 8 s of its
+ * own. So the feed can wait up to about 16 s after the crawl, and a post that
+ * is cut off leaves the window to Actions up to 8 s later. Everything else
+ * after the crawl shares one 8 s deadline. Nothing it does can throw into the
+ * tick.
  */
 export async function step(previous, deps = {}) {
   const detectFn = deps.detect ?? detect
   const notifyFn = deps.notify ?? notify
   const postFn = deps.post ?? postWindow
+  const wa = deps.wa ?? INERT_WA
+  const waFailed = (what, e) => console.error(`WA ${what} failed: ${String(e?.message ?? e).slice(0, 80)}`)
+  const waNow = (what, fn) => {
+    try {
+      fn()
+    } catch (e) {
+      waFailed(what, e)
+    }
+  }
+  const waWait = async (what, fn) => {
+    try {
+      return await fn()
+    } catch (e) {
+      waFailed(what, e)
+      return null
+    }
+  }
+  let waEdge = false
   const now = new Date().toISOString()
   let next
   try {
@@ -489,33 +533,46 @@ export async function step(previous, deps = {}) {
     const opening = (code) => !(previous.live && previous.code === code) && !SILENT
     let alerted = false
     let posted = false
-    const d = await detectFn(
-      previous,
-      async (early) => {
-        if (!opening(early.code)) return
-        const feed = { ...early, discountPct: inferDiscountPct(early.code, early.skus), partial: true }
-        try {
-          const text = composeAlert(feed)
-          const res = DRY_RUN ? (console.log(`DRY-RUN alert:\n${text}`), { dryRun: 'printed' }) : await notifyFn(text)
-          console.log(`ALERT ${fmtResults(res)} at ${new Date().toISOString()}`)
-          alerted = true
-        } catch (e) {
-          // A channel failing must never cost the window its crawl and publish.
-          console.error(`ALERT failed: ${e.message}`)
-        }
-      },
-      async (page) => {
-        if (!opening(page.code)) return
-        const feed = { ...page, discountPct: inferDiscountPct(page.code, page.skus) }
-        try {
-          const res = await postFn('open', feed, { dryRun: DRY_RUN })
-          console.log(`POST open ${fmtResults(res)} at ${new Date().toISOString()}`)
-          posted = true
-        } catch (e) {
-          console.error(`POST open failed: ${e.message}`)
-        }
-      },
-    )
+    let d
+    try {
+      d = await detectFn(
+        previous,
+        async (early) => {
+          if (!opening(early.code)) return
+          waEdge = true
+          // Is the poster paused? Asked now, beside the alert, read at the first page.
+          waNow('pause check', () => wa.onLive(early))
+          const feed = { ...early, discountPct: inferDiscountPct(early.code, early.skus), partial: true }
+          try {
+            const text = composeAlert(feed)
+            const res = DRY_RUN ? (console.log(`DRY-RUN alert:\n${text}`), { dryRun: 'printed' }) : await notifyFn(text)
+            console.log(`ALERT ${fmtResults(res)} at ${new Date().toISOString()}`)
+            alerted = true
+          } catch (e) {
+            // A channel failing must never cost the window its crawl and publish.
+            console.error(`ALERT failed: ${e.message}`)
+          }
+        },
+        async (page) => {
+          if (!opening(page.code)) return
+          waEdge = true
+          const feed = { ...page, discountPct: inferDiscountPct(page.code, page.skus) }
+          // The WhatsApp post starts first and is not waited for here: the
+          // Telegram post and the crawl go on beside it.
+          waNow('open', () => wa.onFirstPage({ ...feed, from: now }))
+          try {
+            const res = await postFn('open', feed, { dryRun: DRY_RUN })
+            console.log(`POST open ${fmtResults(res)} at ${new Date().toISOString()}`)
+            posted = true
+          } catch (e) {
+            console.error(`POST open failed: ${e.message}`)
+          }
+        },
+      )
+    } finally {
+      // Before anything is written: the feed must say whether the phone took the window.
+      await waWait('settle', () => wa.settle())
+    }
     // heartbeatMs makes the feed self-describing: a consumer knows how stale
     // checkedAt can get while still healthy, instead of hardcoding a guess.
     next = { generated: now, checkedAt: now, ok: true, heartbeatMs: HEARTBEAT_MS, ...d }
@@ -531,6 +588,8 @@ export async function step(previous, deps = {}) {
     console.log(d.live ? `LIVE  ${d.code} — ${d.skus.length}/${d.totalCount} SKUs` : 'quiet — no BLINK* coupon on gold coins')
     if (alerted) next.alertedAt = now
     if (posted) next.postedAt = now
+    // The phone's WhatsApp post went out from the first page; edit in the full crawl's rows if they differ.
+    if (d.live) await waWait('refresh', () => wa.refresh(next))
   } catch (e) {
     // A failed read never ends a window: keep what we knew, mark it stale.
     next = { ...previous, generated: now, checkedAt: now, ok: false, stale: true, error: String(e.message ?? e) }
@@ -551,6 +610,18 @@ export async function step(previous, deps = {}) {
       }
     }
   }
+  // The phone ends its own WhatsApp post on the same edge. Any other tick that
+  // is not an opening settles its ledger against this read: a good read that
+  // does not show its post's code live ends that post (its tick's feed was
+  // lost), then its status read and any "Over" edit still owed are made. All
+  // of it shares one deadline (wa-phone.mjs), so the feed is not held long.
+  if (closedWindow) await waWait('close', () => wa.close({ previous, next }))
+  else if (!waEdge) await waWait('idle', () => wa.idle(next))
+  // `waAt` comes from the phone's ledger on every tick, never from the feed
+  // before, so a heartbeat or a failed read carries it exactly while it holds.
+  const waAt = await waWait('marker', () => wa.marker(next))
+  if (waAt) next.waAt = waAt
+  else delete next.waAt
 
   const material =
     !!previous.live !== !!next.live || previous.code !== next.code || !!previous.ok !== !!next.ok ||
@@ -580,6 +651,20 @@ export function appendWindow(history, w, generated = new Date().toISOString()) {
   return { generated, windows: [...(history?.windows ?? []), w].slice(-100) }
 }
 
+/** wa-phone.mjs's poster when .notify.env (or the environment) holds a Whapi token, else undefined. Never throws. */
+async function phoneWa() {
+  try {
+    const cfg = await loadConfig()
+    const token = cfg?.whapi?.token
+    if (typeof token !== 'string' || !token.trim()) return undefined
+    const { phoneFromConfig } = await import('./wa-phone.mjs')
+    return await phoneFromConfig({ forceDry: DRY_RUN, config: cfg })
+  } catch (e) {
+    console.error(`WA: not loaded (${String(e?.message ?? e).slice(0, 80)}); nothing posted from this phone`)
+    return undefined
+  }
+}
+
 async function main() {
   if (PROBE) return probe()
 
@@ -591,7 +676,11 @@ async function main() {
     }
   }
   const previous = await readJson(OUT, {})
-  const { next, closedWindow } = await step(previous)
+  // The phone's own WhatsApp poster, from .notify.env: print-only on
+  // --dry-run, never on a test or replay run, and not even loaded without a
+  // Whapi token, so such a tick runs exactly as it did before the poster.
+  const wa = SILENT ? undefined : await phoneWa()
+  const { next, closedWindow } = await step(previous, { wa })
   if (closedWindow) {
     const history = appendWindow(await readJson(HISTORY, null), closedWindow, new Date().toISOString())
     await writeFile(HISTORY, JSON.stringify(history, null, 1) + '\n')
