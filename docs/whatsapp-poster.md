@@ -98,14 +98,24 @@ time.
   the push, it posts nothing: it could not tell the opening from a heartbeat.
 - **The phone or Actions, never both.** The phone writes its record of a post
   (`.wa-ledger/` in the clone on the phone) *before* it sends, and waits for
-  the send (8 seconds at most) before it writes the feed. While a window it
-  posted, or may have posted, is live, every feed it pushes carries `waAt`,
-  and the Actions job then neither posts that window nor edits its end. A
-  post that may have gone out (no answer, or a server error) is never sent
-  again. A post that certainly did not go out (any 4xx, or no connection at
-  all) leaves no `waAt`, so Actions posts the window, with no delay. A phone
-  restart, a lost push, a heartbeat or a failed read never posts again: the
-  record on the phone says the window is already out.
+  the send before it writes the feed. A post not at its send when the crawl
+  ends is dropped then and there, and left to the job; a send gets 8 seconds
+  at most; everything else the phone does with WhatsApp or GitHub after the
+  crawl (an "Over" edit, a status read) shares one 8-second limit. While a
+  window it posted, or may have posted, is live, every feed it pushes carries
+  `waAt`, and the Actions job then neither posts that window nor edits its
+  end. A post that may have gone out (no answer, or a server error) is never
+  sent again. A post that certainly did not go out (any 4xx, or no connection
+  at all) leaves no `waAt`, so Actions posts the window, with no delay. A
+  phone restart, a lost push, a heartbeat or a failed read never posts again:
+  the record on the phone says the window is already out. The first good read
+  that does not show that window live ends the post, even when the push that
+  carried it was lost.
+- **Delivery is checked.** A 200 from Whapi is not delivery. The phone looks
+  at the status of each post once, on its first check 15 seconds or more after
+  the send, as the job does. If WhatsApp marked it failed, the phone posts
+  nothing for 2 days and leaves each window to the job, which meets the same
+  failure and opens the pause issue.
 - **One off switch.** An issue titled **WhatsApp poster is paused** stops it
   completely, on the phone and in Actions: while the issue is open, neither
   calls Whapi at all, and the job only comments on each window it skipped.
@@ -113,7 +123,9 @@ time.
   with that exact title to pause it by hand. Close it to resume. The repo is
   public, so an issue with that title counts only if the workflow, you, or a
   collaborator opened it. The phone reads the open issues without any
-  credential, once per window opening and once per end. It never opens or
+  credential, once per window opening, once per end and once for the status
+  read. It forgets the channel it found when it sees the issue open, and finds
+  it again (with the same checks as the job) before its next post. It never opens or
   comments on an issue: when Whapi refuses it, it leaves the window to the
   job, which meets the same refusal and opens the issue with the right words.
   If the phone cannot read the issues, it leaves the window to the job.
@@ -348,12 +360,13 @@ only a person knows when the number has rested.
   checks count against its 1,000 requests a month (about 7 per window from
   the Actions job: 4 for the post, 3 for the edit; plus the watchdog's check
   4-8 times a day, about 180 a month). October's pace, 5.4 windows a day,
-  would make that about 1,320 a month. From the phone it is about 3 per
-  window (the post, the edit, one channel check after the end), one more
-  when the full crawl changes the first page's prices, and 2 more when the
-  channel was last checked over a day ago: about 500-650 a month at
-  October's pace. The phone also makes 2 GitHub reads per window (the pause
-  issue), without a credential, from the home connection.
+  would make that about 1,320 a month. From the phone it is about 4 per
+  window (a session check at the opening, the post, one status read, the
+  edit), one more when the full crawl changes the first page's prices, and
+  one more (the channel list) when the channel was last found over a day ago
+  or the number linked has changed: about 650-850 a month at October's pace.
+  The phone also makes 2-3 GitHub reads per window (the pause issue), without
+  a credential, from the home connection.
 - Whapi renamed the role field `user_role`; its API reference still says
   `role`. The job reads both.
 - Speed: from the phone (step 9) the post goes out about 3 seconds after the

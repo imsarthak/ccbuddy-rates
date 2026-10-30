@@ -91,6 +91,10 @@ It will refuse to start if that clone has uncommitted changes, because it
 resets the tree on a failed rebase. On a dedicated watcher clone that never
 happens.
 
+It also refuses to start while another loop is running in the same clone
+(say, Termux:Boot's, below, and one started by hand): two would send two
+alerts per window. If it refuses, the loop is already running.
+
 **Not optional: make it survive a reboot.** On 2026-10-04 the phone switched
 off, came back, and the loop did not: windows went unseen for days. Install
 **Termux:Boot** from F-Droid, **open it once** (Android only lets it start

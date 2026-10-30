@@ -476,7 +476,9 @@ const fmtResults = (res) => Object.entries(res).map(([k, v]) => `${k}:${v}`).joi
  * can reach Whapi. Its post starts at the first page, beside the Telegram
  * channel post, and runs off the crawl's path; it is awaited (bounded) only
  * after the crawl, so the feed written here says whether the phone took the
- * window (`waAt`). Nothing it does can throw into the tick.
+ * window (`waAt`). A post not at its send by then is cut off; a send gets
+ * 8 s; everything else after the crawl shares one 8 s deadline. Nothing it
+ * does can throw into the tick.
  */
 export async function step(previous, deps = {}) {
   const detectFn = deps.detect ?? detect
@@ -592,10 +594,13 @@ export async function step(previous, deps = {}) {
       }
     }
   }
-  // The phone ends its own WhatsApp post on the same edge. On any other tick
-  // it only makes an "Over" edit still owed from an earlier one, if any.
+  // The phone ends its own WhatsApp post on the same edge. Any other tick that
+  // is not an opening settles its ledger against this read: a good read that
+  // does not show its post's code live ends that post (its tick's feed was
+  // lost), then its status read and any "Over" edit still owed are made. All
+  // of it shares one deadline (wa-phone.mjs), so the feed is not held long.
   if (closedWindow) await waWait('close', () => wa.close({ previous, next }))
-  else if (!waEdge) await waWait('idle', () => wa.idle())
+  else if (!waEdge) await waWait('idle', () => wa.idle(next))
   // `waAt` comes from the phone's ledger on every tick, never from the feed
   // before, so a heartbeat or a failed read carries it exactly while it holds.
   const waAt = await waWait('marker', () => wa.marker(next))

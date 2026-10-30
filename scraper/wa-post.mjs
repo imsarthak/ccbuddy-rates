@@ -96,7 +96,7 @@ const TIMEOUT_MS = 15000
 // else is ever retried: a 429 is a soft ban, and a 5xx may have been sent.
 const RETRY_401 = 3
 const RETRY_GAP_MS = 3000
-const VERIFY_AFTER_MS = 15000
+export const VERIFY_AFTER_MS = 15000
 const TEST_EDIT_AFTER_MS = 20000
 export const REST_MS = 2 * 24 * 3600 * 1000 // Whapi's advice after a 429: rest "a day or two"
 
@@ -295,8 +295,10 @@ const realSleep = (ms) => new Promise((r) => setTimeout(r, ms))
  * with 401"), so a 2-3 s reconnect never pauses the poster; nothing else is.
  * `retries401` is how many times (the phone passes 0: it leaves a 401 to the
  * Actions path, which retries, rather than hold the window's post 9 s).
+ * `signal`, when given, cuts every call short beside its own timeout (the
+ * phone's one deadline for a tick).
  */
-export function whapi({ token, base = WHAPI, fetch: fetchFn, timeoutMs = TIMEOUT_MS, sleep = realSleep, log = () => {}, retries401 = RETRY_401 }) {
+export function whapi({ token, base = WHAPI, fetch: fetchFn, timeoutMs = TIMEOUT_MS, sleep = realSleep, log = () => {}, retries401 = RETRY_401, signal }) {
   const doFetch = fetchFn ?? ((...a) => globalThis.fetch(...a))
   async function once(what, method, path, body) {
     let res
@@ -309,7 +311,7 @@ export function whapi({ token, base = WHAPI, fetch: fetchFn, timeoutMs = TIMEOUT
           ...(body ? { 'content-type': 'application/json' } : {}),
         },
         body: body ? JSON.stringify(body) : undefined,
-        signal: AbortSignal.timeout(timeoutMs),
+        signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(timeoutMs)]) : AbortSignal.timeout(timeoutMs),
       })
     } catch (e) {
       const err = new WhapiError(what, 0, e?.name === 'TimeoutError' ? 'timed out' : 'network error')
@@ -449,8 +451,8 @@ async function preflight(call, channelId, sleep, testId = '') {
 // A 401 is retried inside the client; a 429, 5xx or timeout never is.
 const send = (call, body) => call(body.edit ? 'edit' : 'send', 'POST', '/messages/text', body)
 
-/** A 200 is not delivery (Whapi: unsupported posts sit in `pending`). Look once. */
-async function verify(call, id, { sleep, log }) {
+/** A 200 is not delivery (Whapi: unsupported posts sit in `pending`). Look once. The phone reads its posts by the same rule. */
+export async function verify(call, id, { sleep, log }) {
   await sleep(VERIFY_AFTER_MS)
   try {
     const m = await call('status', 'GET', `/messages/${encodeURIComponent(id)}`)

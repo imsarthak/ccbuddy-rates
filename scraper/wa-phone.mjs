@@ -16,16 +16,33 @@
 // has. Whoever posted a window also ends it: the phone from its own ledger
 // here, Actions from its cache.
 //
+// Bounded. A post not at its send when the crawl ends is cut off then and
+// there, every call it had started with it. A send, once started, gets
+// PHONE_TIMEOUT_MS. Everything else a tick does with Whapi or GitHub after the
+// crawl (the full crawl's edit, an "Over" edit, a status read) shares one
+// deadline of PHONE_TIMEOUT_MS, so the feed is written, and pushed, soon after.
+//
 // Exactly once. The ledger is `.wa-ledger/` at the clone root, on the phone
 // only (gitignored; nothing in the watcher loop touches ignored files):
 //   open.json      the one post that is out and not yet ended. Created
 //                  atomically and exclusively BEFORE the send, updated after
 //                  it. A post that may have gone out is never sent again.
+//                  Every good read that does not show its code live ends it,
+//                  so one still on file at an opening of the same code is
+//                  that window: it is not posted again, whatever its age.
 //   <key>.json     each ended post, with its edit's state; kept 30 days
 //   due.json       the keys of ended posts whose "Over" edit is still owed
-//   channel.json   the channel found for this token, rechecked daily and
-//                  after each end
-//   hold.json      after a 429: no Whapi call before `until` (2 days)
+//   check.json     the last post, until its status is read once, 15 s or more
+//                  after the send (a 200 is not delivery)
+//   channel.json   the channel found for this token and the number linked;
+//                  found again when it is a day old, the number changes, the
+//                  pause issue is seen open, or Whapi answers 401/403/404
+//   hold.json      after a 429, or a post WhatsApp marked failed: no Whapi
+//                  call before `until` (2 days)
+//
+// One loop per clone: watch-termux.sh refuses to start a second. Two runs on
+// one clone anyway (a hand run beside the loop) still post a window once, and
+// both feeds carry `waAt`: the ledger matches a window by its code.
 //
 // Config: the `whapi` block of .notify.env (notify.mjs), written by --setup.
 // No block: nothing at all happens here, not a single call. A block without
@@ -41,14 +58,15 @@
 // number. Docs: docs/whatsapp-poster.md, docs/termux-setup.md.
 
 import { readFile, writeFile, mkdir, rename, unlink, link, readdir, stat } from 'node:fs/promises'
+import { createHmac } from 'node:crypto'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import {
   whapi, WhapiError, redact, postData, renderOpen, renderOver, endOf, windowKey, findPause, findChannel, roleIn,
-  sessionStatus, channelTag, readLedger, writeLedger, REASONS, MESSAGE_ID_OK, NEWSLETTER_OK, KEY_OK,
-  OPEN_MAX_AGE_MS, REST_MS, LEDGER_DIR, WHAPI,
+  sessionStatus, verify, channelTag, readLedger, writeLedger, REASONS, MESSAGE_ID_OK, NEWSLETTER_OK, KEY_OK,
+  REST_MS, VERIFY_AFTER_MS, LEDGER_DIR, WHAPI,
 } from './wa-post.mjs'
 import { loadConfig } from './notify.mjs'
 
@@ -57,12 +75,13 @@ const execFileAsync = promisify(execFile)
 
 export const REPO = 'imsarthak/ccbuddy-rates'
 export const GITHUB_API = 'https://api.github.com'
-// Every call from the phone. A send that has not answered in 8 s is treated
-// as one that may have gone out: never sent again.
+// Every call from the phone, and the one deadline for a tick's WhatsApp work
+// after the crawl. A send that has not answered in 8 s is treated as one that
+// may have gone out: never sent again.
 export const PHONE_TIMEOUT_MS = 8000
 // How long step() waits after the crawl for a WhatsApp job that has not yet
-// reached its send. After that the job may not start one: the feed is about
-// to be written without `waAt`, and Actions will post.
+// reached its send. Then the job is cut off: the feed is about to be written
+// without `waAt`, and Actions will post.
 export const SETTLE_MS = 8000
 export const CHANNEL_MAX_AGE_MS = 24 * 3600 * 1000
 export const EDIT_RETRIES = 3
@@ -73,12 +92,41 @@ const TOKEN_OK = /^[A-Za-z0-9_-]{20,200}$/
 
 const OPEN = 'open.json'
 const DUE = 'due.json'
+const CHECK = 'check.json'
 const CHANNEL = 'channel.json'
 const HOLD = 'hold.json'
 
 const iso = (ms) => new Date(ms).toISOString()
-const realSleep = (ms) => new Promise((r) => setTimeout(r, ms))
+// A sleep that a deadline ends early, timer and all, so it never holds the process open.
+const realSleep = (ms, signal) =>
+  new Promise((ok, no) => {
+    if (signal?.aborted) return no(signal.reason)
+    const stop = () => {
+      clearTimeout(t)
+      no(signal.reason)
+    }
+    const t = setTimeout(() => {
+      signal?.removeEventListener('abort', stop)
+      ok()
+    }, ms)
+    signal?.addEventListener('abort', stop, { once: true })
+  })
 const roleText = (role) => (role ? String(role).replace(/[^a-z_]/gi, '').slice(0, 20) : 'none')
+// The code of the window a feed shows live, or null.
+const liveCode = (feed) => (windowKey(feed) ? feed.lastLive?.code ?? feed.code : null)
+
+/** The number linked to the token, as a fingerprint keyed with it: never the number itself. '' when Whapi did not say. */
+export const userTag = (token, id) => (id ? createHmac('sha256', token).update(`user:${id}`).digest('hex').slice(0, 16) : '')
+
+/** One GET /health: the session's status and the number linked (kept in memory only). */
+async function readHealth(call, path) {
+  const h = await call('health', 'GET', path)
+  const id = h?.user?.id
+  return {
+    status: /^[A-Z_]{1,20}$/.test(h?.status?.text ?? '') ? h.status.text : 'UNKNOWN',
+    user: typeof id === 'string' || typeof id === 'number' ? String(id) : '',
+  }
+}
 
 /** What step() calls when the phone path is not wired in: nothing happens, ever. */
 export const INERT = Object.freeze({
@@ -118,12 +166,12 @@ export function phoneSettings(cfg, { forceDry = false } = {}) {
  * author that is the bot, the owner or a collaborator. 'paused' or 'clear';
  * throws when it cannot tell.
  */
-export async function pauseCheck({ fetch: fetchFn, repo = REPO, base = GITHUB_API, timeoutMs = PHONE_TIMEOUT_MS } = {}) {
+export async function pauseCheck({ fetch: fetchFn, repo = REPO, base = GITHUB_API, timeoutMs = PHONE_TIMEOUT_MS, signal } = {}) {
   const doFetch = fetchFn ?? ((...a) => globalThis.fetch(...a))
   const gh = async (path) => {
     const res = await doFetch(`${base}/repos/${repo}${path}`, {
       headers: { accept: 'application/vnd.github+json', 'user-agent': 'ccbuddy-blinkdeal-watcher' },
-      signal: AbortSignal.timeout(timeoutMs),
+      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(timeoutMs)]) : AbortSignal.timeout(timeoutMs),
     })
     if (!res.ok) throw new Error(`GitHub issues: HTTP ${res.status}`)
     return res.json()
@@ -153,6 +201,12 @@ function phoneLedger(dir, { now, forced = false }) {
   }
   const remove = async (name) => {
     if (!forced) await unlink(path(name)).catch(() => {})
+  }
+  /** { until, why } while the phone holds off Whapi, else null. */
+  const held = async () => {
+    const h = await readJson(HOLD)
+    const until = Date.parse(h?.until ?? '')
+    return Number.isFinite(until) && until > now() ? { until, why: h.why === 'failed' ? 'failed' : '429' } : null
   }
   return {
     readJson,
@@ -210,13 +264,11 @@ function phoneLedger(dir, { now, forced = false }) {
       if (keys.length) await replace(DUE, [...new Set(keys)])
       else await remove(DUE)
     },
-    async heldUntil() {
-      const until = Date.parse((await readJson(HOLD))?.until ?? '')
-      return Number.isFinite(until) && until > now() ? until : null
-    },
-    hold: () => replace(HOLD, { until: iso(now() + REST_MS) }),
-    async saveChannel(token, channelId) {
-      await replace(CHANNEL, { channelId, tag: channelTag(token, channelId), checkedAt: iso(now()) })
+    held,
+    heldUntil: async () => (await held())?.until ?? null,
+    hold: (why = '429') => replace(HOLD, { until: iso(now() + REST_MS), why }),
+    async saveChannel(token, channelId, user = '') {
+      await replace(CHANNEL, { channelId, tag: channelTag(token, channelId), user, checkedAt: iso(now()) })
     },
     /** The cached channel for this token (and this pin, if any), or null. */
     async cachedChannel(token, pinned) {
@@ -233,13 +285,17 @@ function phoneLedger(dir, { now, forced = false }) {
 /**
  * One tick's WhatsApp poster: the hooks step() calls. Every method is safe to
  * call in any order and never throws; every network call goes through `fetch`.
- *   onLive()          at an opening, beside the Telegram alert: starts the pause check
+ *   onLive()          at an opening, beside the Telegram alert: starts the
+ *                     pause check, then (when clear) the session check
  *   onFirstPage(p)    at an opening, before the Telegram channel post: starts
  *                     the post, which step() does not wait for
- *   settle()          after the crawl: waits for that post (bounded)
+ *   settle()          after the crawl: waits for that post (bounded), and
+ *                     starts the tick's one deadline
  *   refresh(next)     the post again, edited, if the full crawl's rows differ
  *   close({previous, next})   a window ended: its post edited "Over"
- *   idle()            any other tick: an "Over" edit still owed, if one is
+ *   idle(next)        any other tick: a good read ends a post whose code it
+ *                     does not show live; then the status read and the
+ *                     "Over" edits still owed, if any
  *   marker(next)      `waAt` for the feed, or null
  */
 export function phonePoster({
@@ -266,28 +322,97 @@ export function phonePoster({
   const L = phoneLedger(dir, { now, forced: s.forced })
   const say = (m) => log(`WA ${m}`)
   const short = (e) => redact(e?.message ?? e, [s.token])
-  const raw = whapi({ token: s.token, base: whapiBase, fetch: fetchFn, timeoutMs, sleep, retries401: 0 })
-  // A 429 rests the number: no call from here before hold.json says.
-  const call = async (...a) => {
+
+  // The tick's one deadline. Every Whapi and GitHub call but the send carries
+  // it; it ends PHONE_TIMEOUT_MS after the crawl (settle), or at once when a
+  // post is cut off before its send. A send, once started, keeps its own
+  // timeout: cut short, it would be a post that may have gone out.
+  const tick = new AbortController()
+  const cut = () => {
+    if (!tick.signal.aborted) tick.abort(new DOMException('the WhatsApp time for this tick is up', 'TimeoutError'))
+  }
+  let deadline = null
+  const budget = () => {
+    if (deadline) return
+    deadline = setTimeout(cut, timeoutMs)
+    deadline.unref?.()
+  }
+  const nap = (ms) => (tick.signal.aborted ? Promise.reject(tick.signal.reason) : sleep(ms, tick.signal))
+
+  const client = { token: s.token, base: whapiBase, fetch: fetchFn, timeoutMs, sleep: nap, retries401: 0 }
+  // After a 429 no call leaves this phone, in this run (`rested`) or any other
+  // before hold.json says; a post WhatsApp marked failed holds it the same way.
+  let rested = false
+  const guarded = (raw) => async (what, ...a) => {
+    if (rested || (await L.heldUntil())) {
+      const e = new WhapiError(what, 0, 'not called: this phone is holding off Whapi')
+      e.unsent = true
+      throw e
+    }
     try {
-      return await raw(...a)
+      return await raw(what, ...a)
     } catch (e) {
       if (e instanceof WhapiError && e.status === 429) {
-        await L.hold().catch(() => {})
+        rested = true
+        await L.hold('429').catch(() => {})
         say('Whapi answered 429: no call from this phone for 2 days')
+      } else if (e instanceof WhapiError && [401, 403, 404].includes(e.status)) {
+        // The session or the channel is not what the cache says: found again at the next opening.
+        await L.remove(CHANNEL)
       }
       throw e
     }
   }
-  const checkPause = () => pauseCheck({ fetch: fetchFn, repo, base: githubBase, timeoutMs })
+  const call = guarded(whapi({ ...client, signal: tick.signal }))
+  const sendCall = guarded(whapi(client))
+  const checkPause = async () => {
+    const p = await pauseCheck({ fetch: fetchFn, repo, base: githubBase, timeoutMs, signal: tick.signal })
+    // Something needs the owner: whatever the cache says is checked again after.
+    if (p === 'paused') await L.remove(CHANNEL)
+    return p
+  }
+  // Off an opening: asked at most once a tick, and only when a Whapi call is ready to be made.
+  let pauseMemo = null
+  const pausedNow = () =>
+    (pauseMemo ??= checkPause().then(
+      (p) => p === 'paused',
+      (e) => {
+        say(`could not read the pause issue (${short(e)})`)
+        return null
+      },
+    ))
 
-  let pause = null // this tick's pause check, started at onLive
+  let pre = null // this tick's pause check, then the session check, started at onLive
   let job = null
   let phase = 'pre' // 'pre' → 'sending' → 'done'; settle() waits only for a job past 'pre'
   let cutoff = false
   let opened = null // { entry, channelId } once this tick's post went out
 
-  /** Where a post goes: the cache, else found (or the pin checked) and cached. */
+  /** At an opening: held? paused? and, when clear, the session and the number linked. No Whapi call while paused. */
+  const prepare = () =>
+    (pre ??= (async () => {
+      const h = await L.held()
+      if (h) return { pause: 'held', why: h.why }
+      const pause = await checkPause()
+      if (pause !== 'clear') return { pause }
+      try {
+        return { pause, health: await readHealth(call, '/health') }
+      } catch (e) {
+        return { pause, health: { error: e } }
+      }
+    })())
+
+  /** The post on file, or null; one whose retire stopped between its two writes is cleared. */
+  async function current() {
+    const cur = await L.readOpen()
+    if (cur && (await L.archived(cur.key))) {
+      await L.remove(OPEN)
+      return null
+    }
+    return cur
+  }
+
+  /** Where a post goes: found (or the pin checked), never from the cache. */
   async function locate() {
     if (s.channelId) {
       const r = await roleIn(call, s.channelId)
@@ -298,17 +423,29 @@ export function phonePoster({
     const f = await findChannel(call)
     return f.reason ? { reason: f.reason.title } : { channelId: f.channel.id }
   }
-  async function channelFor() {
-    const c = await L.cachedChannel(s.token, s.channelId)
-    if (c && now() - Date.parse(c.checkedAt) < CHANNEL_MAX_AGE_MS) return { channelId: c.channelId }
-    const status = await sessionStatus(call, sleep, { wakeup: true })
-    if (status !== 'AUTH') {
-      await L.remove(CHANNEL)
-      return { reason: REASONS.session(status).title }
+  /**
+   * Where this post goes: the cache, while it is under a day old and the
+   * session is connected to the number it was found with; else found again
+   * and cached. A session re-linked to another number (the owner's, say) is
+   * checked by the same rules as Actions before anything is posted.
+   */
+  async function channelFor(health) {
+    if (health?.error) return { reason: `the session check failed: ${short(health.error)}` }
+    let h = health
+    if (h.status !== 'AUTH') {
+      const status = await sessionStatus(call, nap, { wakeup: true })
+      h = status === 'AUTH' ? await readHealth(call, '/health') : { status, user: '' }
     }
+    if (h.status !== 'AUTH') {
+      await L.remove(CHANNEL)
+      return { reason: REASONS.session(h.status).title }
+    }
+    const user = userTag(s.token, h.user)
+    const c = await L.cachedChannel(s.token, s.channelId)
+    if (c && user && c.user === user && now() - Date.parse(c.checkedAt) < CHANNEL_MAX_AGE_MS) return { channelId: c.channelId }
     const found = await locate()
     if (found.reason) await L.remove(CHANNEL)
-    else await L.saveChannel(s.token, found.channelId)
+    else await L.saveChannel(s.token, found.channelId, user)
     return found
   }
 
@@ -332,27 +469,15 @@ export function phonePoster({
   }
 
   /**
-   * Make the "Over" edits that are owed. `paused`: true/false when this tick
-   * already knows, undefined to ask GitHub (once, and only if an edit is
-   * ready to try). Off an edge, an edit waits EDIT_RETRY_GAP_MS between tries,
-   * and one held back by the pause waits for the next edge.
+   * Make the "Over" edits that are owed, after one look at the pause issue
+   * (asked only if an edit is ready to try). Off an edge, an edit waits
+   * EDIT_RETRY_GAP_MS between tries, and one held back by the pause waits for
+   * the next end.
    */
-  async function runDue({ atEdge, paused }) {
+  async function runDue({ atEdge }) {
     const keys = await L.dueKeys()
     if (!keys.length) return
     const until = await L.heldUntil()
-    let p = paused
-    const isPaused = async () => {
-      if (p === undefined) {
-        try {
-          p = (await checkPause()) === 'paused'
-        } catch (e) {
-          say(`edit: could not read the pause issue (${short(e)})`)
-          p = null
-        }
-      }
-      return p
-    }
     const keep = []
     for (const key of keys) {
       const a = await readLedger(dir, key)
@@ -364,11 +489,11 @@ export function phonePoster({
         say(`edit for ${a.code} dropped: not made within 24 h`)
         continue
       }
-      if (until || (!atEdge && e.reason === 'paused') || (!atEdge && e.lastTry && now() - e.lastTry < EDIT_RETRY_GAP_MS)) {
+      if (until || rested || (!atEdge && e.reason === 'paused') || (!atEdge && e.lastTry && now() - e.lastTry < EDIT_RETRY_GAP_MS)) {
         keep.push(key)
         continue
       }
-      const pz = await isPaused()
+      const pz = await pausedNow()
       if (pz === true) {
         await save({ reason: 'paused' })
         keep.push(key)
@@ -410,6 +535,29 @@ export function phonePoster({
     await L.setDue(keep)
   }
 
+  /**
+   * A 200 is not delivery. The last post's status is read once, on the first
+   * tick VERIFY_AFTER_MS or more after its send, by the same rule as Actions.
+   * "failed" holds the phone off Whapi for 2 days: each window then goes to
+   * Actions, which meets the same failure and opens the pause issue.
+   */
+  async function checkStatus() {
+    const c = await L.readJson(CHECK)
+    if (!c) return
+    const sentAt = Date.parse(c.sentAt ?? '')
+    if (Number.isFinite(sentAt) && now() - sentAt < VERIFY_AFTER_MS) return
+    // Looked at once, whatever the answer, as Actions does; not at all a day on.
+    await L.remove(CHECK)
+    if (!(now() - sentAt <= EDIT_MAX_AGE_MS) || !MESSAGE_ID_OK.test(c.messageId ?? '') || rested || (await L.heldUntil())) return
+    if ((await pausedNow()) !== false) return
+    // A 429 here is already held by the call itself.
+    const status = await verify(call, c.messageId, { sleep: async () => {}, log: () => {} }).catch(() => null)
+    say(`status of the last post: ${status ?? 'not read'}`)
+    if (status !== 'failed') return
+    await L.hold('failed')
+    say('WhatsApp marked the last post as failed: no call from this phone for 2 days; the Actions poster takes each window')
+  }
+
   // ---- The opening ----------------------------------------------------------------
 
   async function openJob(page) {
@@ -421,85 +569,79 @@ export function phonePoster({
     }
     const data = postData({ ...page, lastLive: { code: page.code, from: page.from } })
     const body = renderOpen(data)
-    let cur = await L.readOpen()
-    if (cur && (await L.archived(cur.key))) {
-      // A retire that stopped between its two writes.
-      await L.remove(OPEN)
-      cur = null
-    }
-    // The same code posted less than 15 min ago and never ended: this is that
-    // window again, seen by a tick whose previous feed lost the post's write.
-    if (cur && cur.code === page.code && now() - Date.parse(cur.postedAt) < OPEN_MAX_AGE_MS) {
-      if (cur.key !== key) await L.replace(OPEN, { ...cur, key, from: page.from })
+    const cur = await current()
+    // The same code on file: no good read has seen that window end, so this
+    // is it again (a tick whose feed was lost posted it, or another run on
+    // this clone is posting it). Not posted twice, whatever its age.
+    if (cur && cur.code === page.code) {
       say(`open: ${page.code} was posted at ${cur.postedAt} by an earlier tick whose feed was lost; not posting it again`)
       return 'adopted'
     }
-    // Anything else on file ended unseen (or the code changed): its end is owed.
-    let stale = false
+    // Another code on file ended unseen (the code changed): its end is owed,
+    // and made on a later tick, never in the way of this post.
     if (cur && s.forced) {
       say(`DRY (${s.why}): would edit the post for ${cur.code} to:\n${renderOver(cur.data, null)}`)
     } else if (cur) {
       await retire(cur, null)
-      stale = true
     }
     if (s.mode !== 'live') {
       say(`DRY (${s.why}): would post:\n${body}`)
       return 'dry'
     }
-    if (await L.heldUntil()) {
-      say('open: resting the number after a 429; the Actions poster takes this window')
-      return 'held'
-    }
-    let pz
+    let p
     try {
-      pz = await (pause ?? checkPause())
+      p = await prepare()
     } catch (e) {
+      if (cutoff) return late()
       say(`open: could not read the pause issue (${short(e)}); the Actions poster takes this window`)
       return 'deferred'
     }
-    if (pz === 'paused') {
+    if (p.pause === 'held') {
+      say(
+        p.why === 'failed'
+          ? 'open: WhatsApp marked an earlier post from this phone as failed; the Actions poster takes this window'
+          : 'open: resting the number after a 429; the Actions poster takes this window',
+      )
+      return 'held'
+    }
+    if (p.pause === 'paused') {
       say('open: the poster is paused; the Actions poster notes the window')
-      if (stale) await runDue({ atEdge: true, paused: true })
       return 'paused'
     }
     if (cutoff) return late()
-    const ch = await channelFor()
+    const ch = await channelFor(p.health)
+    // The last moment to back out: past here the feed must say the phone took it.
+    if (cutoff) return late()
     if (ch.reason) {
       say(`open: no channel to post to (${ch.reason}); the Actions poster takes this window`)
       return 'deferred'
     }
-    // The last moment to back out: past here the feed must say the phone took it.
-    if (cutoff) return late()
     phase = 'sending'
     const entry = { v: 1, key, code: page.code, from: page.from, state: 'sending', messageId: null, channelId: ch.channelId, channelTag: channelTag(s.token, ch.channelId), data, body, postedAt: iso(now()) }
     if (!(await L.createOpen(entry))) {
-      say(`open: another watcher loop on this clone is posting ${page.code}; not posting it twice`)
+      say(`open: another run on this clone is posting ${page.code}; not posting it twice`)
       return 'taken'
     }
-    let outcome
     try {
-      const res = await call('send', 'POST', '/messages/text', { to: ch.channelId, body, no_link_preview: true })
+      const res = await sendCall('send', 'POST', '/messages/text', { to: ch.channelId, body, no_link_preview: true })
       const id = typeof res?.message?.id === 'string' && MESSAGE_ID_OK.test(res.message.id) ? res.message.id : null
       const sent = { ...entry, state: 'sent', messageId: id }
       await L.replace(OPEN, sent)
+      if (id) await L.replace(CHECK, { messageId: id, sentAt: iso(now()) })
       opened = { entry: sent }
       say(`open sent at ${iso(now())}${id ? '' : ' (Whapi gave no message id, so its end cannot be edited in)'}`)
-      outcome = 'sent'
+      return 'sent'
     } catch (e) {
       if (e instanceof WhapiError && ((e.status >= 400 && e.status < 500) || e.unsent)) {
         // It never went out: the Actions poster takes the window.
         await L.remove(OPEN)
         say(`open not sent (${short(e)}); the Actions poster takes this window`)
-        outcome = 'unsent'
-      } else {
-        await L.replace(OPEN, { ...entry, state: 'unknown' })
-        say(`open may have gone out (${short(e)}); never sent twice, and its end cannot be edited in`)
-        outcome = 'unknown'
+        return 'unsent'
       }
+      await L.replace(OPEN, { ...entry, state: 'unknown' })
+      say(`open may have gone out (${short(e)}); never sent twice, and its end cannot be edited in`)
+      return 'unknown'
     }
-    // The news is out; now the end of the window before it, if one is owed.
-    await runDue({ atEdge: true, paused: false })
-    return outcome
   }
   function late() {
     say('open: not at the send by the end of the crawl; the Actions poster takes this window')
@@ -507,31 +649,44 @@ export function phonePoster({
   }
 
   return {
-    onLive() {
-      if (s.mode !== 'live' || pause) return
-      pause = (async () => ((await L.heldUntil()) ? 'held' : checkPause()))()
-      pause.catch(() => {}) // read, and reported, when the post awaits it
+    onLive(early) {
+      // Not for a code no ledger can name: that window is never posted from here.
+      if (s.mode !== 'live' || !KEY_OK.test(`${early?.code}-${now()}`)) return
+      prepare().catch(() => {}) // read, and reported, when the post awaits it
     },
     onFirstPage(page) {
       if (job) return
-      job = openJob(page).catch((e) => {
-        say(`open failed: ${short(e)}`)
-        return 'error'
-      }).finally(() => {
-        phase = 'done'
-      })
+      job = openJob(page)
+        .catch((e) => {
+          if (cutoff) return late()
+          say(`open failed: ${short(e)}`)
+          return 'error'
+        })
+        .finally(() => {
+          phase = 'done'
+        })
     },
     async settle() {
-      if (!job) return
+      budget()
+      if (!job) {
+        // Asked at onLive, and no post followed (the read failed): nothing needs the answer.
+        if (pre) cut()
+        return
+      }
       let t
       await Promise.race([job, new Promise((r) => (t = setTimeout(r, settleMs)))])
       clearTimeout(t)
       cutoff = true
-      if (phase !== 'pre') await job
+      // Not at its send: cut off now, every call it started with it, so
+      // nothing it does holds this process, and so the push, open.
+      if (phase === 'pre') return cut()
+      // No post of this tick's to refresh: nothing left in flight is needed.
+      if ((await job) !== 'sent') cut()
     },
     async refresh(next) {
       // The post went out from the first page's 50 coins; the crawl has them all.
       if (!opened?.entry.messageId) return
+      budget()
       try {
         if (windowKey(next) !== opened.entry.key) return
         const data = postData(next)
@@ -548,75 +703,69 @@ export function phonePoster({
       }
     },
     async close({ previous, next }) {
-      try {
-        const cur = await L.readOpen()
-        if (cur) {
-          let to = null
-          if (cur.key === windowKey(previous)) {
-            try {
-              to = endOf(previous, next, null)
-            } catch {
-              to = null
-            }
-          }
-          if (s.forced) {
+      if (s.forced) {
+        try {
+          const cur = await current()
+          if (cur) {
+            const to = cur.code === liveCode(previous) ? safeEnd(previous, next) : null
             say(`DRY (${s.why}): would edit the post for ${cur.code} to:\n${renderOver(cur.data, to)}`)
-            return
           }
-          await retire(cur, to)
+        } catch (e) {
+          say(`close failed: ${short(e)}`)
         }
-        const mine = cur?.state === 'sent'
-        if (!mine && !(await L.dueKeys()).length) return
-        // One look at the pause issue for this edge: while it is open, no Whapi call at all.
-        let paused
-        if (await L.heldUntil()) paused = undefined
-        else {
-          try {
-            paused = (await checkPause()) === 'paused'
-          } catch (e) {
-            say(`close: could not read the pause issue (${short(e)})`)
-            paused = null
-          }
-        }
-        await runDue({ atEdge: true, paused })
-        // After a post of ours ends, look again at where the next one would go.
-        if (mine && paused === false && !(await L.heldUntil())) {
-          try {
-            const found = await locate()
-            const c = await L.cachedChannel(s.token, s.channelId)
-            if (found.reason || (c && c.channelId !== found.channelId)) {
-              await L.remove(CHANNEL)
-              say(`channel check: ${found.reason ?? 'the channel has changed'}; the next opening finds it again`)
-            } else await L.saveChannel(s.token, found.channelId)
-          } catch (e) {
-            say(`channel check skipped (${short(e)})`)
-          }
-        }
+        return
+      }
+      budget()
+      try {
+        const cur = await current()
+        if (cur) await retire(cur, cur.code === liveCode(previous) ? safeEnd(previous, next) : null)
+        await checkStatus()
+        await runDue({ atEdge: true })
         await prune(dir, now)
       } catch (e) {
         say(`close failed: ${short(e)}`)
       }
     },
-    async idle() {
+    async idle(next) {
       if (s.forced) return
+      budget()
       try {
-        await runDue({ atEdge: false, paused: undefined })
+        // Every good read settles the ledger: a post whose code this read does
+        // not show live ended unseen (its tick's feed was lost, or the phone
+        // was off at the end), and its "Over" is owed now.
+        if (next?.ok === true) {
+          const cur = await current()
+          if (cur && cur.code !== liveCode(next)) await retire(cur, null)
+        }
+        await checkStatus()
+        await runDue({ atEdge: false })
       } catch (e) {
         say(`edit retry failed: ${short(e)}`)
       }
     },
     async marker(next) {
       try {
-        const key = windowKey(next)
-        if (!key) return null
-        const cur = await L.readOpen()
-        if (!cur || cur.key !== key || (await L.archived(cur.key))) return null
+        const code = liveCode(next)
+        if (!code) return null
+        // By code, not key: two feeds of one window (a lost write, or two runs
+        // on this clone) can name it with different start times.
+        const cur = await current()
+        if (!cur || cur.code !== code) return null
         // Never before the window's start, so Actions cannot read it as left over.
         return iso(Math.max(Date.parse(cur.postedAt) || 0, Date.parse(next.lastLive.from)))
       } catch {
         return null
       }
     },
+  }
+}
+
+/** When the window `previous` showed ended, as `next` and the rules of endOf say; null when unknown. */
+function safeEnd(previous, next) {
+  try {
+    return endOf(previous, next, null)
+  } catch {
+    return null
   }
 }
 
@@ -671,9 +820,11 @@ export async function phoneCheck({ token, channelId = '', dir = LEDGER_DIR, fetc
   const call = whapi({ token, base, fetch: fetchFn, timeoutMs, sleep, log })
   const short = (e) => redact(e?.message ?? e, [token])
   let channel = null
+  let user = ''
   let ready
   try {
-    const status = await sessionStatus(call, sleep, { wakeup: false })
+    const { status, user: id } = await readHealth(call, '/health?wakeup=false')
+    user = userTag(token, id)
     log(`session: ${status}${status === 'AUTH' ? '' : ' (AUTH is connected)'}`)
     ready = status === 'AUTH'
     if (channelId) {
@@ -705,7 +856,7 @@ export async function phoneCheck({ token, channelId = '', dir = LEDGER_DIR, fetc
     ready = false
   }
   ready = !!(ready && channel)
-  if (ready) await L.saveChannel(token, channel)
+  if (ready) await L.saveChannel(token, channel, user)
   log(ready ? 'Ready: connected, and an admin of the channel.' : 'Not ready: see above.')
   return { ready }
 }

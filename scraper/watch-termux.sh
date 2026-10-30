@@ -86,6 +86,44 @@ if ! on_master; then
   exit 1
 fi
 
+# ONE LOOP PER CLONE. Termux:Boot starts one at every boot; a second started
+# by hand would tick beside it on the same feed and the same .wa-ledger/: two
+# Telegram alerts per window, and two feeds racing each other to master. The
+# lock is a directory (mkdir is atomic) holding this loop's pid. One left by a
+# loop that was killed (its pid gone, or now another program's) is taken over.
+LOCK="$LOG_DIR/watch.lock"
+lock_holder() {
+  pid=$(cat "$LOCK/pid" 2>/dev/null) || return 1
+  [ -n "$pid" ] && [ "$pid" != "$$" ] && kill -0 "$pid" 2>/dev/null &&
+    grep -qa 'watch-termux' "/proc/$pid/cmdline" 2>/dev/null &&
+    [ "$(readlink "/proc/$pid/cwd" 2>/dev/null)" = "$(pwd -P)" ] && echo "$pid"
+}
+take_lock() {
+  if ! mkdir "$LOCK" 2>/dev/null; then
+    # A loop starting this very moment may not have written its pid yet.
+    [ -s "$LOCK/pid" ] || sleep 1
+    if holder=$(lock_holder); then
+      echo "Refusing to start: a watcher loop is already running in this clone (pid $holder)."
+      return 1
+    fi
+    rm -f "$LOCK/pid"
+    rmdir "$LOCK" 2>/dev/null
+    if ! mkdir "$LOCK" 2>/dev/null; then
+      echo "Refusing to start: a watcher loop is already running in this clone."
+      return 1
+    fi
+  fi
+  echo "$$" > "$LOCK/pid"
+}
+release_lock() {
+  if [ "$(cat "$LOCK/pid" 2>/dev/null)" = "$$" ]; then
+    rm -f "$LOCK/pid"
+    rmdir "$LOCK" 2>/dev/null
+  fi
+}
+take_lock || exit 1
+trap release_lock EXIT
+
 # Keep the CPU awake. Without this Android's doze mode suspends the loop
 # within minutes of the screen going off, which is most of the time.
 command -v termux-wake-lock >/dev/null 2>&1 && termux-wake-lock
