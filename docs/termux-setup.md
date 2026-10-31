@@ -252,6 +252,38 @@ ended, only that it is over, because its length is not known). Once each —
 a heartbeat rewrite, a failed read mid-window or a restart never repeats a
 post, because both edges are keyed on what the previous feed said.
 
+The opening goes out the moment the watcher sees the window, beside the
+alert, with what the plain listing shows (the code, the discount, the coupon
+page, the app link). It is edited a few seconds later, when the coupon's own
+page has loaded, to add how many coins it covers and the cheapest ₹/g; an
+edit does not ping the channel again. Neither the alert nor the crawl waits
+for it, and the feed waits for it no later than about 16 seconds after that
+page, however slow Telegram is. The phone's own notification (the **Post to
+channel** button) and the Tasker intent carry the full post and go at that
+page, beside the edit, never behind it. An edit that fails is tried again on
+the window's next live ticks, 3 times at most, 20 seconds apart, each cut at
+8 seconds; one Telegram refuses (a 4xx other than 429) is not, and a retry
+never sends a second message. The watcher writes down that opening in
+`.wa-ledger/telegram-open.json` before sending it, so a tick that fails
+after the opening went out (the coupon page did not load, say) does not post
+it again: the next tick fills it in, or, if the window has gone, says it is
+over. Such a tick publishes no window, and the next one, which crawls it,
+waits for it to end, so it waits at most about 2 seconds more for Telegram
+to answer that opening; one cut off there is never sent again, and stays as
+first sent until it is over. A code change mid-window is not posted at
+sight: the plain listing can name another code for a moment, so that
+opening waits for its own coupon page and goes out whole, as before. The
+record counts as well as the feed: another code's opening on it, under 2
+hours old, makes the new code a code change even when the feed write that
+showed the old one live was lost, so a code named for a moment, whose page
+then fails, neither replaces the record nor gets the old code's window
+posted again on the next tick. If the new code's page does load, and the
+old code's opening never got its own coupon page, that opening was never
+published: it is told over (with no length) beside the new one. On a tick
+that sees an opening again after its feed write was lost, the phone's
+notification is put back (the alert, which shares its slot, took its
+place), and the Tasker intent is not sent twice.
+
 To see the exact wording without sending anything:
 
 ```bash
@@ -263,7 +295,10 @@ node scraper/notify.mjs --preview
 Same bot as the alert, one more key:
 
 1. Create the channel in Telegram (public, with a username, or private).
-2. Channel → Administrators → Add admin → your bot. It needs **Post messages**.
+2. Channel → Administrators → Add admin → your bot. It needs **Post messages**,
+   which also lets it edit its own posts (the opening is edited once). If
+   `--post-test` below shows the edit refused, also allow **Edit messages of
+   others**.
 3. Add `channelId` next to the bot token in `.notify.env`: the `@username`
    of a public channel, or the numeric `-100…` id of a private one (forward
    any post from it to @userinfobot, or read `channel_post.chat.id` from
@@ -285,7 +320,8 @@ and `BLINKDEAL_TELEGRAM_CHANNEL`.
 node scraper/notify.mjs --post-test
 ```
 
-That sends the captured 2026-09-15 window's open and close posts to whatever
+That sends the captured 2026-09-15 window's opening as first seen, edits it
+three seconds later into the full opening, then sends the close, to whatever
 `channelId` says. Read them, then switch `channelId` to the real channel.
 `telegram HTTP 403: bot is not a member` means step 2 was skipped;
 `400: chat not found` means the id is wrong or the bot was never added.
@@ -296,8 +332,9 @@ To rehearse the whole watcher without a channel seeing anything:
 node scraper/blinkdeal.mjs --dry-run
 ```
 
-prints the alert and both posts to the log instead of sending them
-(`BLINKDEAL_DRY_RUN=1` does the same for the loop).
+prints the alert and the posts (the opening as first sent, then as edited)
+to the log instead of sending them (`BLINKDEAL_DRY_RUN=1` does the same for
+the loop).
 
 ## WhatsApp Channel — one tap from the phone
 
@@ -354,8 +391,9 @@ until you press send.
 
 The route chosen on 2026-10-28 is the **Whapi poster**, as a spare admin
 number: [whatsapp-poster.md](whatsapp-poster.md). This phone posts each
-window itself, about 3 seconds after the Telegram alert, and GitHub Actions
-posts any window it did not take. The phone's part is one command, once the
+window itself the moment it sees it, about 1-2 seconds after the Telegram
+alert, fills the post in from the coupon's first page a few seconds later,
+and GitHub Actions posts any window it did not take. The phone's part is one command, once the
 spare number is linked on Whapi (steps 2-5 there). Copy the token in the
 Whapi dashboard (the copy icon after `Token:`), then:
 
@@ -382,11 +420,35 @@ more than one Channel. Environment variables work instead of the file:
 the saved state, the same check, and whether the pause issue is open.
 
 The phone keeps its record of each post in `.wa-ledger/` in the clone
-(gitignored, like `.notify.env`). It is what ends each post with "Over" and
-stops a window being posted twice, so it must survive a re-clone: copy it
-into the new clone, and don't re-clone while a window is live.
+(gitignored, like `.notify.env`), next to the Telegram opening's record. It
+is what ends each post with "Over" and stops a window being posted twice, so
+it must survive a re-clone: copy it into the new clone, and don't re-clone
+while a window is live.
 Once the token is saved, `node scraper/blinkdeal.mjs --dry-run` prints the
 WhatsApp post with the others and calls nothing.
+
+Whapi's free Sandbox allows 1,000 calls a month, so the phone keeps its
+calls to a schedule. A window costs 4: the post, the edit with the first
+page's coins, the edit with the full crawl's prices, and "Over". On top of
+that, the session is checked and one post's delivery status read once a
+day, both at the day's first window (IST), with neither on a day with no
+window (about 30 of each a month), and the channel list once a week; the
+GitHub watchdog checks the session once a day too. At October's 5.4
+windows a day that is about 815 calls a month; a whole month at 11 a day
+would be about 1,563, over the Sandbox
+(details: [whatsapp-poster.md](whatsapp-poster.md)). `.wa-ledger/` also
+holds when each of those was last done, so a restart does not repeat them.
+
+Because the session is checked only once a day, run the check once after
+you re-link the spare number on Whapi (a new QR scan). It checks the session
+and the channel now, with the number now linked, and the next post goes by
+that. If it is not ready (your own number linked, say), it forgets the
+channel, so the next post checks everything again and nothing goes out
+through your number:
+
+```bash
+cd ~/ccbuddy-rates && node scraper/wa-phone.mjs --check
+```
 
 The older alternative drives the WhatsApp app with a robot thumb
 (Tasker + AutoInput), as a spare admin number. It is optional and off by

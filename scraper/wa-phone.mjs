@@ -3,9 +3,16 @@
 //
 // From GitHub Actions (wa-post.mjs) the post lands 30-40 s after the phone sees
 // the window: the whole crawl, the push, the runner's queue and its setup.
-// October's windows lasted a median 4 min. From here it goes out at the
-// coupon's first page, beside the Telegram channel post, about 3 s after the
-// Telegram alert. The words are the same: renderOpen and renderOver from
+// October's windows lasted a median 4 min. From here it goes out the moment
+// the plain listing shows the code, beside the Telegram alert and the Telegram
+// channel post, once the pause check passes (started then; the session check
+// with it, only at the day's first window, IST): about
+// 1-2 s after the alert on mobile data. It says what is
+// known then (the code, its discount, the coupon page). About 3 s after the
+// sight, the coupon's first page has the count and the cheapest coins, and
+// the post is edited to say them; an edit pings nobody. If the checks are
+// still running when the first page comes, the post goes out whole instead,
+// with no edit. The words are the same: renderOpen and renderOver from
 // wa-post.mjs, TEMPLATES in notify.mjs.
 //
 // Actions stays the fallback, with no grace period. The send is awaited
@@ -24,7 +31,11 @@
 // crawl; in a 20-25 s crawl the post is usually out well before it ends.
 // Everything else a tick does with Whapi or GitHub after the crawl (the full
 // crawl's edit, an "Over" edit, a status read) shares one deadline of
-// PHONE_TIMEOUT_MS, so the feed is written, and pushed, soon after.
+// PHONE_TIMEOUT_MS, so the feed is written, and pushed, soon after. A tick
+// whose coupon page fails publishes no window, and the next tick, which
+// crawls it, waits for it: a post still at its checks is cut off at once (the
+// next tick posts it), and only a send already started holds it, for at most
+// PHONE_TIMEOUT_MS.
 //
 // Exactly once. The ledger is `.wa-ledger/` at the clone root, on the phone
 // only (gitignored; nothing in the watcher loop touches ignored files):
@@ -36,15 +47,60 @@
 //                  that window, not posted again, unless it was posted over
 //                  ADOPT_MAX_AGE_MS ago: no window lasts that long, so it is
 //                  ended (an "Over" with no time) and the new one is posted.
+//                  One of another code, posted under that, makes an opening a
+//                  code change, whatever the feed says (the write that showed
+//                  it live may have been lost): nothing is posted or ended at
+//                  sight, only once the coupon's own page confirms the new
+//                  code, so a code the plain listing names for a moment
+//                  cannot end the live post and have it posted again.
+//                  `stage` is 'first' while the post says only what was known
+//                  at sight, 'full' once it carries the coins (none: 'full').
+//                  A post adopted at its 'first' stage (its first page never
+//                  came, or that tick was cut short) is filled in from this
+//                  tick's first page, else by the crawl's edit, else on the
+//                  next live ticks (`fill`: EDIT_RETRIES more tries at most,
+//                  EDIT_RETRY_GAP_MS apart, each after a pause check).
+//                  The Telegram channel's opening keeps its own record beside
+//                  it, telegram-open.json (notify.mjs).
 //   <key>.json     each ended post, with its edit's state; kept 30 days
 //   due.json       the keys of ended posts whose "Over" edit is still owed
 //   check.json     the last post, until its status is read once, 15 s or more
-//                  after the send (a 200 is not delivery)
-//   channel.json   the channel found for this token and the number linked;
-//                  found again when it is a day old, the number changes, the
-//                  pause issue is seen open, or Whapi answers 401/403/404
+//                  after the send (a 200 is not delivery). Only the post of
+//                  the day's first window (IST) is put here: one sent when no
+//                  post of this IST date has had its status read (dueToday).
+//                  Every day with a window has one read, a day with none has
+//                  none: about 30 a month at 5.4 windows a day. A delivery
+//                  that fails after it is noticed at the next IST day's
+//                  first post
+//   checked.json   the last read (`at`) and when its post was sent (`sentAt`),
+//                  written just before the read: a read not made (held,
+//                  paused, unsure) does not count, and the day's next post is
+//                  read instead
+//   channel.json   the channel found for this token (`checkedAt`), with the
+//                  number linked then and the pin it was found under (`pin`:
+//                  whapi.channelId, or '' when found by itself), and when the
+//                  session was last checked (`healthAt`: the moment before
+//                  its GET /health, so a check that ends past 00:00 IST counts
+//                  for the date it was made on). An opening checks the
+//                  session (GET /health) only when that check was on an
+//                  earlier IST date (dueToday), or a send may have gone out
+//                  since (`recheck`: a 5xx or no answer): so at the day's
+//                  first window (IST), and a day with no window costs
+//                  nothing. The channel is found
+//                  again (GET /newsletters) at the first session check
+//                  CHANNEL_MAX_AGE_MS (7 days) or more after it was found,
+//                  when the number changes, when the pin is not the one it
+//                  was found under, the pause issue is seen open, or Whapi
+//                  answers 401/403/404 (the last two drop this file)
 //   hold.json      after a 429, or a post WhatsApp marked failed: no Whapi
 //                  call before `until` (2 days)
+//
+// Whapi's Sandbox allows 1,000 calls a month, so the reads above are made at
+// most once an IST day (the session, a status) and once a week (the list)
+// rather than per window; a normal window costs 4 calls (the
+// post, the first page's edit, the crawl's edit, the "Over" edit). After a
+// re-link of the session, run --check: it finds the channel again with the
+// new number, or drops the cache when it is not ready (the owner's number).
 //
 // One loop per clone: watch-termux.sh refuses to start a second. Two runs on
 // one clone anyway (a hand run beside the loop) still post a window once, and
@@ -74,7 +130,7 @@ import {
   sessionStatus, verify, channelTag, readLedger, writeLedger, REASONS, MESSAGE_ID_OK, NEWSLETTER_OK, KEY_OK,
   REST_MS, VERIFY_AFTER_MS, LEDGER_DIR, WHAPI,
 } from './wa-post.mjs'
-import { loadConfig } from './notify.mjs'
+import { loadConfig, istDate } from './notify.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const execFileAsync = promisify(execFile)
@@ -95,7 +151,11 @@ export const SETTLE_MS = 8000
 // window whose end nobody saw (its feed lost, then the phone off or every read
 // failed): it is ended, and the new window posted.
 export const ADOPT_MAX_AGE_MS = 2 * 3600 * 1000
-export const CHANNEL_MAX_AGE_MS = 24 * 3600 * 1000
+// Whapi's Sandbox allows 1,000 calls a month. The channel list is read again
+// once a week; the session is checked (on the cached channel, with the number
+// it was found with) and a post's delivery status read at most once an IST
+// calendar day (dueToday): at the day's first window, and for its post.
+export const CHANNEL_MAX_AGE_MS = 7 * 24 * 3600 * 1000
 export const EDIT_RETRIES = 3
 export const EDIT_RETRY_GAP_MS = 20 * 1000
 export const EDIT_MAX_AGE_MS = 24 * 3600 * 1000
@@ -105,10 +165,27 @@ const TOKEN_OK = /^[A-Za-z0-9_-]{20,200}$/
 const OPEN = 'open.json'
 const DUE = 'due.json'
 const CHECK = 'check.json'
+const CHECKED = 'checked.json'
 const CHANNEL = 'channel.json'
 const HOLD = 'hold.json'
 
 const iso = (ms) => new Date(ms).toISOString()
+/** Is the time `at` under `maxMs` old at `nowMs`? A time that cannot be read, or one ahead of the clock, is not. */
+const within = (at, maxMs, nowMs) => {
+  const age = nowMs - Date.parse(at ?? '')
+  return age >= 0 && age < maxMs
+}
+/**
+ * Is a once-a-day check due at `nowMs`, the last one stamped `at`? Yes when
+ * that was on an earlier IST date (a day ends at 00:00 IST, 18:30 UTC), and
+ * when `at` cannot be read or is ahead of the clock. Never again on the date
+ * of the last one, however early it was: a day with three windows has one
+ * check, and a day with no window none.
+ */
+export function dueToday(at, nowMs) {
+  const t = Date.parse(at ?? '')
+  return !(t <= nowMs) || istDate(t) !== istDate(nowMs)
+}
 // A sleep that a deadline ends early, timer and all, so it never holds the process open.
 const realSleep = (ms, signal) =>
   new Promise((ok, no) => {
@@ -279,13 +356,30 @@ function phoneLedger(dir, { now, forced = false }) {
     held,
     heldUntil: async () => (await held())?.until ?? null,
     hold: (why = '429') => replace(HOLD, { until: iso(now() + REST_MS), why }),
-    async saveChannel(token, channelId, user = '') {
-      await replace(CHANNEL, { channelId, tag: channelTag(token, channelId), user, checkedAt: iso(now()) })
+    /** The channel just found (under `pin`, whapi.channelId, or '' when found by itself), with the session checked at `checkedMs` (now when not given). */
+    async saveChannel(token, channelId, user = '', pin = '', checkedMs = null) {
+      const at = now()
+      await replace(CHANNEL, { channelId, tag: channelTag(token, channelId), user, pin: pin || '', checkedAt: iso(at), healthAt: iso(checkedMs ?? at) })
     },
-    /** The cached channel for this token (and this pin, if any), or null. */
+    /** The cached channel `c` still holds after a session check made at `checkedMs`: the list is not read again. */
+    async sessionChecked(c, checkedMs = now()) {
+      const { recheck: _r, ...kept } = c
+      await replace(CHANNEL, { ...kept, healthAt: iso(checkedMs) })
+    },
+    /** A send that may have gone out: the next opening checks the session again. The channel stands. */
+    async recheckSession() {
+      const c = await readJson(CHANNEL)
+      if (c && typeof c === 'object' && !Array.isArray(c)) await replace(CHANNEL, { ...c, recheck: true })
+    },
+    /**
+     * The cached channel for this token and this pin, or null. A pin added,
+     * changed or removed since the channel was found makes it found again; so
+     * does a cache that does not say (written before `pin` was kept).
+     */
     async cachedChannel(token, pinned) {
       const c = await readJson(CHANNEL)
       if (!c || !NEWSLETTER_OK.test(c.channelId ?? '') || c.tag !== channelTag(token, c.channelId)) return null
+      if ((c.pin ?? null) !== (pinned || '')) return null
       if (pinned && c.channelId !== pinned) return null
       return c
     },
@@ -297,16 +391,30 @@ function phoneLedger(dir, { now, forced = false }) {
 /**
  * One tick's WhatsApp poster: the hooks step() calls. Every method is safe to
  * call in any order and never throws; every network call goes through `fetch`.
- *   onLive()          at an opening, beside the Telegram alert: starts the
- *                     pause check, then (when clear) the session check
- *   onFirstPage(p)    at an opening, before the Telegram channel post: starts
- *                     the post, which step() does not wait for
+ *   onLive(sight, { post })   at an opening, beside the Telegram alert:
+ *                     starts the pause check, then (when clear, and only at
+ *                     the day's first window, IST) the session check, and the post, which step()
+ *                     does not wait for. It
+ *                     says what is known at sight, or the first page when that
+ *                     has come by the send. With post: false (a code change
+ *                     mid-window, which only the coupon's page confirms) the
+ *                     checks only. The ledger can say it is a code change too,
+ *                     when the feed cannot: another code's post on file,
+ *                     posted under ADOPT_MAX_AGE_MS ago (its feed write lost).
+ *                     Then nothing is posted or ended before the first page
+ *   onFirstPage(p)    at the coupon's first page: the post filled in from it
+ *                     (an edit), off the crawl's path; the post itself starts
+ *                     here when onLive did not start it (a code change), as
+ *                     whole as the first page makes it
  *   settle()          after the crawl: waits for that post (bounded), and
- *                     starts the tick's one deadline
+ *                     starts the tick's one deadline. With no first page (its
+ *                     fetch failed), a post not yet at its send is cut at once
  *   refresh(next)     the post again, edited, if the full crawl's rows differ
+ *                     (after the first page's edit, never before it)
  *   close({previous, next})   a window ended: its post edited "Over"
  *   idle(next)        any other tick: a good read ends a post whose code it
- *                     does not show live; then the status read and the
+ *                     does not show live, or fills in one still at its first
+ *                     stage that it does; then the status read and the
  *                     "Over" edits still owed, if any
  *   marker(next)      `waAt` for the feed, or null
  */
@@ -398,19 +506,35 @@ export function phonePoster({
   let job = null
   let phase = 'pre' // 'pre' → 'sending' → 'done'; settle() waits only for a job past 'pre'
   let cutoff = false
-  let opened = null // { entry, channelId } once this tick's post went out
+  let noPage = false // cut off because the coupon page failed before the send
+  let opened = null // { entry, adopted? } once this tick's post went out, or one on file is this window's
+  let firstPage = null // the coupon's first page, once it came
+  let fill = null // the first page's edit, chained on the post
+  let dryShown = null // what a dry run printed it would post
 
-  /** At an opening: held? paused? and, when clear, the session and the number linked. No Whapi call while paused. */
+  /**
+   * At an opening: held? paused? and, when clear, the session and the number
+   * linked. No Whapi call while paused. The session is not checked while the
+   * cached channel's last check was made on today's IST date (dueToday),
+   * carries the number's fingerprint, and no send since may have gone out:
+   * the post goes to that channel. Every 401/403/404 and every sight of the
+   * pause issue drops the cache, so the next opening checks again.
+   */
   const prepare = () =>
     (pre ??= (async () => {
       const h = await L.held()
       if (h) return { pause: 'held', why: h.why }
       const pause = await checkPause()
       if (pause !== 'clear') return { pause }
+      // A cache written before `healthAt` existed: it was found right after a session check.
+      const c = await L.cachedChannel(s.token, s.channelId)
+      if (c?.user && !c.recheck && !dueToday(c.healthAt ?? c.checkedAt, now())) return { pause, cached: c }
+      // The check's time is taken before it is made: one that ends past 00:00 IST is still that date's.
+      const at = now()
       try {
-        return { pause, health: await readHealth(call, '/health') }
+        return { pause, health: await readHealth(call, '/health'), at }
       } catch (e) {
-        return { pause, health: { error: e } }
+        return { pause, health: { error: e }, at }
       }
     })())
 
@@ -436,12 +560,14 @@ export function phonePoster({
     return f.reason ? { reason: f.reason.title } : { channelId: f.channel.id }
   }
   /**
-   * Where this post goes: the cache, while it is under a day old and the
-   * session is connected to the number it was found with; else found again
-   * and cached. A session re-linked to another number (the owner's, say) is
-   * checked by the same rules as Actions before anything is posted.
+   * Where this post goes, after a session check: the cache, while it is under
+   * CHANNEL_MAX_AGE_MS old and the session is connected to the number it was
+   * found with (its `healthAt` then moves to `at`, when the check was made);
+   * else found again and cached. A session re-linked to another number (the
+   * owner's, say) is checked by the same rules as Actions before anything is
+   * posted. Between session checks (prepare) the cache is used without one.
    */
-  async function channelFor(health) {
+  async function channelFor(health, at) {
     if (health?.error) return { reason: `the session check failed: ${short(health.error)}` }
     let h = health
     if (h.status !== 'AUTH') {
@@ -454,10 +580,13 @@ export function phonePoster({
     }
     const user = userTag(s.token, h.user)
     const c = await L.cachedChannel(s.token, s.channelId)
-    if (c && user && c.user === user && now() - Date.parse(c.checkedAt) < CHANNEL_MAX_AGE_MS) return { channelId: c.channelId }
+    if (c && user && c.user === user && within(c.checkedAt, CHANNEL_MAX_AGE_MS, now())) {
+      await L.sessionChecked(c, at)
+      return { channelId: c.channelId }
+    }
     const found = await locate()
     if (found.reason) await L.remove(CHANNEL)
-    else await L.saveChannel(s.token, found.channelId, user)
+    else await L.saveChannel(s.token, found.channelId, user, s.channelId, at)
     return found
   }
 
@@ -473,6 +602,8 @@ export function phonePoster({
   }
 
   async function editPost(entry, body) {
+    // Never without the post's own id: a request with no usable `edit` is a send, a second post.
+    if (!MESSAGE_ID_OK.test(entry.messageId ?? '')) return false
     // The channel the post went to, and no other.
     const to = NEWSLETTER_OK.test(entry.channelId ?? '') && channelTag(s.token, entry.channelId) === entry.channelTag ? entry.channelId : null
     if (!to) return false
@@ -548,10 +679,15 @@ export function phonePoster({
   }
 
   /**
-   * A 200 is not delivery. The last post's status is read once, on the first
-   * tick VERIFY_AFTER_MS or more after its send, by the same rule as Actions.
+   * A 200 is not delivery. The status of the post on file (that of the
+   * day's first window, IST: openJob) is read once, on the first tick
+   * VERIFY_AFTER_MS or more after its send, by the same rule as Actions.
    * "failed" holds the phone off Whapi for 2 days: each window then goes to
-   * Actions, which meets the same failure and opens the pause issue.
+   * Actions, which meets the same failure and opens the pause issue. A
+   * failure that starts after that read is noticed at the next IST day's
+   * first post. Only a read actually made counts for its post's IST date
+   * (checked.json, `sentAt`): one skipped while held, paused or unsure does
+   * not, and the day's next post is read instead.
    */
   async function checkStatus() {
     const c = await L.readJson(CHECK)
@@ -562,6 +698,9 @@ export function phonePoster({
     await L.remove(CHECK)
     if (!(now() - sentAt <= EDIT_MAX_AGE_MS) || !MESSAGE_ID_OK.test(c.messageId ?? '') || rested || (await L.heldUntil())) return
     if ((await pausedNow()) !== false) return
+    // Written before the call: a read that fails, or a process that dies in it, still counts as the read.
+    // Its day is the post's: one sent at 23:59 IST and read after midnight leaves the next day its own read.
+    await L.replace(CHECKED, { at: iso(now()), sentAt: iso(sentAt) })
     // A 429 here is already held by the call itself.
     const status = await verify(call, c.messageId, { sleep: async () => {}, log: () => {} }).catch(() => null)
     say(`status of the last post: ${status ?? 'not read'}`)
@@ -572,34 +711,62 @@ export function phonePoster({
 
   // ---- The opening ----------------------------------------------------------------
 
-  async function openJob(page) {
-    const key = `${page.code}-${Date.parse(page.from)}`
+  /**
+   * The post itself. `confirmed` when the coupon's own page has named this
+   * code (the job started at the first page); a job started at sight is
+   * confirmed too once that page has come.
+   */
+  async function openJob(seed, { confirmed = false } = {}) {
+    const code = seed.code
+    const key = `${code}-${Date.parse(seed.from)}`
     // A window no ledger can name could never be ended; Actions refuses it too.
     if (!KEY_OK.test(key)) {
       say('open: this code cannot name a window; not posting')
       return 'deferred'
     }
-    const data = postData({ ...page, lastLive: { code: page.code, from: page.from } })
-    const body = renderOpen(data)
+    // What the post says at its send: the first page if it has come by then,
+    // else what was known at sight (no coins: no count and no rows).
+    const render = () => {
+      const src = firstPage?.code === code ? firstPage : seed
+      const data = postData({ ...src, lastLive: { code, from: seed.from } })
+      return { data, body: renderOpen(data), stage: src === firstPage ? 'full' : 'first' }
+    }
     const cur = await current()
-    // The same code on file, posted under ADOPT_MAX_AGE_MS ago: no good read
-    // has seen that window end, so this is it again (a tick whose feed was
-    // lost posted it, or another run on this clone is posting it). Not posted
-    // twice. A post time that cannot be read counts as recent, for the same reason.
-    if (cur && cur.code === page.code && !(now() - Date.parse(cur.postedAt) >= ADOPT_MAX_AGE_MS)) {
-      say(`open: ${page.code} was posted at ${cur.postedAt} by an earlier tick whose feed was lost; not posting it again`)
+    // Posted under ADOPT_MAX_AGE_MS ago: no good read has seen that window
+    // end. A post time that cannot be read counts as recent, for the same
+    // reason.
+    const recent = cur && !(now() - Date.parse(cur.postedAt) >= ADOPT_MAX_AGE_MS)
+    // The same code, recent: this is that window again (a tick whose first
+    // page or feed write never came posted it, or another run on this clone
+    // is posting it). Not posted twice, but filled in if it needs to be.
+    if (recent && cur.code === code) {
+      say(`open: ${code} was posted at ${cur.postedAt} by an earlier tick that did not publish it; not posting it again`)
+      if (s.mode === 'live' && cur.state === 'sent' && MESSAGE_ID_OK.test(cur.messageId ?? '')) opened = { entry: cur, adopted: true }
       return 'adopted'
     }
-    // Another code on file, or this code posted too long ago to be this
-    // window, ended unseen: its end is owed ("Over", with no time), and made
-    // on a later tick, never in the way of this post.
+    // Another code, recent, and this one seen only on the plain listing: a
+    // code change for this phone, whatever the feed says (the write that said
+    // the other code was live may have been lost). The plain listing can name
+    // another code for a moment, so, as at any code change, nothing is posted
+    // or ended until the coupon's own page confirms this code: a moment's
+    // flicker whose page fails leaves the post on file as it is, and the next
+    // tick that sees its code adopts it rather than posting it again.
+    if (recent && !(confirmed || firstPage?.code === code)) {
+      say(`open: ${code} waits for its coupon page: ${cur.code}, posted at ${cur.postedAt}, is on file and no good read has ended it`)
+      return 'unconfirmed'
+    }
+    // Another code on file (confirmed by this code's page), or this code
+    // posted too long ago to be this window, ended unseen: its end is owed
+    // ("Over", with no time), and made on a later tick, never in the way of
+    // this post.
     if (cur && s.forced) {
       say(`DRY (${s.why}): would edit the post for ${cur.code} to:\n${renderOver(cur.data, null)}`)
     } else if (cur) {
       await retire(cur, null)
     }
     if (s.mode !== 'live') {
-      say(`DRY (${s.why}): would post:\n${body}`)
+      dryShown = render()
+      say(`DRY (${s.why}): would post:\n${dryShown.body}`)
       return 'dry'
     }
     let p
@@ -623,7 +790,8 @@ export function phonePoster({
       return 'paused'
     }
     if (cutoff) return late()
-    const ch = await channelFor(p.health)
+    // Checked already this IST day (prepare): the cached channel, with no call.
+    const ch = p.cached ? { channelId: p.cached.channelId } : await channelFor(p.health, p.at)
     // The last moment to back out: past here the feed must say the phone took it.
     if (cutoff) return late()
     if (ch.reason) {
@@ -631,9 +799,10 @@ export function phonePoster({
       return 'deferred'
     }
     phase = 'sending'
-    const entry = { v: 1, key, code: page.code, from: page.from, state: 'sending', messageId: null, channelId: ch.channelId, channelTag: channelTag(s.token, ch.channelId), data, body, postedAt: iso(now()) }
+    const { data, body, stage } = render()
+    const entry = { v: 1, key, code, from: seed.from, state: 'sending', messageId: null, channelId: ch.channelId, channelTag: channelTag(s.token, ch.channelId), data, body, stage, postedAt: iso(now()) }
     if (!(await L.createOpen(entry))) {
-      say(`open: another run on this clone is posting ${page.code}; not posting it twice`)
+      say(`open: another run on this clone is posting ${code}; not posting it twice`)
       return 'taken'
     }
     try {
@@ -641,7 +810,10 @@ export function phonePoster({
       const id = typeof res?.message?.id === 'string' && MESSAGE_ID_OK.test(res.message.id) ? res.message.id : null
       const sent = { ...entry, state: 'sent', messageId: id }
       await L.replace(OPEN, sent)
-      if (id) await L.replace(CHECK, { messageId: id, sentAt: iso(now()) })
+      // Its status is read 15 s on only when it is the day's first post (IST): no
+      // post of today's date read yet. A checked.json from before `sentAt` goes by its read.
+      const read = await L.readJson(CHECKED)
+      if (id && dueToday(read?.sentAt ?? read?.at, now())) await L.replace(CHECK, { messageId: id, sentAt: iso(now()) })
       opened = { entry: sent }
       say(`open sent at ${iso(now())}${id ? '' : ' (Whapi gave no message id, so its end cannot be edited in)'}`)
       return 'sent'
@@ -653,32 +825,156 @@ export function phonePoster({
         return 'unsent'
       }
       await L.replace(OPEN, { ...entry, state: 'unknown' })
+      // Something is off between here and WhatsApp: the next opening checks the session first.
+      await L.recheckSession().catch(() => {})
       say(`open may have gone out (${short(e)}); never sent twice, and its end cannot be edited in`)
       return 'unknown'
     }
   }
   function late() {
-    say('open: not at the send by the end of the crawl; the Actions poster takes this window')
+    say(noPage ? 'open: the coupon page failed before the send; the next tick that sees the window posts it' : 'open: not at the send by the end of the crawl; the Actions poster takes this window')
     return 'late'
+  }
+  const start = (seed, confirmed = false) =>
+    openJob(seed, { confirmed })
+      .catch((e) => {
+        if (cutoff) return late()
+        say(`open failed: ${short(e)}`)
+        return 'error'
+      })
+      .finally(() => {
+        phase = 'done'
+      })
+  // The post again, from the first page, after the sight's job waited for it.
+  const confirm = (page) => {
+    if (cutoff) return late()
+    phase = 'pre'
+    return start(page, true)
+  }
+
+  // ---- Filling it in ------------------------------------------------------------------
+
+  /** May a post on file be edited now? One this tick sent, yes; one adopted, only when this tick's checks are clear. */
+  async function clearToEdit() {
+    if (!opened?.adopted) return true
+    try {
+      return (await prepare()).pause === 'clear'
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * The post on file edited to the opening `src` gives, keeping its own "Live
+   * since". Its ledger entry is then 'full'. True when an edit was made, false
+   * when none was needed, null when it cannot be edited from here.
+   */
+  async function editOpen(entry, src) {
+    const data = postData({ ...src, lastLive: { code: entry.code, from: entry.from } })
+    const body = renderOpen(data)
+    const changed = body !== entry.body
+    if (changed && !(await editPost(entry, body))) return null
+    const { fill: _done, ...rest } = entry
+    const done = { ...rest, data, body, stage: 'full' }
+    const cur = await L.readOpen()
+    if (cur?.key === entry.key) {
+      const { fill: _f, ...kept } = cur
+      await L.replace(OPEN, { ...kept, data, body, stage: 'full' })
+    }
+    if (opened?.entry.key === entry.key) opened = { ...opened, entry: done }
+    return changed
+  }
+
+  /** A fill that failed, on file: `counted` for the idle tries; a 4xx (a 429 too) ends them. */
+  async function fillFailed(entry, err, counted) {
+    const refused = err instanceof WhapiError && err.status >= 400 && err.status < 500
+    const f = entry.fill ?? {}
+    const fill = { tries: (f.tries ?? 0) + (counted ? 1 : 0), lastTry: now(), ...(refused || f.state === 'refused' ? { state: 'refused' } : {}) }
+    const cur = await L.readOpen()
+    if (cur?.key === entry.key) await L.replace(OPEN, { ...cur, fill })
+    if (opened?.entry.key === entry.key) opened = { ...opened, entry: { ...entry, fill } }
+    return refused
+  }
+
+  /** At the first page: the post sent at sight, edited to the full opening. */
+  async function fillIn() {
+    const page = firstPage
+    if (!page) return
+    if (s.mode !== 'live') {
+      if (dryShown?.stage === 'first') {
+        const body = renderOpen(postData({ ...page, lastLive: { code: page.code, from: dryShown.data.from } }))
+        if (body !== dryShown.body) say(`DRY (${s.why}): would edit it to:\n${body}`)
+      }
+      return
+    }
+    const entry = opened?.entry
+    if (!entry || entry.code !== page.code || (entry.stage ?? 'full') !== 'first' || entry.fill?.state === 'refused') return
+    // Whapi gave no usable id for it: it stays as first sent, as every edit path leaves such a post.
+    if (!MESSAGE_ID_OK.test(entry.messageId ?? '')) return
+    if (!(await clearToEdit())) return
+    try {
+      const r = await editOpen(entry, page)
+      if (r === null) {
+        await fillFailed(entry, new WhapiError('edit', 400, 'another Channel or token now'), false)
+        say(`open for ${entry.code} not filled in: it was made in another Channel, or under another Whapi token`)
+      } else say(`open filled in from the first page at ${iso(now())}`)
+    } catch (e) {
+      const refused = await fillFailed(entry, e, false).catch(() => false)
+      say(`open not filled in (${short(e)})${refused ? '; not tried again' : '; the crawl\'s edit tries again'}`)
+    }
+  }
+
+  /**
+   * A post still at its first stage, on a later live tick (its first page and
+   * the crawl's edit both failed): filled in from this read, at most
+   * EDIT_RETRIES times, EDIT_RETRY_GAP_MS apart, each after a pause check.
+   * A paused or unknown answer spends a try too: a long pause costs at most
+   * EDIT_RETRIES GitHub reads, and leaves the post as first sent.
+   */
+  async function owedFill(next) {
+    if (s.mode !== 'live' || next?.ok !== true) return
+    const code = liveCode(next)
+    if (!code) return
+    const cur = await current()
+    if (!cur || cur.code !== code || cur.state !== 'sent' || !MESSAGE_ID_OK.test(cur.messageId ?? '')) return
+    if ((cur.stage ?? 'full') !== 'first') return
+    const f = cur.fill ?? {}
+    if (f.state === 'refused' || (f.tries ?? 0) >= EDIT_RETRIES) return
+    if (f.lastTry && now() - f.lastTry < EDIT_RETRY_GAP_MS) return
+    if (rested || (await L.heldUntil())) return
+    const pz = await pausedNow()
+    if (pz !== false) {
+      // Paused, or could not tell: counts as a try, so neither becomes a GitHub call every tick.
+      await fillFailed(cur, null, true)
+      return
+    }
+    try {
+      const r = await editOpen(cur, next)
+      if (r === null) {
+        await fillFailed(cur, new WhapiError('edit', 400, 'another Channel or token now'), true)
+        say(`open for ${code} not filled in: it was made in another Channel, or under another Whapi token`)
+      } else say(`open filled in at ${iso(now())}, on a later tick`)
+    } catch (e) {
+      const refused = await fillFailed(cur, e, true)
+      say(`open not filled in (${short(e)})${refused ? '; not tried again' : '; tried again on a later tick'}`)
+    }
   }
 
   return {
-    onLive(early) {
+    onLive(sight, { post = true } = {}) {
       // Not for a code no ledger can name: that window is never posted from here.
-      if (s.mode !== 'live' || !KEY_OK.test(`${early?.code}-${now()}`)) return
-      prepare().catch(() => {}) // read, and reported, when the post awaits it
+      if (job || !KEY_OK.test(`${sight?.code}-${Date.parse(sight?.from)}`)) return
+      if (s.mode === 'live') prepare().catch(() => {}) // read, and reported, when the post awaits it
+      // A code change waits for its first page, as before: the checks only.
+      if (post) job = start(sight)
     },
     onFirstPage(page) {
-      if (job) return
-      job = openJob(page)
-        .catch((e) => {
-          if (cutoff) return late()
-          say(`open failed: ${short(e)}`)
-          return 'error'
-        })
-        .finally(() => {
-          phase = 'done'
-        })
+      firstPage = page
+      // onLive did not start the post (a code change, or it threw): the first page does, as before.
+      // One onLive started waited for this page (another code's post on file): it goes on from here.
+      if (!job) job = start(page, true)
+      else job = job.then((r) => (r === 'unconfirmed' ? confirm(page) : r))
+      fill ??= job.then(fillIn).catch((e) => say(`open not filled in: ${short(e)}`))
     },
     async settle() {
       budget()
@@ -687,6 +983,14 @@ export function phonePoster({
         if (pre) cut()
         return
       }
+      // No first page (its fetch failed): this tick publishes no window, and
+      // the next one, which crawls it, waits for this one to end. A post not
+      // yet at its send is cut off now: nothing went out and nothing of it is
+      // on file, so the next tick posts it. A send already started keeps its own.
+      if (!firstPage && phase === 'pre') {
+        noPage = cutoff = true
+        return cut()
+      }
       let t
       await Promise.race([job, new Promise((r) => (t = setTimeout(r, settleMs)))])
       clearTimeout(t)
@@ -694,26 +998,27 @@ export function phonePoster({
       // Not at its send: cut off now, every call it started with it, so
       // nothing it does holds this process, and so the push, open.
       if (phase === 'pre') return cut()
-      // No post of this tick's to refresh: nothing left in flight is needed.
-      if ((await job) !== 'sent') cut()
+      await job
+      // No post of this tick's (or adopted by it) to fill in or refresh: nothing left in flight is needed.
+      if (!opened) cut()
     },
     async refresh(next) {
-      // The post went out from the first page's 50 coins; the crawl has them all.
+      // The post went out at sight (or from the first page's 50 coins); the crawl has them all.
       if (!opened?.entry.messageId) return
       budget()
       try {
-        if (windowKey(next) !== opened.entry.key) return
-        const data = postData(next)
-        const body = renderOpen(data)
-        if (body === opened.entry.body) return
-        if (!(await editPost(opened.entry, body))) return
-        const entry = { ...opened.entry, data, body }
-        const cur = await L.readOpen()
-        if (cur?.key === entry.key) await L.replace(OPEN, { ...cur, data, body })
-        opened = { entry }
-        say(`open refreshed with the full crawl at ${iso(now())}`)
+        // The first page's edit lands first: a late one must never overwrite the crawl's rows.
+        await fill
+        const entry = opened.entry
+        if (s.mode !== 'live' || liveCode(next) !== entry.code || entry.fill?.state === 'refused') return
+        if (!(await clearToEdit())) return
+        const r = await editOpen(entry, next)
+        if (r === null) await fillFailed(entry, new WhapiError('edit', 400, 'another Channel or token now'), false)
+        else if (r) say(`open refreshed with the full crawl at ${iso(now())}`)
       } catch (e) {
-        say(`open not refreshed (${short(e)}); it keeps the first page's rows`)
+        const entry = opened?.entry
+        if (entry && (entry.stage ?? 'full') === 'first') await fillFailed(entry, e, false).catch(() => {})
+        say(`open not refreshed (${short(e)}); it stays as it was`)
       }
     },
     async close({ previous, next }) {
@@ -751,6 +1056,7 @@ export function phonePoster({
           const cur = await current()
           if (cur && cur.code !== liveCode(next)) await retire(cur, null)
         }
+        await owedFill(next)
         await checkStatus()
         await runDue({ atEdge: false })
       } catch (e) {
@@ -870,7 +1176,9 @@ export async function phoneCheck({ token, channelId = '', dir = LEDGER_DIR, fetc
     ready = false
   }
   ready = !!(ready && channel)
-  if (ready) await L.saveChannel(token, channel, user)
+  if (ready) await L.saveChannel(token, channel, user, channelId)
+  // Not confirmed (a re-link to the owner's number, say): the next opening checks it all again.
+  else await L.remove(CHANNEL)
   log(ready ? 'Ready: connected, and an admin of the channel.' : 'Not ready: see above.')
   return { ready }
 }

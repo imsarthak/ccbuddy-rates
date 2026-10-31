@@ -1,7 +1,9 @@
 // node scraper/watchdog.test.mjs
 import { readFile } from 'node:fs/promises'
+import { execFile } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import {
-  BOT, DM, TITLE, decide, findIssue, issueBody, limitMs, outageFixtures, readMarker, run, sendDm, telegramFrom, withMarker,
+  BOT, DM, TITLE, WA_HEALTH_FROM_IST_HOUR, decide, findIssue, issueBody, limitMs, outageFixtures, readMarker, run, sendDm, telegramFrom, waHealthDay, withMarker,
 } from './watchdog.mjs'
 
 let passed = 0
@@ -305,7 +307,74 @@ check('no log line names the token or the chat', logs.every((l) => !l.includes(T
   check('workflow: …and the mode', watch.includes("MODE: ${{ inputs.mode || 'check' }}"))
   check('workflow: …and its own token', watch.includes('GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}'))
   const whapi = steps.find((s) => s.includes('wa-post.mjs --mode health')) ?? ''
-  check('workflow: the Whapi check runs on the schedule only', whapi.includes("if: github.event_name == 'schedule'"), whapi)
+  const day = steps.find((s) => s.includes('node scraper/watchdog.mjs --wa-health-day')) ?? ''
+  const made = steps.find((s) => s.includes('uses: actions/cache/restore@')) ?? ''
+  const save = steps.find((s) => s.includes('uses: actions/cache/save@')) ?? ''
+  const field = (s, k) => s.match(new RegExp(`\\n\\s+${k}: (.+)`))?.[1]?.trim() ?? null
+  check('workflow: the day is worked out on the schedule only', field(day, 'if') === "github.event_name == 'schedule'", day)
+  check('workflow: …into the step outputs', day.includes('node scraper/watchdog.mjs --wa-health-day >> "$GITHUB_OUTPUT"') && field(day, 'id') === 'wa-day')
+  check('workflow: the Whapi check runs only when due and not yet made today', field(whapi, 'if') === "steps.wa-day.outputs.due == 'true' && steps.wa-made.outputs.cache-hit != 'true'", whapi)
+  check('workflow: the day\'s mark is looked up, not downloaded', field(made, 'if') === "steps.wa-day.outputs.due == 'true'" && field(made, 'id') === 'wa-made' && /\n\s+lookup-only: true/.test(made), made)
+  check('workflow: …and saved after the check, on the same terms, only when the check reached a verdict', field(whapi, 'id') === 'wa-probe' && field(save, 'if') === `${field(whapi, 'if')} && steps.wa-probe.outcome == 'success'`, save)
+  check('workflow: one key, the IST date\'s, for both', field(made, 'key') === '${{ steps.wa-day.outputs.key }}' && field(save, 'key') === field(made, 'key'))
+  check('workflow: one path for both, which the check writes before it runs', field(made, 'path') === '.wa-health' && field(save, 'path') === '.wa-health' && whapi.includes('mkdir -p .wa-health && date -u +%FT%TZ > .wa-health/probed\n'))
+  const at = (s) => steps.indexOf(s)
+  check('workflow: in order: the day, the lookup, the check, the mark', at(day) > 0 && at(day) < at(made) && at(made) < at(whapi) && at(whapi) < at(save))
+  check('workflow: none of the four can fail the watchdog', [day, made, whapi, save].every((s) => /\n\s+continue-on-error: true\n/.test(s)))
+  check('workflow: the Whapi check gets the Whapi token and its own GitHub token only', whapi.includes('WHAPI_TOKEN: ${{ secrets.WHAPI_TOKEN }}') && whapi.includes('GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}') && !/secrets\./.test(day + made + save))
+
+  // The gate run as Actions would run it: each step's `if:` evaluated (an
+  // output never set reads ''; a step's outcome is success, failure or
+  // skipped, and '' before it runs), the four steps in order, the Actions
+  // cache a set of keys.
+  const expr = (src, ctx) => {
+    const js = src
+      .replace(/github\.event_name/g, 'ctx.event')
+      .replace(/steps\.([\w-]+)\.outputs\.([\w-]+)/g, (_, id, k) => `(ctx.out[${JSON.stringify(id)}]?.[${JSON.stringify(k)}] ?? '')`)
+      .replace(/steps\.([\w-]+)\.outcome/g, (_, id) => `(ctx.outcome[${JSON.stringify(id)}] ?? '')`)
+      .replace(/([!=])=/g, '$1==')
+    return new Function('ctx', `return (${js})`)(ctx)
+  }
+  const runs = (event, ms, cache, { restoreFails = false, probeFails = false } = {}) => {
+    const ctx = { event, out: {}, outcome: {} }
+    const key = (s) => expr(field(s, 'key').replace(/^\$\{\{(.*)\}\}$/, '$1'), ctx)
+    if (expr(field(day, 'if'), ctx)) ctx.out['wa-day'] = Object.fromEntries(Object.entries(waHealthDay(ms)).map(([k, v]) => [k, String(v)]))
+    if (expr(field(made, 'if'), ctx) && !restoreFails) ctx.out['wa-made'] = { 'cache-hit': String(cache.has(key(made))) }
+    const probed = !!expr(field(whapi, 'if'), ctx)
+    // Under continue-on-error a failed step's outcome is 'failure' (its conclusion 'success').
+    ctx.outcome[field(whapi, 'id')] = probed ? (probeFails ? 'failure' : 'success') : 'skipped'
+    if (expr(field(save, 'if'), ctx)) cache.add(key(save))
+    return probed
+  }
+  const HOUR = 3600 * 1000
+  const ten = Date.parse('2026-10-20T04:30:00Z') // 10:00 IST
+  let cache = new Set()
+  check('gate: a phone push never checks Whapi', runs('push', ten, cache) === false && cache.size === 0)
+  check('gate: nor a Worker dispatch', runs('workflow_dispatch', ten, cache) === false && cache.size === 0)
+  check('gate: a scheduled run before 06:00 IST does not', runs('schedule', Date.parse('2026-10-20T00:29:59Z'), cache) === false && cache.size === 0)
+  check('gate: the first scheduled run at or after 06:00 IST does, and marks the day', runs('schedule', Date.parse('2026-10-20T00:30:00Z'), cache) === true && cache.has('wa-health-2026-10-20'))
+  check('gate: later runs that day do not', runs('schedule', ten, cache) === false && runs('schedule', Date.parse('2026-10-20T18:29:00Z'), cache) === false)
+  check('gate: the next IST day starts at midnight IST, not UTC, and waits for 06:00', runs('schedule', Date.parse('2026-10-20T18:31:00Z'), cache) === false && runs('schedule', Date.parse('2026-10-21T00:31:00Z'), cache) === true)
+  check('gate: a lookup that fails checks rather than skips', runs('schedule', ten, new Set(['wa-health-2026-10-20']), { restoreFails: true }) === true)
+  cache = new Set()
+  check('gate: a check that fails (Whapi 5xx, no answer, GitHub down) leaves no mark', runs('schedule', Date.parse('2026-10-20T00:30:00Z'), cache, { probeFails: true }) === true && cache.size === 0)
+  check('gate: …so the next scheduled run that day checks again, and marks the day once it gets a verdict', runs('schedule', ten, cache) === true && cache.has('wa-health-2026-10-20') && runs('schedule', Date.parse('2026-10-20T10:00:00Z'), cache) === false)
+  // A month of scheduled runs 3-7 h apart, as October's were.
+  cache = new Set()
+  let seed = 7
+  const rand = () => ((seed = (seed * 48271) % 2147483647) / 2147483647)
+  const probes = []
+  const eligibleDays = new Set()
+  for (let t = Date.parse('2026-10-01T00:00:00Z'); t < Date.parse('2026-10-31T00:00:00Z'); t += (3 + 4 * rand()) * HOUR) {
+    const d = waHealthDay(t)
+    if (d.due) eligibleDays.add(d.key)
+    if (runs('schedule', t, cache)) probes.push(d.key)
+  }
+  check('gate: one check a day over a month of 3-7 h runs', probes.length === new Set(probes).size && probes.length === eligibleDays.size && probes.length >= 29 && probes.length <= 31, `${probes.length} checks, ${eligibleDays.size} days`)
+  check('probe day: keyed by the IST date', waHealthDay(Date.parse('2026-10-30T19:00:00Z')).key === 'wa-health-2026-10-31' && waHealthDay(Date.parse('2026-10-30T18:29:59Z')).key === 'wa-health-2026-10-30')
+  check('probe day: due from 06:00 IST to midnight IST', WA_HEALTH_FROM_IST_HOUR === 6 && waHealthDay(Date.parse('2026-10-30T00:29:59Z')).due === false && waHealthDay(Date.parse('2026-10-30T00:30:00Z')).due === true && waHealthDay(Date.parse('2026-10-30T18:29:59Z')).due === true)
+  const cli = await new Promise((ok) => execFile(process.execPath, [fileURLToPath(new URL('./watchdog.mjs', import.meta.url)), '--wa-health-day'], { timeout: 20000 }, (e, stdout) => ok(e ? `error ${e.message}` : stdout)))
+  check('probe day: the CLI prints the two step outputs and nothing else', /^key=wa-health-\d{4}-\d\d-\d\d\ndue=(true|false)\n$/.test(cli.replace(/\r\n/g, '\n')), cli)
   const code = yml.split(/\r?\n/).filter((l) => !l.trim().startsWith('#')).join('\n')
   check('workflow: the secrets go to the watchdog step alone', (code.match(/BLINKDEAL_TELEGRAM_/g) ?? []).length === 4 && !whapi.includes('BLINKDEAL_TELEGRAM'))
   check('workflow: one run at a time, none cancelled', /concurrency:\n {2}group: watchdog\n {2}cancel-in-progress: false/.test(yml))

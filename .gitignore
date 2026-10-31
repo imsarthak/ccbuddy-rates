@@ -17,5 +17,6 @@ logs/
 .notify.env.*.tmp
 
 # The WhatsApp poster's per-window ledger: in the Actions cache, and on the
-# watcher phone
+# watcher phone, where it also holds the Telegram channel opening's record
+# (telegram-open.json)
 .wa-ledger/
