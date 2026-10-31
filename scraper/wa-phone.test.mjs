@@ -1092,7 +1092,8 @@ test('the channel: found once (session + list), then for the rest of the IST day
   assert.equal(cache.channelId, CHANNEL)
   assert.equal(cache.tag, channelTag(TOKEN, CHANNEL))
   assert.equal(cache.user, userTag(TOKEN, LINKED_NUMBER), 'kept with the number it was found with, as a keyed fingerprint')
-  assert.equal(cache.healthAt, cache.checkedAt, 'found right after a session check')
+  assert.ok(Date.parse(cache.healthAt) <= h.wa.requests[0].at, 'the session check stamped when it began, before its GET /health')
+  assert.ok(Date.parse(cache.checkedAt) >= h.wa.requests[1].at, 'found after the list read')
   assert.ok(!JSON.stringify(cache).includes(LINKED_NUMBER))
   const { feed: q } = await h.tick(feed, QUIET)
   assert.deepEqual(routes().slice(3), ['POST /messages/text'], 'the end: the edit alone')
@@ -1636,6 +1637,36 @@ test('the session check goes by the IST date, not 24 h: checked at 23:59:59 IST,
   r = await opening('2026-10-20T18:30:00.000Z', r.feed, LIVE_B)
   assert.deepEqual(r.routes, ['GET /health', 'POST /messages/text'], '00:00:00 IST on the 21st: checked')
   assert.equal(h.wa.requests.filter((q) => q.route === 'GET /health').length, 2)
+})
+
+test('a session check begun just before 00:00 IST is that date\'s, however late it ends (a slow list read, a slow /health): the next date\'s first window checks again', async (t) => {
+  const AUTH = { body: { status: { code: 4, text: 'AUTH' }, user: { id: LINKED_NUMBER, name: 'Spare' } } }
+  for (const [slow, opensAt, ms, checkedAt, want] of [
+    // The list a week old: GET /health, then the list read, answered 2.5 s on, past 00:00 IST.
+    ['GET /newsletters', '23:59:57.500', 2500, ist('2026-10-12', '13:00:00'), ['GET /health', 'GET /newsletters', 'POST /messages/text']],
+    // The list 2 days old: GET /health alone, answered a second on, past 00:00 IST.
+    ['GET /health', '23:59:59.500', 1000, ist('2026-10-18', '13:00:00'), ['GET /health', 'POST /messages/text']],
+  ]) {
+    let h
+    // The poster's clock moves on while the call is answered, as on the phone.
+    const late = (answer) => () => (h.advance(ms), answer)
+    h = await phone(t, { warm: false, routes: { [slow]: late(slow === 'GET /health' ? AUTH : listed(REAL)['GET /newsletters']) } })
+    await warmCache(h.dir, { checkedAt: isoOf(checkedAt), healthAt: isoOf(ist('2026-10-19', '13:00:00')) })
+    const opening = async (when, previous, result) => {
+      h.at(when)
+      const n = h.wa.requests.length
+      const { feed } = await h.tick(previous, result)
+      const routes = routesFrom(h, n)
+      h.advance(VERIFY_AFTER_MS + 1000)
+      return { routes, feed: (await h.tick(feed, QUIET)).feed }
+    }
+    const first = ist('2026-10-20', opensAt)
+    let r = await opening(first, quiet(), LIVE)
+    assert.deepEqual(r.routes, want, slow)
+    assert.equal((await h.ledger('channel.json')).healthAt, isoOf(first), `${slow}: stamped when the check began, on the 20th`)
+    r = await opening(ist('2026-10-21', '13:00:00'), r.feed, LIVE_B)
+    assert.deepEqual(r.routes, ['GET /health', 'POST /messages/text'], `${slow}: the 21st's first window is checked`)
+  }
 })
 
 test('a day with three windows has one session check and one status read, at its first; a day with no window costs nothing; the next day\'s first window checks again', async (t) => {

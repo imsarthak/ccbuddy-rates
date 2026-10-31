@@ -79,7 +79,9 @@
 //   channel.json   the channel found for this token (`checkedAt`), with the
 //                  number linked then and the pin it was found under (`pin`:
 //                  whapi.channelId, or '' when found by itself), and when the
-//                  session was last checked (`healthAt`). An opening checks the
+//                  session was last checked (`healthAt`: the moment before
+//                  its GET /health, so a check that ends past 00:00 IST counts
+//                  for the date it was made on). An opening checks the
 //                  session (GET /health) only when that check was on an
 //                  earlier IST date (dueToday), or a send may have gone out
 //                  since (`recheck`: a 5xx or no answer): so at the day's
@@ -354,15 +356,15 @@ function phoneLedger(dir, { now, forced = false }) {
     held,
     heldUntil: async () => (await held())?.until ?? null,
     hold: (why = '429') => replace(HOLD, { until: iso(now() + REST_MS), why }),
-    /** The channel just found (under `pin`, whapi.channelId, or '' when found by itself), with the session checked at the same moment. */
-    async saveChannel(token, channelId, user = '', pin = '') {
-      const at = iso(now())
-      await replace(CHANNEL, { channelId, tag: channelTag(token, channelId), user, pin: pin || '', checkedAt: at, healthAt: at })
+    /** The channel just found (under `pin`, whapi.channelId, or '' when found by itself), with the session checked at `checkedMs` (now when not given). */
+    async saveChannel(token, channelId, user = '', pin = '', checkedMs = null) {
+      const at = now()
+      await replace(CHANNEL, { channelId, tag: channelTag(token, channelId), user, pin: pin || '', checkedAt: iso(at), healthAt: iso(checkedMs ?? at) })
     },
-    /** The cached channel `c` still holds after a session check now: the list is not read again. */
-    async sessionChecked(c) {
+    /** The cached channel `c` still holds after a session check made at `checkedMs`: the list is not read again. */
+    async sessionChecked(c, checkedMs = now()) {
       const { recheck: _r, ...kept } = c
-      await replace(CHANNEL, { ...kept, healthAt: iso(now()) })
+      await replace(CHANNEL, { ...kept, healthAt: iso(checkedMs) })
     },
     /** A send that may have gone out: the next opening checks the session again. The channel stands. */
     async recheckSession() {
@@ -527,10 +529,12 @@ export function phonePoster({
       // A cache written before `healthAt` existed: it was found right after a session check.
       const c = await L.cachedChannel(s.token, s.channelId)
       if (c?.user && !c.recheck && !dueToday(c.healthAt ?? c.checkedAt, now())) return { pause, cached: c }
+      // The check's time is taken before it is made: one that ends past 00:00 IST is still that date's.
+      const at = now()
       try {
-        return { pause, health: await readHealth(call, '/health') }
+        return { pause, health: await readHealth(call, '/health'), at }
       } catch (e) {
-        return { pause, health: { error: e } }
+        return { pause, health: { error: e }, at }
       }
     })())
 
@@ -558,12 +562,12 @@ export function phonePoster({
   /**
    * Where this post goes, after a session check: the cache, while it is under
    * CHANNEL_MAX_AGE_MS old and the session is connected to the number it was
-   * found with (its `healthAt` then moves to now); else found again and
-   * cached. A session re-linked to another number (the owner's, say) is
-   * checked by the same rules as Actions before anything is posted. Between
-   * session checks (prepare) the cache is used without one.
+   * found with (its `healthAt` then moves to `at`, when the check was made);
+   * else found again and cached. A session re-linked to another number (the
+   * owner's, say) is checked by the same rules as Actions before anything is
+   * posted. Between session checks (prepare) the cache is used without one.
    */
-  async function channelFor(health) {
+  async function channelFor(health, at) {
     if (health?.error) return { reason: `the session check failed: ${short(health.error)}` }
     let h = health
     if (h.status !== 'AUTH') {
@@ -577,12 +581,12 @@ export function phonePoster({
     const user = userTag(s.token, h.user)
     const c = await L.cachedChannel(s.token, s.channelId)
     if (c && user && c.user === user && within(c.checkedAt, CHANNEL_MAX_AGE_MS, now())) {
-      await L.sessionChecked(c)
+      await L.sessionChecked(c, at)
       return { channelId: c.channelId }
     }
     const found = await locate()
     if (found.reason) await L.remove(CHANNEL)
-    else await L.saveChannel(s.token, found.channelId, user, s.channelId)
+    else await L.saveChannel(s.token, found.channelId, user, s.channelId, at)
     return found
   }
 
@@ -787,7 +791,7 @@ export function phonePoster({
     }
     if (cutoff) return late()
     // Checked already this IST day (prepare): the cached channel, with no call.
-    const ch = p.cached ? { channelId: p.cached.channelId } : await channelFor(p.health)
+    const ch = p.cached ? { channelId: p.cached.channelId } : await channelFor(p.health, p.at)
     // The last moment to back out: past here the feed must say the phone took it.
     if (cutoff) return late()
     if (ch.reason) {
