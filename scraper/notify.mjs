@@ -342,6 +342,11 @@ export function istClock(ms) {
   return `${h % 12 || 12}:${String(d.getUTCMinutes()).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`
 }
 
+/** "2026-10-04", the IST calendar date: a new day at 18:30 UTC. Arithmetic, as istClock is. */
+export function istDate(ms) {
+  return new Date(ms + 330 * 60000).toISOString().slice(0, 10)
+}
+
 /** The alert itself. Short, because SMS charges by the segment. */
 export function composeAlert(feed) {
   const best = cheapestPerGram(feed.skus)

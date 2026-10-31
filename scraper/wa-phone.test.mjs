@@ -22,12 +22,40 @@ import { step, inferDiscountPct } from './blinkdeal.mjs'
 import { execFile } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
 import {
-  phonePoster, phoneSettings, pauseCheck, runSetup, runPhoneCheck, INERT, userTag,
-  EDIT_RETRIES, CHANNEL_MAX_AGE_MS, SETTLE_MS, PHONE_TIMEOUT_MS, ADOPT_MAX_AGE_MS, HEALTH_MAX_AGE_MS, STATUS_EVERY_MS,
+  phonePoster, phoneSettings, pauseCheck, runSetup, runPhoneCheck, INERT, userTag, dueToday,
+  EDIT_RETRIES, CHANNEL_MAX_AGE_MS, SETTLE_MS, PHONE_TIMEOUT_MS, ADOPT_MAX_AGE_MS,
 } from './wa-phone.mjs'
 import { postData, renderOpen, renderOver, edge, windowKey, channelTag, PAUSE_TITLE, OPEN_MAX_AGE_MS, REST_MS, VERIFY_AFTER_MS } from './wa-post.mjs'
-import { applyEnv } from './notify.mjs'
+import { applyEnv, istDate } from './notify.mjs'
 import { fakeWhapi, LINKED_NUMBER } from './test-fakes.mjs'
+
+// The phone checks the session and reads a delivery status once an IST date,
+// so a test that spans 00:00 IST would see a new day mid-test. Every clock in
+// this process starts at 12:00 IST on the day it is run, and runs on from
+// there: a run at any hour sees the same days. A child process runs
+// CHILD_CLOCK first, so it keeps the same clock.
+const RealDate = Date
+const IST_MS = 330 * 60000
+const CLOCK_SHIFT_MS = (() => {
+  const real = RealDate.now()
+  return Math.floor((real + IST_MS) / 86400000) * 86400000 - IST_MS + 12 * 3600000 - real
+})()
+globalThis.Date = class extends RealDate {
+  constructor(...a) {
+    if (a.length === 0) super(RealDate.now() + CLOCK_SHIFT_MS)
+    else super(...a)
+  }
+  static now() {
+    return RealDate.now() + CLOCK_SHIFT_MS
+  }
+}
+const CHILD_CLOCK = `{
+    const RealDate = Date
+    globalThis.Date = class extends RealDate {
+      constructor(...a) { if (a.length === 0) super(RealDate.now() + ${CLOCK_SHIFT_MS}); else super(...a) }
+      static now() { return RealDate.now() + ${CLOCK_SHIFT_MS} }
+    }
+  }`
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const fixture = JSON.parse(await readFile(join(HERE, 'fixtures', 'live-window-2026-09-15.json'), 'utf8'))
@@ -137,10 +165,11 @@ async function phone(t, { routes = {}, gh = {}, cfg = LIVE_CFG, warm = true, tim
   const lines = []
   const out = { alerts: [], posts: [] }
   let offset = 0
+  let pinned = null // an instant the poster's clock stands at (`at`), else the running clock
   const poster = (opt = {}) =>
     phonePoster({
       settings: phoneSettings(opt.cfg ?? cfg, { forceDry: !!opt.forced }),
-      dir, fetch: g.fetch, whapiBase: opt.base ?? wa.base, now: () => Date.now() + offset,
+      dir, fetch: g.fetch, whapiBase: opt.base ?? wa.base, now: () => (pinned ?? Date.now()) + offset,
       sleep: async () => {}, log: (s) => lines.push(String(s)), timeoutMs: opt.timeoutMs ?? timeoutMs, settleMs: opt.settleMs ?? settleMs,
     })
   const tick = async (previous, result, opt = {}) => {
@@ -155,6 +184,11 @@ async function phone(t, { routes = {}, gh = {}, cfg = LIVE_CFG, warm = true, tim
   return {
     wa, g, dir, lines, out, poster, tick,
     advance: (ms) => (offset += ms),
+    /** The poster's clock stopped at `when` (an ISO time or ms): it moves only with `advance` from here. */
+    at: (when) => {
+      pinned = typeof when === 'number' ? when : Date.parse(when)
+      offset = 0
+    },
     ledger: (name) => readJson(join(dir, name)),
     calls: () => wa.requests.length + g.calls.length,
     fresh: () => wa.posts().filter((p) => !p.body.edit),
@@ -1006,7 +1040,7 @@ test('a post cut off before its send stops at once: nothing it started keeps the
   // settling, so the post would sleep 3 s between session checks. Whapi and
   // GitHub are answered in the process itself; nothing reaches the network.
   const url = (f) => JSON.stringify(pathToFileURL(join(HERE, f)).href)
-  const code = `
+  const code = `${CHILD_CLOCK}
     const { step } = await import(${url('blinkdeal.mjs')})
     const { phonePoster, phoneSettings } = await import(${url('wa-phone.mjs')})
     const { mkdtemp } = await import('node:fs/promises')
@@ -1048,7 +1082,7 @@ test('a post cut off before its send stops at once: nothing it started keeps the
 
 // ---- 12. The channel cache -------------------------------------------------------------------------
 
-test('the channel: found once (session + list), then within the day the post alone; nothing but the edit at the end', async (t) => {
+test('the channel: found once (session + list), then for the rest of the IST day the post alone; nothing but the edit at the end', async (t) => {
   const h = await phone(t, { warm: false })
   const routes = () => h.wa.requests.map((r) => r.route)
   const { feed } = await h.tick(quiet(), LIVE)
@@ -1062,9 +1096,10 @@ test('the channel: found once (session + list), then within the day the post alo
   assert.ok(!JSON.stringify(cache).includes(LINKED_NUMBER))
   const { feed: q } = await h.tick(feed, QUIET)
   assert.deepEqual(routes().slice(3), ['POST /messages/text'], 'the end: the edit alone')
-  h.advance(23 * 3600 * 1000)
+  // 12:00 IST to 23:00 IST: the same date.
+  h.advance(11 * 3600 * 1000)
   await h.tick(q, LIVE_B)
-  assert.deepEqual(routes().slice(4), ['POST /messages/text'], 'the session checked under a day ago: no check')
+  assert.deepEqual(routes().slice(4), ['POST /messages/text'], 'the session checked earlier this IST day: no check')
 })
 
 // The session answers for another number: the owner's, who owns the channel.
@@ -1073,7 +1108,7 @@ const RELINKED = {
   ...listed({ ...REAL, user_role: 'owner' }),
 }
 
-test('the session re-linked to another number (the owner\'s): caught at the next session check, the first opening a day or more after the last; the channel is found again, and nothing is posted', async (t) => {
+test('the session re-linked to another number (the owner\'s): caught at the next session check, the next IST day\'s first opening; the channel is found again, and nothing is posted', async (t) => {
   const h = await phone(t, { warm: false, routes: RELINKED })
   await warmCache(h.dir, { checkedAt: ago(25 * 3600 * 1000) })
   const { next } = await h.tick(quiet(), LIVE)
@@ -1083,15 +1118,16 @@ test('the session re-linked to another number (the owner\'s): caught at the next
   assert.equal(await h.ledger('channel.json'), null)
   assert.match(h.lines.join('\n'), /no channel to post to \(The number linked to Whapi is the channel OWNER/)
   assert.deepEqual(leaks(h.lines.join('\n')), [])
-  // The guard given up for the Sandbox's budget: within a day of the last
+  // The guard given up for the Sandbox's budget: on the IST date of the last
   // check, and with no call refused since, the cached channel is used unchecked.
   const soon = await phone(t, { routes: RELINKED })
   const { feed: posted } = await soon.tick(quiet(), LIVE)
   assert.deepEqual(soon.wa.requests.map((r) => r.route), ['POST /messages/text'], 'posted with no session check')
   const { feed: over } = await soon.tick(posted, QUIET)
-  soon.advance(HEALTH_MAX_AGE_MS + MIN)
+  // 12:00 IST to 00:01 IST: the next date, 12 h on.
+  soon.advance(12 * 3600 * 1000 + MIN)
   const { next: later } = await soon.tick(over, LIVE_B)
-  assert.deepEqual(soon.wa.requests.slice(-2).map((r) => r.route), ['GET /health', 'GET /newsletters'], 'the day after: checked, and caught')
+  assert.deepEqual(soon.wa.requests.slice(-2).map((r) => r.route), ['GET /health', 'GET /newsletters'], 'the next IST day: checked, and caught')
   assert.equal(later.waAt, undefined)
   assert.equal(soon.fresh().length, 1, 'nothing posted once caught')
 })
@@ -1385,7 +1421,7 @@ test('a restart between the sight and the first page: the post is out, and the n
   const h = await phone(t)
   const url = (f) => JSON.stringify(pathToFileURL(join(HERE, f)).href)
   // The phone dies after its post went out, before the coupon's first page: a fresh node process, killed there.
-  const code = `
+  const code = `${CHILD_CLOCK}
     const { step } = await import(${url('blinkdeal.mjs')})
     const { phonePoster, phoneSettings } = await import(${url('wa-phone.mjs')})
     const { readFile } = await import('node:fs/promises')
@@ -1546,58 +1582,122 @@ test('dry, with the first page after the sight: prints the post at sight and the
 // ---- 14. Whapi's 1,000 calls a month ---------------------------------------------------------------------
 //
 // A normal window costs 4 calls: the post, the first page's edit, the crawl's
-// edit and the "Over" edit. The session check (GET /health) is daily, the
-// channel list (GET /newsletters) weekly, the delivery status (GET
-// /messages/:id) daily. Each trigger below brings a check back sooner.
+// edit and the "Over" edit. The session check (GET /health) is made at the
+// day's first opening and the delivery status (GET /messages/:id) read for
+// the day's first post, the day being the IST date (UTC+5:30, so a new one
+// at 18:30 UTC); the channel list (GET /newsletters) is read weekly. Each
+// trigger below brings a check back sooner.
 
 const HOUR = 60 * MIN
 const DAY = 24 * HOUR
 /** The Whapi routes from request `from` on. */
 const routesFrom = (h, from = 0) => h.wa.requests.slice(from).map((r) => r.route)
-/** A status read was made in the last hour: none gets in the way of what a test counts. */
-const recentlyRead = (dir) => writeFile(join(dir, 'checked.json'), JSON.stringify({ at: ago(HOUR) }))
+/** A status read was made in the last hour (11:00 IST, the same day): none gets in the way of what a test counts. */
+const recentlyRead = (dir) => writeFile(join(dir, 'checked.json'), JSON.stringify({ at: ago(HOUR), sentAt: ago(HOUR) }))
+/** An instant given in IST: ist('2026-10-20', '23:59:59') is 18:29:59Z. */
+const ist = (date, time) => Date.parse(`${date}T${time}+05:30`)
+const isoOf = (ms) => new Date(ms).toISOString()
 
-test('the session check: none within a day of the last; at a day, /health alone (the list stands for a week), and its time moves on', async (t) => {
-  const h = await phone(t, { warm: false })
-  await warmCache(h.dir, { checkedAt: ago(2 * DAY), healthAt: ago(23 * HOUR) })
-  await recentlyRead(h.dir)
-  const { feed } = await h.tick(quiet(), LIVE)
-  assert.deepEqual(routesFrom(h), ['POST /messages/text'], 'checked 23 h ago: the post alone')
-  let q = (await h.tick(feed, QUIET)).feed
-  let n = h.wa.requests.length
-  const offset = h.advance(2 * HOUR)
-  const before = await h.ledger('channel.json')
-  const { feed: f2 } = await h.tick(q, LIVE_B)
-  assert.deepEqual(routesFrom(h, n), ['GET /health', 'POST /messages/text'], '25 h: checked, and the channel found 2 days ago stands')
-  const after = await h.ledger('channel.json')
-  assert.equal(after.checkedAt, before.checkedAt, 'the list was not read again')
-  assert.ok(Math.abs(Date.parse(after.healthAt) - (Date.now() + offset)) < MIN, 'the check is stamped with its time')
-  q = (await h.tick(f2, QUIET)).feed
-  n = h.wa.requests.length
-  h.advance(2 * HOUR)
-  await h.tick(q, LIVE)
-  assert.deepEqual(routesFrom(h, n), ['POST /messages/text'], 'so the next opening is the post alone again')
+test('the day is the IST date: 18:29:59Z and 18:30:00Z are two days, 24 h less a second can be one; a stamp ahead of the clock, or unreadable, is due', () => {
+  assert.equal(istDate(Date.parse('2026-10-19T18:29:59.999Z')), '2026-10-19')
+  assert.equal(istDate(Date.parse('2026-10-19T18:30:00.000Z')), '2026-10-20', '00:00 IST')
+  assert.equal(istDate(ist('2026-10-20', '23:59:59')), '2026-10-20')
+  const at = (iso) => Date.parse(iso)
+  assert.equal(dueToday('2026-10-19T18:29:59Z', at('2026-10-19T18:30:00Z')), true, 'a second apart, across 00:00 IST')
+  assert.equal(dueToday('2026-10-19T18:30:00Z', at('2026-10-20T18:29:59Z')), false, '24 h less a second, on one IST date')
+  assert.equal(dueToday('2026-10-19T16:30:00Z', at('2026-10-20T07:30:00Z')), true, '22:00 IST to 13:00 IST the next day: 15 h, a new date')
+  assert.equal(dueToday('2026-10-20T07:30:00Z', at('2026-10-20T07:30:00Z')), false, 'the same instant')
+  assert.equal(dueToday('2026-10-20T07:30:01Z', at('2026-10-20T07:30:00Z')), true, 'a second ahead of the clock (the clock behind)')
+  assert.equal(dueToday('2026-10-27T07:30:00Z', at('2026-10-20T07:30:00Z')), true, 'a week ahead')
+  for (const bad of [undefined, null, '', 'yesterday', 'NaN']) assert.equal(dueToday(bad, at('2026-10-20T07:30:00Z')), true, String(bad))
 })
 
-test('a cache from before the session check had its own time counts from when it was found; one with no fingerprint, or stamped ahead of the clock, is checked', async (t) => {
+test('the session check goes by the IST date, not 24 h: checked at 23:59:59 IST, it is checked again a second later at 00:00:00; checked at 00:00:00, not again until the next date; /health alone, the list stands for a week', async (t) => {
+  const h = await phone(t, { warm: false })
+  // Checked at 23:59:59 IST on the 19th (18:29:59Z), the channel found 2 days before.
+  await warmCache(h.dir, { checkedAt: isoOf(ist('2026-10-17', '23:59:59')), healthAt: '2026-10-19T18:29:59.000Z' })
+  const opening = async (when, previous, result) => {
+    h.at(when)
+    const n = h.wa.requests.length
+    const { feed } = await h.tick(previous, result)
+    const routes = routesFrom(h, n)
+    h.advance(VERIFY_AFTER_MS + 1000)
+    return { routes, feed: (await h.tick(feed, QUIET)).feed }
+  }
+  let r = await opening('2026-10-19T18:30:00.000Z', quiet(), LIVE)
+  assert.deepEqual(r.routes, ['GET /health', 'POST /messages/text'], '00:00:00 IST on the 20th, a second after the last check: a new date, checked')
+  const c = await h.ledger('channel.json')
+  assert.equal(c.healthAt, '2026-10-19T18:30:00.000Z', 'the check is stamped with its time')
+  assert.equal(c.checkedAt, isoOf(ist('2026-10-17', '23:59:59')), 'the list was not read again')
+  r = await opening(ist('2026-10-20', '13:00:00'), r.feed, LIVE_B)
+  assert.deepEqual(r.routes, ['POST /messages/text'], '13:00 IST: the same date, the post alone')
+  r = await opening('2026-10-20T18:29:59.000Z', r.feed, LIVE)
+  assert.deepEqual(r.routes, ['POST /messages/text'], '23:59:59 IST, 24 h less a second after the check: the same date, the post alone')
+  r = await opening('2026-10-20T18:30:00.000Z', r.feed, LIVE_B)
+  assert.deepEqual(r.routes, ['GET /health', 'POST /messages/text'], '00:00:00 IST on the 21st: checked')
+  assert.equal(h.wa.requests.filter((q) => q.route === 'GET /health').length, 2)
+})
+
+test('a day with three windows has one session check and one status read, at its first; a day with no window costs nothing; the next day\'s first window checks again', async (t) => {
+  const h = await phone(t, { warm: false })
+  // The session checked, and a post's status read, at 22:00 IST on the 19th; the channel found the day before.
+  await warmCache(h.dir, { checkedAt: isoOf(ist('2026-10-18', '22:00:00')), healthAt: isoOf(ist('2026-10-19', '22:00:00')) })
+  await writeFile(join(h.dir, 'checked.json'), JSON.stringify({ at: isoOf(ist('2026-10-19', '22:00:16')), sentAt: isoOf(ist('2026-10-19', '22:00:00')) }))
+  const count = (route, from = 0) => routesFrom(h, from).filter((r) => r === route).length
+  let q = quiet()
+  const windowAt = async (when, result) => {
+    h.at(when)
+    const { feed } = await h.tick(q, result)
+    h.advance(VERIFY_AFTER_MS + 1000)
+    q = (await h.tick(feed, QUIET)).feed
+  }
+  // The 20th: the first window 15 h after the last check, under 24 h.
+  await windowAt(ist('2026-10-20', '13:00:00'), LIVE)
+  await windowAt(ist('2026-10-20', '17:00:00'), LIVE_B)
+  await windowAt(ist('2026-10-20', '23:50:00'), LIVE)
+  assert.equal(h.fresh().length, 3)
+  assert.equal(count('GET /health'), 1, 'one session check')
+  assert.equal(count('GET /messages/:id'), 1, 'one status read')
+  assert.equal((await h.ledger('channel.json')).healthAt, isoOf(ist('2026-10-20', '13:00:00')), 'at the first window')
+  assert.equal((await h.ledger('checked.json')).sentAt, isoOf(ist('2026-10-20', '13:00:00')), 'of the first post')
+  // The 21st: no window, a quiet tick every 30 minutes all day: not one Whapi call.
+  let n = h.wa.requests.length
+  for (let m = 0; m < 24 * 60; m += 30) {
+    h.at(ist('2026-10-21', '00:00:00') + m * MIN)
+    q = (await h.tick(q, QUIET)).feed
+  }
+  assert.equal(h.wa.requests.length, n, 'a day with no window costs nothing')
+  // The 22nd: two windows, one check and one read again.
+  n = h.wa.requests.length
+  await windowAt(ist('2026-10-22', '12:30:00'), LIVE_B)
+  await windowAt(ist('2026-10-22', '20:00:00'), LIVE)
+  assert.equal(count('GET /health', n), 1)
+  assert.equal(count('GET /messages/:id', n), 1)
+  assert.equal(count('GET /newsletters'), 0, 'the channel found 4 days before stands')
+  assert.equal(h.wa.requests.length, 5 * 2 + 2 + 2, 'nothing else: per window the post and the "Over" edit')
+})
+
+test('a cache from before the session check had its own time goes by the IST date it was found on; one with no fingerprint, or stamped ahead of the clock, is checked', async (t) => {
   for (const [warm, want] of [
-    [{ checkedAt: ago(2 * HOUR) }, ['POST /messages/text']],
-    [{ checkedAt: ago(25 * HOUR) }, ['GET /health', 'POST /messages/text']],
-    [{ healthAt: new Date(Date.now() + HOUR).toISOString() }, ['GET /health', 'POST /messages/text']],
-    [{ user: '' }, ['GET /health', 'GET /newsletters', 'POST /messages/text']],
+    [{ checkedAt: isoOf(ist('2026-10-20', '00:00:00')) }, ['POST /messages/text']],
+    [{ checkedAt: isoOf(ist('2026-10-19', '23:59:59')) }, ['GET /health', 'POST /messages/text']],
+    [{ checkedAt: isoOf(ist('2026-10-19', '12:00:01')) }, ['GET /health', 'POST /messages/text']],
+    [{ checkedAt: isoOf(ist('2026-10-20', '09:00:00')), healthAt: isoOf(ist('2026-10-20', '12:00:01')) }, ['GET /health', 'POST /messages/text']],
+    [{ checkedAt: isoOf(ist('2026-10-20', '09:00:00')), user: '' }, ['GET /health', 'GET /newsletters', 'POST /messages/text']],
   ]) {
     const h = await phone(t, { warm: false })
     await warmCache(h.dir, warm)
+    h.at(ist('2026-10-20', '12:00:00'))
     const { next } = await h.tick(quiet(), LIVE)
     assert.deepEqual(routesFrom(h), want, JSON.stringify(warm))
     assert.ok(next.waAt)
   }
 })
 
-test('the channel list: read again only when a week old, even at a day-old session check', async (t) => {
+test('the channel list: read again only when a week old, even at the next IST day\'s session check', async (t) => {
   for (const [checkedAt, list] of [[ago(CHANNEL_MAX_AGE_MS - HOUR), false], [ago(CHANNEL_MAX_AGE_MS + MIN), true]]) {
     const h = await phone(t, { warm: false })
-    await warmCache(h.dir, { checkedAt, healthAt: ago(HEALTH_MAX_AGE_MS + MIN) })
+    await warmCache(h.dir, { checkedAt, healthAt: ago(DAY) })
     await h.tick(quiet(), LIVE)
     assert.deepEqual(routesFrom(h), list ? ['GET /health', 'GET /newsletters', 'POST /messages/text'] : ['GET /health', 'POST /messages/text'], checkedAt)
     const c = await h.ledger('channel.json')
@@ -1606,8 +1706,10 @@ test('the channel list: read again only when a week old, even at a day-old sessi
   }
 })
 
-test('a fortnight of two windows a day: one session check a day, the channel list once a week, a status read at most once in any 24 h', async (t) => {
+test('a fortnight of two windows a day: one session check and one status read each IST day, at its first window, and the channel list once a week', async (t) => {
   const h = await phone(t, { warm: false })
+  const start = ist('2026-10-20', '12:00:00')
+  h.at(start)
   let q = quiet()
   const reads = []
   for (let day = 0; day < 14; day++) {
@@ -1615,8 +1717,8 @@ test('a fortnight of two windows a day: one session check a day, the channel lis
       const { feed } = await h.tick(q, result)
       h.advance(VERIFY_AFTER_MS + 1000)
       q = (await h.tick(feed, QUIET)).feed
-      const at = (await h.ledger('checked.json'))?.at
-      if (at && at !== reads.at(-1)) reads.push(at)
+      const c = await h.ledger('checked.json')
+      if (c && c.sentAt !== reads.at(-1)?.sentAt) reads.push(c)
       h.advance(HOUR)
     }
     h.advance(DAY - 2 * (HOUR + VERIFY_AFTER_MS + 1000))
@@ -1624,12 +1726,11 @@ test('a fortnight of two windows a day: one session check a day, the channel lis
   const count = (route) => h.wa.requests.filter((r) => r.route === route).length
   assert.equal(h.fresh().length, 28)
   assert.equal(h.overEdits().length, 28)
-  assert.equal(count('GET /health'), 14, 'at each day\'s first opening')
+  assert.equal(count('GET /health'), 14, 'at each IST day\'s first opening')
   assert.equal(count('GET /newsletters'), 2, 'on day 0 and day 7')
-  assert.equal(count('GET /messages/:id'), reads.length)
-  assert.ok(reads.length >= 7 && reads.length <= 14, `${reads.length} status reads`)
-  for (let i = 1; i < reads.length; i++) assert.ok(Date.parse(reads[i]) - Date.parse(reads[i - 1]) >= STATUS_EVERY_MS, `read ${i} came a day or more after the one before`)
-  assert.equal(h.wa.requests.length, 28 * 2 + 14 + 2 + reads.length, 'nothing else: per window the post and the "Over" edit')
+  assert.equal(count('GET /messages/:id'), 14, 'one a day')
+  assert.deepEqual(reads.map((c) => c.sentAt), Array.from({ length: 14 }, (_, d) => isoOf(start + d * DAY)), 'each the day\'s first post, at 12:00 IST')
+  assert.equal(h.wa.requests.length, 28 * 2 + 14 + 2 + 14, 'nothing else: per window the post and the "Over" edit')
 })
 
 test('each re-check trigger: a send that may have gone out checks the session (not the list) at the next opening; a 401, 403 or 404 on any call, or the pause issue seen, finds the channel again', async (t) => {
@@ -1670,29 +1771,39 @@ test('each re-check trigger: a send that may have gone out checks the session (n
   assert.deepEqual(routesFrom(p, n), ['GET /health', 'GET /newsletters', 'POST /messages/text'])
 })
 
-test('delivery status: read for the first post after a day without a read, and for no other; a read not made does not count', async (t) => {
-  const h = await phone(t)
+test('delivery status: read for the day\'s first post (IST) and no other that day; the next date\'s first post is read, 2 h after the last read; a read not made does not count', async (t) => {
+  const h = await phone(t, { warm: false })
+  await warmCache(h.dir, { checkedAt: isoOf(ist('2026-10-20', '09:00:00')) })
   const status = (x = h) => x.wa.requests.filter((r) => r.route === 'GET /messages/:id').length
   const windowOf = async (x, previous, result) => {
     const { feed } = await x.tick(previous, result)
     x.advance(VERIFY_AFTER_MS + 1000)
     return (await x.tick(feed, QUIET)).feed
   }
+  h.at(ist('2026-10-20', '22:00:00'))
   let q = await windowOf(h, quiet(), LIVE)
   assert.equal(status(), 1, 'the first post: read 15 s on')
   const read = await h.ledger('checked.json')
-  assert.ok(Date.parse(read.at))
-  h.advance(HOUR)
+  assert.deepEqual(read, { at: isoOf(ist('2026-10-20', '22:00:16')), sentAt: isoOf(ist('2026-10-20', '22:00:00')) }, 'the read, and its post\'s time')
+  h.at(ist('2026-10-20', '23:59:30'))
   q = await windowOf(h, q, LIVE_B)
-  h.advance(20 * HOUR)
-  q = await windowOf(h, q, LIVE)
   assert.equal(status(), 1, 'none for the rest of the day')
   assert.equal(await h.ledger('check.json'), null, 'none even owed')
   assert.deepEqual(await h.ledger('checked.json'), read)
-  h.advance(3 * HOUR)
-  q = await windowOf(h, q, LIVE_B)
-  assert.equal(status(), 2, 'a day after the last read: read again')
-  assert.ok(Date.parse((await h.ledger('checked.json')).at) > Date.parse(read.at))
+  h.at(ist('2026-10-21', '00:00:00'))
+  q = await windowOf(h, q, LIVE)
+  assert.equal(status(), 2, 'the next IST date: read again')
+  assert.equal((await h.ledger('checked.json')).sentAt, isoOf(ist('2026-10-21', '00:00:00')))
+  // A day's first post at 23:59:50 IST, read after midnight: it counts for its own date, and the next date's first post is read too.
+  const late = await phone(t, { warm: false })
+  await warmCache(late.dir, { checkedAt: isoOf(ist('2026-10-20', '09:00:00')) })
+  late.at(ist('2026-10-20', '23:59:50'))
+  let lq = await windowOf(late, quiet(), LIVE)
+  assert.equal(status(late), 1)
+  assert.deepEqual(await late.ledger('checked.json'), { at: isoOf(ist('2026-10-21', '00:00:06')), sentAt: isoOf(ist('2026-10-20', '23:59:50')) })
+  late.at(ist('2026-10-21', '13:00:00'))
+  await windowOf(late, lq, LIVE_B)
+  assert.equal(status(late), 2, 'the 21st\'s first post is read')
   // Paused when its read was due: not made, so not counted; the next post's is read.
   const p = await phone(t)
   const { feed } = await p.tick(quiet(), LIVE)
@@ -1708,16 +1819,35 @@ test('delivery status: read for the first post after a day without a read, and f
   // "failed" still holds the phone off Whapi for 2 days: 'a post WhatsApp marks failed' above.
 })
 
-test('the daily and weekly gates live in .wa-ledger/: a fresh process an hour later makes no session check, no list read and owes no status read', async (t) => {
+test('a checked.json from before `sentAt` goes by the IST date of its read; one stamped ahead of the clock, or none, has the post read', async (t) => {
+  for (const [checked, want] of [
+    [{ at: isoOf(ist('2026-10-20', '00:00:00')) }, 0],
+    [{ at: isoOf(ist('2026-10-19', '23:59:59')) }, 1],
+    [{ at: isoOf(ist('2026-10-19', '12:00:01')), sentAt: isoOf(ist('2026-10-19', '12:00:01')) }, 1],
+    [{ at: isoOf(ist('2026-10-20', '12:00:01')), sentAt: isoOf(ist('2026-10-20', '12:00:01')) }, 1],
+    [null, 1],
+  ]) {
+    const h = await phone(t, { warm: false })
+    await warmCache(h.dir, { checkedAt: isoOf(ist('2026-10-20', '09:00:00')) })
+    if (checked) await writeFile(join(h.dir, 'checked.json'), JSON.stringify(checked))
+    h.at(ist('2026-10-20', '12:00:00'))
+    const { feed } = await h.tick(quiet(), LIVE)
+    h.advance(VERIFY_AFTER_MS + 1000)
+    await h.tick(feed, QUIET)
+    assert.deepEqual(routesFrom(h).filter((r) => r.startsWith('GET')), want ? ['GET /messages/:id'] : [], JSON.stringify(checked))
+  }
+})
+
+test('the daily and weekly gates live in .wa-ledger/: a fresh process an hour later, the same IST day, makes no session check, no list read and owes no status read', async (t) => {
   const h = await phone(t, { warm: false })
   const { feed } = await h.tick(quiet(), LIVE)
   const offset = h.advance(VERIFY_AFTER_MS + 1000)
   await h.tick(feed, QUIET)
   assert.deepEqual(routesFrom(h).filter((r) => r.startsWith('GET')), ['GET /health', 'GET /newsletters', 'GET /messages/:id'])
   const n = h.wa.requests.length
-  // The next window, an hour on, in a fresh node process, as each tick on the phone is.
+  // The next window, an hour on (13:00 IST), in a fresh node process, as each tick on the phone is.
   const url = (f) => JSON.stringify(pathToFileURL(join(HERE, f)).href)
-  const code = `
+  const code = `${CHILD_CLOCK}
     const { step } = await import(${url('blinkdeal.mjs')})
     const { phonePoster, phoneSettings } = await import(${url('wa-phone.mjs')})
     const fetch = async (u, init) => (new URL(String(u)).hostname === 'api.github.com' ? new Response('[]', { status: 200 }) : globalThis.fetch(u, init))

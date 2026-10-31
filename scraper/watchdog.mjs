@@ -51,7 +51,7 @@
 import { readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { istClock } from './notify.mjs'
+import { istClock, istDate } from './notify.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -173,10 +173,9 @@ export function istDay(ms) {
 // before the day's first.
 export const WA_HEALTH_FROM_IST_HOUR = 6
 
-/** The probe's day at `ms`: its cache key, by the IST date, and whether a run then may make it. */
+/** The probe's day at `ms`: its cache key, by the IST date (istDate, as the phone's daily checks), and whether a run then may make it. */
 export function waHealthDay(ms) {
-  const d = new Date(ms + IST_MS)
-  return { key: `wa-health-${d.toISOString().slice(0, 10)}`, due: d.getUTCHours() >= WA_HEALTH_FROM_IST_HOUR }
+  return { key: `wa-health-${istDate(ms)}`, due: new Date(ms + IST_MS).getUTCHours() >= WA_HEALTH_FROM_IST_HOUR }
 }
 
 export const DM = {

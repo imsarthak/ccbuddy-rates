@@ -6,7 +6,7 @@
 // October's windows lasted a median 4 min. From here it goes out the moment
 // the plain listing shows the code, beside the Telegram alert and the Telegram
 // channel post, once the pause check passes (started then; the session check
-// with it, only at the first opening 24 h or more after the last one): about
+// with it, only at the day's first window, IST): about
 // 1-2 s after the alert on mobile data. It says what is
 // known then (the code, its discount, the coupon page). About 3 s after the
 // sight, the coupon's first page has the count and the cheapest coins, and
@@ -65,21 +65,26 @@
 //   <key>.json     each ended post, with its edit's state; kept 30 days
 //   due.json       the keys of ended posts whose "Over" edit is still owed
 //   check.json     the last post, until its status is read once, 15 s or more
-//                  after the send (a 200 is not delivery). Only a post sent
-//                  when no status was read in the last STATUS_EVERY_MS (24 h)
-//                  is put here: the first post 24 h or more after the last
-//                  read. About 25 reads a month at 5.4 windows a day; the
-//                  read drifts later through the day, and some days have none
-//   checked.json   when a post's status was last read
+//                  after the send (a 200 is not delivery). Only the post of
+//                  the day's first window (IST) is put here: one sent when no
+//                  post of this IST date has had its status read (dueToday).
+//                  Every day with a window has one read, a day with none has
+//                  none: about 30 a month at 5.4 windows a day. A delivery
+//                  that fails after it is noticed at the next IST day's
+//                  first post
+//   checked.json   the last read (`at`) and when its post was sent (`sentAt`),
+//                  written just before the read: a read not made (held,
+//                  paused, unsure) does not count, and the day's next post is
+//                  read instead
 //   channel.json   the channel found for this token (`checkedAt`), with the
 //                  number linked then and the pin it was found under (`pin`:
 //                  whapi.channelId, or '' when found by itself), and when the
 //                  session was last checked (`healthAt`). An opening checks the
-//                  session (GET /health) only when that check is
-//                  HEALTH_MAX_AGE_MS (24 h) old, or a send may have gone out
-//                  since (`recheck`: a 5xx or no answer): so at the first
-//                  opening 24 h or more after the last check, drifting
-//                  through the day like the status read. The channel is found
+//                  session (GET /health) only when that check was on an
+//                  earlier IST date (dueToday), or a send may have gone out
+//                  since (`recheck`: a 5xx or no answer): so at the day's
+//                  first window (IST), and a day with no window costs
+//                  nothing. The channel is found
 //                  again (GET /newsletters) at the first session check
 //                  CHANNEL_MAX_AGE_MS (7 days) or more after it was found,
 //                  when the number changes, when the pin is not the one it
@@ -89,7 +94,7 @@
 //                  call before `until` (2 days)
 //
 // Whapi's Sandbox allows 1,000 calls a month, so the reads above are made at
-// most once in 24 h (the session, a status) and once a week (the list)
+// most once an IST day (the session, a status) and once a week (the list)
 // rather than per window; a normal window costs 4 calls (the
 // post, the first page's edit, the crawl's edit, the "Over" edit). After a
 // re-link of the session, run --check: it finds the channel again with the
@@ -123,7 +128,7 @@ import {
   sessionStatus, verify, channelTag, readLedger, writeLedger, REASONS, MESSAGE_ID_OK, NEWSLETTER_OK, KEY_OK,
   REST_MS, VERIFY_AFTER_MS, LEDGER_DIR, WHAPI,
 } from './wa-post.mjs'
-import { loadConfig } from './notify.mjs'
+import { loadConfig, istDate } from './notify.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const execFileAsync = promisify(execFile)
@@ -145,11 +150,10 @@ export const SETTLE_MS = 8000
 // failed): it is ended, and the new window posted.
 export const ADOPT_MAX_AGE_MS = 2 * 3600 * 1000
 // Whapi's Sandbox allows 1,000 calls a month. The channel list is read again
-// once a week; the session at most once in 24 h, on the cached channel, with
-// the number it was found with; a post's delivery status at most once in 24 h.
+// once a week; the session is checked (on the cached channel, with the number
+// it was found with) and a post's delivery status read at most once an IST
+// calendar day (dueToday): at the day's first window, and for its post.
 export const CHANNEL_MAX_AGE_MS = 7 * 24 * 3600 * 1000
-export const HEALTH_MAX_AGE_MS = 24 * 3600 * 1000
-export const STATUS_EVERY_MS = 24 * 3600 * 1000
 export const EDIT_RETRIES = 3
 export const EDIT_RETRY_GAP_MS = 20 * 1000
 export const EDIT_MAX_AGE_MS = 24 * 3600 * 1000
@@ -168,6 +172,17 @@ const iso = (ms) => new Date(ms).toISOString()
 const within = (at, maxMs, nowMs) => {
   const age = nowMs - Date.parse(at ?? '')
   return age >= 0 && age < maxMs
+}
+/**
+ * Is a once-a-day check due at `nowMs`, the last one stamped `at`? Yes when
+ * that was on an earlier IST date (a day ends at 00:00 IST, 18:30 UTC), and
+ * when `at` cannot be read or is ahead of the clock. Never again on the date
+ * of the last one, however early it was: a day with three windows has one
+ * check, and a day with no window none.
+ */
+export function dueToday(at, nowMs) {
+  const t = Date.parse(at ?? '')
+  return !(t <= nowMs) || istDate(t) !== istDate(nowMs)
 }
 // A sleep that a deadline ends early, timer and all, so it never holds the process open.
 const realSleep = (ms, signal) =>
@@ -375,8 +390,8 @@ function phoneLedger(dir, { now, forced = false }) {
  * One tick's WhatsApp poster: the hooks step() calls. Every method is safe to
  * call in any order and never throws; every network call goes through `fetch`.
  *   onLive(sight, { post })   at an opening, beside the Telegram alert:
- *                     starts the pause check, then (when clear, and at most
- *                     once in 24 h) the session check, and the post, which step()
+ *                     starts the pause check, then (when clear, and only at
+ *                     the day's first window, IST) the session check, and the post, which step()
  *                     does not wait for. It
  *                     says what is known at sight, or the first page when that
  *                     has come by the send. With post: false (a code change
@@ -498,10 +513,10 @@ export function phonePoster({
   /**
    * At an opening: held? paused? and, when clear, the session and the number
    * linked. No Whapi call while paused. The session is not checked while the
-   * cached channel's last check is under HEALTH_MAX_AGE_MS old, carries the
-   * number's fingerprint, and no send since may have gone out: the post goes
-   * to that channel. Every 401/403/404 and every sight of the pause issue
-   * drops the cache, so the next opening checks again.
+   * cached channel's last check was made on today's IST date (dueToday),
+   * carries the number's fingerprint, and no send since may have gone out:
+   * the post goes to that channel. Every 401/403/404 and every sight of the
+   * pause issue drops the cache, so the next opening checks again.
    */
   const prepare = () =>
     (pre ??= (async () => {
@@ -511,7 +526,7 @@ export function phonePoster({
       if (pause !== 'clear') return { pause }
       // A cache written before `healthAt` existed: it was found right after a session check.
       const c = await L.cachedChannel(s.token, s.channelId)
-      if (c?.user && !c.recheck && within(c.healthAt ?? c.checkedAt, HEALTH_MAX_AGE_MS, now())) return { pause, cached: c }
+      if (c?.user && !c.recheck && !dueToday(c.healthAt ?? c.checkedAt, now())) return { pause, cached: c }
       try {
         return { pause, health: await readHealth(call, '/health') }
       } catch (e) {
@@ -660,13 +675,15 @@ export function phonePoster({
   }
 
   /**
-   * A 200 is not delivery. The status of the post on file (the first sent
-   * STATUS_EVERY_MS or more after the last read, openJob) is read once, on the
-   * first tick VERIFY_AFTER_MS or more after its send, by the same rule as
-   * Actions. "failed" holds the phone off Whapi for
-   * 2 days: each window then goes to Actions, which meets the same failure
-   * and opens the pause issue. Only a read actually made starts the next
-   * 24 h (checked.json): one skipped while held, paused or unsure does not.
+   * A 200 is not delivery. The status of the post on file (that of the
+   * day's first window, IST: openJob) is read once, on the first tick
+   * VERIFY_AFTER_MS or more after its send, by the same rule as Actions.
+   * "failed" holds the phone off Whapi for 2 days: each window then goes to
+   * Actions, which meets the same failure and opens the pause issue. A
+   * failure that starts after that read is noticed at the next IST day's
+   * first post. Only a read actually made counts for its post's IST date
+   * (checked.json, `sentAt`): one skipped while held, paused or unsure does
+   * not, and the day's next post is read instead.
    */
   async function checkStatus() {
     const c = await L.readJson(CHECK)
@@ -678,7 +695,8 @@ export function phonePoster({
     if (!(now() - sentAt <= EDIT_MAX_AGE_MS) || !MESSAGE_ID_OK.test(c.messageId ?? '') || rested || (await L.heldUntil())) return
     if ((await pausedNow()) !== false) return
     // Written before the call: a read that fails, or a process that dies in it, still counts as the read.
-    await L.replace(CHECKED, { at: iso(now()) })
+    // Its day is the post's: one sent at 23:59 IST and read after midnight leaves the next day its own read.
+    await L.replace(CHECKED, { at: iso(now()), sentAt: iso(sentAt) })
     // A 429 here is already held by the call itself.
     const status = await verify(call, c.messageId, { sleep: async () => {}, log: () => {} }).catch(() => null)
     say(`status of the last post: ${status ?? 'not read'}`)
@@ -768,7 +786,7 @@ export function phonePoster({
       return 'paused'
     }
     if (cutoff) return late()
-    // Checked under a day ago (prepare): the cached channel, with no call.
+    // Checked already this IST day (prepare): the cached channel, with no call.
     const ch = p.cached ? { channelId: p.cached.channelId } : await channelFor(p.health)
     // The last moment to back out: past here the feed must say the phone took it.
     if (cutoff) return late()
@@ -788,8 +806,10 @@ export function phonePoster({
       const id = typeof res?.message?.id === 'string' && MESSAGE_ID_OK.test(res.message.id) ? res.message.id : null
       const sent = { ...entry, state: 'sent', messageId: id }
       await L.replace(OPEN, sent)
-      // Its status is read 15 s on only when no post's was read in the last day.
-      if (id && !within((await L.readJson(CHECKED))?.at, STATUS_EVERY_MS, now())) await L.replace(CHECK, { messageId: id, sentAt: iso(now()) })
+      // Its status is read 15 s on only when it is the day's first post (IST): no
+      // post of today's date read yet. A checked.json from before `sentAt` goes by its read.
+      const read = await L.readJson(CHECKED)
+      if (id && dueToday(read?.sentAt ?? read?.at, now())) await L.replace(CHECK, { messageId: id, sentAt: iso(now()) })
       opened = { entry: sent }
       say(`open sent at ${iso(now())}${id ? '' : ' (Whapi gave no message id, so its end cannot be edited in)'}`)
       return 'sent'
