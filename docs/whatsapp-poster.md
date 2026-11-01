@@ -63,7 +63,7 @@ The same post, edited when the window ends. An edit does not ping followers
 again, and anyone opening the post later sees it is over:
 
 ```
-Over at 6:58 pm, after 36 min. These prices no longer apply.
+Over at 6:58 pm. These prices no longer apply.
 
 BLINKDEAL6 was live on Myntra — 6% off gold coins
 Live from 6:22 pm to 6:58 pm.

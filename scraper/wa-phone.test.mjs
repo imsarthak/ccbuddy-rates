@@ -736,7 +736,7 @@ test('the end: exactly one edit, "Over at …" with the watched end time', async
   const [edit] = h.edits()
   assert.equal(h.edits().length, 1)
   assert.deepEqual(edit.body, { to: CHANNEL, edit: open.messageId, body: renderOver(open.data, next.lastLive.to), no_link_preview: true })
-  assert.match(edit.body.body, /^Over at \d+:\d\d [ap]m, after 0 min\. These prices no longer apply\./)
+  assert.match(edit.body.body, /^Over at \d+:\d\d [ap]m\. These prices no longer apply\./)
   assert.equal(await h.ledger('open.json'), null)
   assert.equal((await h.ledger(`${open.key}.json`)).edit.state, 'done')
   assert.match(h.lines.join('\n'), /WA edit made at .*: BLINKDEAL6 is over/)
