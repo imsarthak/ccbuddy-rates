@@ -268,7 +268,7 @@ test('the open post, rendered from the captured window', () => {
 test('the edit when it ends: when, how long, past tense, no Myntra link', () => {
   const text = renderOver(postData(liveFeed(W1)), W1_END)
   const lines = text.split('\n')
-  assert.equal(lines[0], 'Over at 5:35 pm, after 36 min. These prices no longer apply.')
+  assert.equal(lines[0], 'Over at 5:35 pm. These prices no longer apply.')
   assert.equal(lines[2], 'BLINKDEAL6 was live on Myntra — 6% off gold coins')
   assert.equal(lines[3], 'Live from 5:00 pm to 5:35 pm.')
   assert.ok(!text.includes('myntra.com'), 'a dead coupon link is not left in the post')
@@ -358,7 +358,7 @@ test('a missing token or a mistyped channel id means a dry run, whatever WA_DRY_
 test('a close in a dry run prints the edit it would make', async (t) => {
   const h = await harness(t)
   await h.run(edge(liveTill(W1, W1_END), ended(liveFeed(W1), W1_END), NOW), { WA_DRY_RUN: '' })
-  assert.ok(h.lines.join('\n').includes('Over at 5:35 pm, after 36 min.'))
+  assert.ok(h.lines.join('\n').includes('Over at 5:35 pm. These prices no longer apply.'))
   assert.equal(h.wa.requests.length, 0)
 })
 
@@ -609,8 +609,8 @@ test('two windows on one day under one reused coupon id: two posts, two edits, e
   assert.deepEqual(edits.map((p) => p.body.edit), [
     'PsqXn5SAD5v7HRA-wHN2ziQ0001', 'PsqXn5SAD5v7HRA-wHN2ziQ0002', 'PsqXn5SAD5v7HRA-wHN2ziQ0002',
   ])
-  assert.match(edits[0].body.body, /^Over at 5:35 pm, after 36 min\./)
-  assert.match(edits[1].body.body, /^Over at 8:06 pm, after 36 min\./)
+  assert.match(edits[0].body.body, /^Over at 5:35 pm\. These prices no longer apply\./)
+  assert.match(edits[1].body.body, /^Over at 8:06 pm\. These prices no longer apply\./)
   assert.ok(h.lines.some((l) => /already posted as PsqXn5SAD5v7HRA-wHN2ziQ0001/.test(l)))
 })
 

@@ -407,9 +407,9 @@ export const TEMPLATES = {
       rows?.length ? ['Cheapest 24K per gram after the coupon:', ...rows.map(TEMPLATES.waRow)] : [],
       [source ? `${count ? `${count} coins` : 'The coins'}: ${source}` : null, `Compare them all on CCBuddy: ${WA_LINK}`],
     ),
-  waOver: ({ code, pct, since, until, duration, rows }) =>
+  waOver: ({ code, pct, since, until, rows }) =>
     blocks(
-      [`Over${until ? ` at ${until}` : ''}${duration ? `, after ${duration}` : ''}. These prices no longer apply.`],
+      [`Over${until ? ` at ${until}` : ''}. These prices no longer apply.`],
       [`${code} was live on Myntra${pct ? ` — ${pct}% off gold coins` : ''}`, since ? `Live from ${since}${until ? ` to ${until}` : ''}.` : null],
       rows?.length ? ['Cheapest 24K per gram it gave:', ...rows.map(TEMPLATES.waRow)] : [],
       [`Gold coin prices on CCBuddy: ${WA_LINK}`],

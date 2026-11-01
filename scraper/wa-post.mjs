@@ -71,7 +71,7 @@ import { readFile, writeFile, mkdir, appendFile } from 'node:fs/promises'
 import { createHmac } from 'node:crypto'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { TEMPLATES, bestByWeight, brandName, istClock, formatDuration } from './notify.mjs'
+import { TEMPLATES, bestByWeight, brandName, istClock } from './notify.mjs'
 import { gh as githubApi, ist } from './watchdog.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -155,7 +155,6 @@ export function renderOver(data, to) {
     ...data,
     since: istClock(from),
     until: known ? istClock(end) : null,
-    duration: known ? formatDuration(end - from) : null,
   })
 }
 
