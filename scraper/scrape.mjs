@@ -257,25 +257,6 @@ const MERCHANTS = [
     },
   },
   {
-    id: 'dp',
-    name: 'D.P. Jewellers',
-    short: 'DP',
-    market: 'Pan-India',
-    site: 'https://www.dpjewellers.com/',
-    // Adapter: metalPrices Magento GraphQL.
-    note: 'As published on their online store.',
-    async fetchRate() {
-      const q = '{ metalPrices { metal purity rate_id sale_rate } }'
-      const j = JSON.parse(await get('https://www.dpjewellers.com/graphql?query=' + encodeURIComponent(q)))
-      const rows = (j?.data?.metalPrices ?? []).filter((r) => String(r.metal).toLowerCase() === 'gold')
-      const pick = (p) => rows.find((r) => String(r.purity).toUpperCase().startsWith(p))
-      const g24 = pick('24')
-      const g22 = pick('22')
-      if (!g24 || !g22) throw new Error('22KT/24KT rows missing')
-      return { buy24: num(g24.sale_rate), buy22: num(g22.sale_rate) }
-    },
-  },
-  {
     id: 'lalithaa',
     name: 'Lalithaa Jewellery',
     short: 'Lalithaa',
