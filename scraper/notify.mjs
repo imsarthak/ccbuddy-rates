@@ -270,27 +270,45 @@ export function afterCoupon(s) {
   return s.bestPrice ?? (s.discount != null ? s.price - s.discount : s.price)
 }
 
+// 24K, as the app's coin list counts it: 995 is sold as 24K too.
+const PURE_24K = /24\s*K|99[59]/i
+
+/** The heaviest coin a post quotes: nobody buys bigger (his rule, 1 Nov). */
+export const MAX_POST_GRAMS = 10
+
 /**
- * The cheapest coin per gram in a SKU list, weight read from its name.
+ * A coin a post may quote, as { g, pg }, or null: the code covers it, it is
+ * 24K, it says its weight, and it is no heavier than MAX_POST_GRAMS. The one
+ * rule behind both the alert's "Best" and the channel rows, so the two can
+ * never disagree (until 1 Nov the alert's "Best" was a 22K coin).
+ */
+function postable(s) {
+  if (!s || typeof s !== 'object') return null
+  // The coupon page can list a coin the code does not discount (code null).
+  if (s.code !== undefined && !/BLINK/i.test(s.code ?? '')) return null
+  if (!PURE_24K.test(`${s.name ?? ''} ${s.info ?? ''}`)) return null
+  const g = gramsOf(s)
+  const price = Number(afterCoupon(s))
+  if (!g || g > MAX_POST_GRAMS || !(price > 0)) return null
+  return { g, pg: Math.round(price / g) }
+}
+
+/**
+ * The cheapest coin per gram in a SKU list, by the same rule as the rows.
  * Shared by the alert and the channel posts so the two can never disagree.
  */
 export function cheapestPerGram(skus) {
   let best = null
-  for (const s of skus ?? []) {
-    const g = gramsOf(s)
-    if (!g) continue
-    const pg = Math.round(afterCoupon(s) / g)
-    if (!best || pg < best.pg) best = { pg, g, brand: s.brand, url: s.url }
+  for (const s of Array.isArray(skus) ? skus : []) {
+    const p = postable(s)
+    if (p && (!best || p.pg < best.pg)) best = { ...p, brand: s.brand, url: s.url }
   }
   return best
 }
 
-// 24K, as the app's coin list counts it: 995 is sold as 24K too.
-const PURE_24K = /24\s*K|99[59]/i
-
 /**
  * The cheapest coin per gram at each of the weights most coins come in:
- * 24K only, coins carrying the coupon only, lightest first. One price per
+ * 24K only, coins carrying the coupon only, 10 g at most, lightest first. One price per
  * weight because ₹/g is only comparable within a weight: a 0.5 g coin
  * always costs more per gram than a 20 g bar. The one exception: the weight
  * with the cheapest ₹/g of all always gets a row, in place of the least
@@ -302,14 +320,9 @@ const PURE_24K = /24\s*K|99[59]/i
 export function bestByWeight(skus, { limit = 4 } = {}) {
   const at = new Map()
   for (const s of Array.isArray(skus) ? skus : []) {
-    if (!s || typeof s !== 'object') continue
-    // The coupon page can list a coin the code does not discount (code null).
-    if (s.code !== undefined && !/BLINK/i.test(s.code ?? '')) continue
-    if (!PURE_24K.test(`${s.name ?? ''} ${s.info ?? ''}`)) continue
-    const g = gramsOf(s)
-    const price = Number(afterCoupon(s))
-    if (!g || !(price > 0)) continue
-    const pg = Math.round(price / g)
+    const p = postable(s)
+    if (!p) continue
+    const { g, pg } = p
     const w = at.get(g) ?? { n: 0, best: null }
     w.n++
     if (!w.best || pg < w.best.pg) w.best = { g, pg, brand: s.brand, kind: /\bbar\b/i.test(s.name ?? '') ? 'bar' : 'coin' }

@@ -147,7 +147,6 @@ const OPEN_TEXT = [
   'Cheapest 24K per gram after the coupon:',
   '0.5 g · ₹15,620/g · Mia by Tanishq coin',
   '1 g · ₹15,409/g · P N Gadgil Jewellers coin',
-  '20 g · ₹15,143/g · Kalyan Jewellers bar',
   '',
   `207 coins: ${fixture.source}`,
   `Compare them all on CCBuddy: ${WA_LINK}`,
@@ -300,11 +299,13 @@ test('cheapest by weight: 24K only, coins the code covers only, the common weigh
     sku('995 coin 2 g', 31000), sku('995 coin 2 g', 30000),
     sku('24K coin 5 g', 76000), sku('24K coin 5 g', 75000),
     sku('24K coin 10 g', 150000), sku('24K coin 10 g', 151000),
-    sku('24K coin 50 g', 760000), // one coin, and no cheaper per gram: the fifth weight drops out
+    sku('24K coin 8 g', 122000), // one coin, and no cheaper per gram: the fifth weight drops out
+    sku('24K coin 50 g', 600000), // heavier than anyone buys: never a row, however cheap
     sku('24K coin', 15000), // no weight
   ])
   assert.deepEqual(rows.map((r) => [r.g, r.pg]), [[1, 15000], [2, 15000], [5, 15000], [10, 15000]])
-  assert.equal(bestByWeight([sku('24K Gold Bar 20 g', 300000)])[0].kind, 'bar')
+  assert.equal(bestByWeight([sku('24K Gold Bar 10 g', 150000)])[0].kind, 'bar')
+  assert.deepEqual(bestByWeight([sku('24K Gold Bar 20 g', 280000)]), [], 'over 10 g is never quoted')
   assert.deepEqual(bestByWeight(undefined), [])
 })
 
@@ -320,6 +321,9 @@ test('cheapest by weight: the cheapest per gram always gets a row, in place of t
   ])
   assert.deepEqual(rows.map((r) => [r.g, r.pg]), [[1, 14115], [2, 13986], [5, 13861], [10, 13820]])
   assert.equal(rows[3].kind, 'bar')
+  // The real 31 Oct list also had a 20 g Kalyan bar at ₹13,798/g: over 10 g, so the 10 g bar still leads.
+  const withBig = bestByWeight([...[1, 1, 1, 2, 2, 5, 5, 8, 8].map((g) => sku(`24K coin ${g} g`, 14500 * g)), sku('BHIMA Floral 24K 999 Purity Gold Bar 10 gram', 138200, 'BHIMA'), sku('Kalyan 24KT 999 Purity Lotus Gold Bar Coin - 20Gm', 275969)])
+  assert.deepEqual(withBig.map((r) => [r.g, r.pg]), [[1, 14500], [2, 14500], [5, 14500], [10, 13820]])
   // Already among the most listed: nothing is swapped.
   const kept = bestByWeight([sku('24K coin 1 g', 15000), sku('24K coin 1 g', 15100), sku('24K coin 5 g', 70000)], { limit: 2 })
   assert.deepEqual(kept.map((r) => r.g), [1, 5])

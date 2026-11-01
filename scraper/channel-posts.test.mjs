@@ -50,6 +50,20 @@ test('open post carries code, discount, count, cheapest ₹/g, coupon page and a
   assert.equal(lines.length, 5)
 })
 
+test("the alert's Best is the rows' rule: 24K, covered by the code, 10 g at most", () => {
+  const sku = (name, price, code = 'BLINKDEAL6') => ({ name, price, discount: 0, code, brand: 'B', url: 'u' })
+  const best = cheapestPerGram([
+    sku('22K 916 Purity Lakshmi Gold Coin 8 gram', 102032), // 22K: cheaper per gram, never the Best
+    sku('24K coin 5 g', 69303, 'MYNTRA300'), // not the BLINK code
+    sku('24KT 999 Purity Lotus Gold Bar Coin - 20Gm', 275969), // over 10 g
+    sku('24K 999 Purity Gold Bar 10 gram', 138200),
+    sku('24K coin 2 g', 27972),
+  ])
+  assert.deepEqual([best.g, best.pg], [10, 13820])
+  assert.equal(cheapestPerGram([sku('22K 916 coin 8 g', 100000)]), null)
+  assert.equal(cheapestPerGram(undefined), null)
+})
+
 test('open post drops lines it has no data for, never prints null', () => {
   const text = composePost('open', { code: 'BLINKDEAL', skus: [], source: null })
   assert.equal(text, `BLINKDEAL live on Myntra\n${APP_LINK}`)
