@@ -292,9 +292,12 @@ const PURE_24K = /24\s*K|99[59]/i
  * The cheapest coin per gram at each of the weights most coins come in:
  * 24K only, coins carrying the coupon only, lightest first. One price per
  * weight because ₹/g is only comparable within a weight: a 0.5 g coin
- * always costs more per gram than a 20 g bar. Rows are { g, pg, brand, kind }
- * with kind 'bar' or 'coin', read from the product name. Malformed SKUs are
- * skipped, never printed.
+ * always costs more per gram than a 20 g bar. The one exception: the weight
+ * with the cheapest ₹/g of all always gets a row, in place of the least
+ * listed, so a post headed "cheapest per gram" carries the cheapest (his
+ * pick, 1 Nov: on 31 Oct a lone 10 g bar at ₹13,820/g lost its row to 8 g).
+ * Rows are { g, pg, brand, kind } with kind 'bar' or 'coin', read from the
+ * product name. Malformed SKUs are skipped, never printed.
  */
 export function bestByWeight(skus, { limit = 4 } = {}) {
   const at = new Map()
@@ -312,11 +315,11 @@ export function bestByWeight(skus, { limit = 4 } = {}) {
     if (!w.best || pg < w.best.pg) w.best = { g, pg, brand: s.brand, kind: /\bbar\b/i.test(s.name ?? '') ? 'bar' : 'coin' }
     at.set(g, w)
   }
-  return [...at.values()]
-    .sort((a, b) => b.n - a.n || a.best.g - b.best.g)
-    .slice(0, limit)
-    .map((w) => w.best)
-    .sort((a, b) => a.g - b.g)
+  const all = [...at.values()]
+  const rows = [...all].sort((a, b) => b.n - a.n || a.best.g - b.best.g).slice(0, limit)
+  const cheapest = all.reduce((c, w) => (!c || w.best.pg < c.best.pg || (w.best.pg === c.best.pg && w.n > c.n) ? w : c), null)
+  if (cheapest && limit > 0 && !rows.includes(cheapest)) rows[rows.length - 1] = cheapest
+  return rows.map((w) => w.best).sort((a, b) => a.g - b.g)
 }
 
 /**

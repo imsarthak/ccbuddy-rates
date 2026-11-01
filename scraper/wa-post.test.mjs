@@ -300,12 +300,32 @@ test('cheapest by weight: 24K only, coins the code covers only, the common weigh
     sku('995 coin 2 g', 31000), sku('995 coin 2 g', 30000),
     sku('24K coin 5 g', 76000), sku('24K coin 5 g', 75000),
     sku('24K coin 10 g', 150000), sku('24K coin 10 g', 151000),
-    sku('24K coin 50 g', 700000), // one coin: the fifth weight drops out
+    sku('24K coin 50 g', 760000), // one coin, and no cheaper per gram: the fifth weight drops out
     sku('24K coin', 15000), // no weight
   ])
   assert.deepEqual(rows.map((r) => [r.g, r.pg]), [[1, 15000], [2, 15000], [5, 15000], [10, 15000]])
   assert.equal(bestByWeight([sku('24K Gold Bar 20 g', 300000)])[0].kind, 'bar')
   assert.deepEqual(bestByWeight(undefined), [])
+})
+
+test('cheapest by weight: the cheapest per gram always gets a row, in place of the least listed (31 Oct)', () => {
+  const sku = (name, price, brand = 'B') => ({ name, price, discount: 0, code: 'BLINKDEAL6', brand })
+  // 31 Oct, 4:57 pm: 1, 2, 5 and 8 g are the most listed; the lone 10 g bar is the cheapest per gram.
+  const rows = bestByWeight([
+    sku('24K coin 1 g', 14115), sku('24K coin 1 g', 14400), sku('24K coin 1 g', 14500), sku('24K coin 1 g', 14600),
+    sku('24K coin 2 g', 27972), sku('24K coin 2 g', 28700), sku('24K coin 2 g', 28900),
+    sku('24K Gold Bar 5 gram', 69303, 'BHIMA'), sku('24K coin 5 g', 71000), sku('24K coin 5 g', 71500),
+    sku('24K coin 8 g', 112064), sku('24K coin 8 g', 113000),
+    sku('BHIMA Floral 24K 999 Purity Gold Bar 10 gram', 138200, 'BHIMA'),
+  ])
+  assert.deepEqual(rows.map((r) => [r.g, r.pg]), [[1, 14115], [2, 13986], [5, 13861], [10, 13820]])
+  assert.equal(rows[3].kind, 'bar')
+  // Already among the most listed: nothing is swapped.
+  const kept = bestByWeight([sku('24K coin 1 g', 15000), sku('24K coin 1 g', 15100), sku('24K coin 5 g', 70000)], { limit: 2 })
+  assert.deepEqual(kept.map((r) => r.g), [1, 5])
+  // A tie on ₹/g keeps the more listed weight.
+  const tie = bestByWeight([sku('24K coin 1 g', 14000), sku('24K coin 1 g', 14500), sku('24K coin 2 g', 28000), sku('24K coin 5 g', 70000)], { limit: 1 })
+  assert.deepEqual(tie.map((r) => [r.g, r.pg]), [[1, 14000]])
 })
 
 test('brands lose their capitals and company suffixes, keep their initials', () => {
