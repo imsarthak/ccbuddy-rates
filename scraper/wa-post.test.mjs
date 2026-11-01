@@ -20,7 +20,7 @@ import {
   edge, windowKey, postData, renderOpen, renderOver, runEdge, runHealth, runCheck, runTestPost,
   settings, redact, readLedger, whapi, waitForEarlier, phoneTook, OPEN_MAX_AGE_MS, PAUSE_TITLE, WHAPI,
 } from './wa-post.mjs'
-import { bestByWeight, brandName, istClock, TEMPLATES, WA_LINK } from './notify.mjs'
+import { bestByWeight, brandName, istClock, TEMPLATES, WA_LINK, affiliateLink, INRDEALS_ID } from './notify.mjs'
 import { fakeWhapi, LINKED_NUMBER } from './test-fakes.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -262,6 +262,54 @@ test('a malformed feed is no edge, never a crash', () => {
 
 test('the open post, rendered from the captured window', () => {
   assert.equal(renderOpen(postData(liveFeed(W1))), OPEN_TEXT)
+})
+
+test('an INRDeals link is a plain template on Myntra links only, and no id leaves the link alone', () => {
+  const coin = 'https://www.myntra.com/gold-coin/bhima/bhima-24k-coin-1-g/23250690/buy'
+  assert.equal(INRDEALS_ID, '', 'off until his INRDeals username is set')
+  assert.equal(affiliateLink(coin), coin)
+  assert.equal(affiliateLink(coin, { id: 'shop-x' }), `https://inr.deals/track?id=shop-x&src=wa&url=${encodeURIComponent(coin)}`)
+  assert.equal(affiliateLink(coin, { id: 'a&b', src: 'page' }), `https://inr.deals/track?id=a%26b&src=page&url=${encodeURIComponent(coin)}`)
+  for (const bad of ['javascript:alert(1)', 'http://www.myntra.com/x', 'https://myntra.com.evil.in/x', 'https://www.myntra.com/a b', null, undefined, 7]) {
+    assert.equal(affiliateLink(bad, { id: 'shop-x' }), null, String(bad))
+  }
+})
+
+test('with an INRDeals id: Ad opens the post, each row carries its coin, the list link earns, CCBuddy stays plain', () => {
+  const data = postData(liveFeed(W1))
+  const link = (u) => affiliateLink(u, { id: 'shop-x' })
+  assert.ok(data.rows.every((r) => /^https:\/\/www\.myntra\.com\/gold-coin\//.test(r.url)), 'each row knows its coin')
+  assert.equal(renderOpen(data, { id: 'shop-x' }), [
+    `${TEMPLATES.waAd}BLINKDEAL6 live on Myntra — 6% off gold coins`,
+    'Live since 5:00 pm.',
+    '',
+    'Cheapest 24K per gram after the coupon:',
+    '0.5 g · ₹15,620/g · Mia by Tanishq coin',
+    link(data.rows[0].url),
+    '1 g · ₹15,409/g · P N Gadgil Jewellers coin',
+    link(data.rows[1].url),
+    '',
+    `207 coins: ${link(fixture.source)}`,
+    `Compare them all on CCBuddy: ${WA_LINK}`,
+  ].join('\n'))
+  // At first sight there are no rows yet: the list link alone, still labelled.
+  const sight = renderOpen({ ...data, rows: [], count: null }, { id: 'shop-x' })
+  assert.ok(sight.startsWith(`${TEMPLATES.waAd}BLINKDEAL6 live`), sight)
+  assert.ok(sight.includes(`The coins: ${link(fixture.source)}`), sight)
+  // Nothing to earn on, nothing to label.
+  assert.ok(!renderOpen({ ...data, rows: [], source: null }, { id: 'shop-x' }).includes(TEMPLATES.waAd.trim()))
+  // The edit when it ends keeps no link, so no label either.
+  const over = renderOver(data, W1_END)
+  assert.ok(!/inr\.deals|myntra\.com/.test(over) && !over.startsWith(TEMPLATES.waAd), over)
+})
+
+test('a row whose coin link is not Myntra\'s gets no link, and the rest of the post is unchanged', () => {
+  const skus = fixture.skus.map((s) => ({ ...s, url: 'https://evil.example/x' }))
+  const data = postData(liveFeed(W1, { skus }))
+  assert.ok(data.rows.length > 0 && data.rows.every((r) => r.url === null))
+  const text = renderOpen(data, { id: 'shop-x' })
+  assert.ok(!text.includes('evil'), text)
+  assert.equal(text.split('\n').filter((l) => l.includes('inr.deals')).length, 1, 'the list link only')
 })
 
 test('the edit when it ends: when, how long, past tense, no Myntra link', () => {

@@ -314,8 +314,8 @@ export function cheapestPerGram(skus) {
  * with the cheapest ₹/g of all always gets a row, in place of the least
  * listed, so a post headed "cheapest per gram" carries the cheapest (his
  * pick, 1 Nov: on 31 Oct a lone 10 g bar at ₹13,820/g lost its row to 8 g).
- * Rows are { g, pg, brand, kind } with kind 'bar' or 'coin', read from the
- * product name. Malformed SKUs are skipped, never printed.
+ * Rows are { g, pg, brand, kind, url } with kind 'bar' or 'coin', read from the
+ * product name, and url the coin's page as the feed gave it (unchecked). Malformed SKUs are skipped, never printed.
  */
 export function bestByWeight(skus, { limit = 4 } = {}) {
   const at = new Map()
@@ -325,7 +325,7 @@ export function bestByWeight(skus, { limit = 4 } = {}) {
     const { g, pg } = p
     const w = at.get(g) ?? { n: 0, best: null }
     w.n++
-    if (!w.best || pg < w.best.pg) w.best = { g, pg, brand: s.brand, kind: /\bbar\b/i.test(s.name ?? '') ? 'bar' : 'coin' }
+    if (!w.best || pg < w.best.pg) w.best = { g, pg, brand: s.brand, kind: /\bbar\b/i.test(s.name ?? '') ? 'bar' : 'coin', url: s.url }
     at.set(g, w)
   }
   const all = [...at.values()]
@@ -391,6 +391,24 @@ export const APP_LINK = 'https://ccbuddy.app/blinkdeal'
 // pick, 2026-10-29, over the /wa arrival link, which opens the app home).
 export const WA_LINK = APP_LINK
 
+// The WhatsApp Channel's Myntra links go through INRDeals (his call, 2 Nov:
+// "i want links on whatsapp message also"). Its link is a plain template, so
+// a post loses no time making one: inr.deals hands the tap to CJ, CJ to
+// Myntra. INRDEALS_ID is his INRDeals username, public in every link; empty,
+// links stay plain and the post carries no Ad line. INRDeals checks no id, so
+// a wrong one still lands on Myntra and earns nothing. Gold coins earn 0%
+// ("There is no commission on Gold, Silver and Gift Cards"); what pays is the
+// rest of a buyer's cart. Telegram's posts stay direct.
+export const INRDEALS_ID = ''
+export const MYNTRA_URL = /^https:\/\/www\.myntra\.com\/\S*$/
+
+/** A Myntra link as a WhatsApp post prints it: through INRDeals when there is an id, else as is; null for anything not Myntra's. */
+export function affiliateLink(url, { id = INRDEALS_ID, src = 'wa' } = {}) {
+  if (typeof url !== 'string' || !MYNTRA_URL.test(url)) return null
+  if (!id) return url
+  return `https://inr.deals/track?id=${encodeURIComponent(id)}&src=${encodeURIComponent(src)}&url=${encodeURIComponent(url)}`
+}
+
 // Blank-line-separated blocks; empty lines and empty blocks drop out, so a
 // missing value never leaves a gap, a "null" or a dangling heading.
 const blocks = (...bs) => bs.map((b) => b.filter(Boolean).join('\n')).filter(Boolean).join('\n\n')
@@ -417,10 +435,13 @@ export const TEMPLATES = {
   // The WhatsApp Channel (scraper/wa-post.mjs). One post per window, edited in
   // place when it ends, so followers are pinged once and anyone opening it
   // later sees it is over. `since`/`until` are IST clock times ("4:44 pm").
-  waOpen: ({ code, pct, count, since, rows, source }) =>
+  // `ad` when the post's links earn (affiliateLink): the label opens the
+  // post, as the ad rules want it upfront, and each row carries its coin's
+  // link (`link`), so a buyer is one tap from it in a window of a minute or two.
+  waOpen: ({ code, pct, count, since, rows, source, ad }) =>
     blocks(
-      [`${code} live on Myntra${pct ? ` — ${pct}% off gold coins` : ''}`, since ? `Live since ${since}.` : null],
-      rows?.length ? ['Cheapest 24K per gram after the coupon:', ...rows.map(TEMPLATES.waRow)] : [],
+      [`${ad ? TEMPLATES.waAd : ''}${code} live on Myntra${pct ? ` — ${pct}% off gold coins` : ''}`, since ? `Live since ${since}.` : null],
+      rows?.length ? ['Cheapest 24K per gram after the coupon:', ...rows.flatMap((r) => [TEMPLATES.waRow(r), r.link ?? null])] : [],
       [source ? `${count ? `${count} coins` : 'The coins'}: ${source}` : null, `Compare them all on CCBuddy: ${WA_LINK}`],
     ),
   waOver: ({ code, pct, since, until, rows }) =>
@@ -430,6 +451,8 @@ export const TEMPLATES = {
       rows?.length ? ['Cheapest 24K per gram it gave:', ...rows.map(TEMPLATES.waRow)] : [],
       [`Gold coin prices on CCBuddy: ${WA_LINK}`],
     ),
+  // DRAFT words, his pick pending (2 Nov): the label that opens a post whose links earn.
+  waAd: 'Ad · ',
   waRow: ({ g, pg, brand, kind }) => `${g} g · ₹${pg.toLocaleString('en-IN')}/g · ${brand ? `${brand} ` : ''}${kind === 'bar' ? 'bar' : 'coin'}`,
   // Heads the test-post on the private test channel, so a test can never pass
   // for a live deal wherever it ends up.

@@ -71,7 +71,7 @@ import { readFile, writeFile, mkdir, appendFile } from 'node:fs/promises'
 import { createHmac } from 'node:crypto'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { TEMPLATES, bestByWeight, brandName, istClock } from './notify.mjs'
+import { TEMPLATES, bestByWeight, brandName, istClock, affiliateLink, INRDEALS_ID, MYNTRA_URL } from './notify.mjs'
 import { gh as githubApi, ist } from './watchdog.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -132,19 +132,28 @@ export function postData(feed) {
   const skus = Array.isArray(feed.skus) ? feed.skus : []
   const pct = Number(feed.discountPct) || null
   const count = Number.isInteger(feed.totalCount) && feed.totalCount > 0 ? feed.totalCount : skus.length || null
-  const source = typeof feed.source === 'string' && /^https:\/\/www\.myntra\.com\/\S*$/.test(feed.source) ? feed.source : null
+  const source = typeof feed.source === 'string' && MYNTRA_URL.test(feed.source) ? feed.source : null
   return {
     code,
     pct: pct > 0 && pct < 100 ? pct : null,
     count,
     from: new Date(Date.parse(feed.lastLive.from)).toISOString(),
-    rows: bestByWeight(skus).map((r) => ({ ...r, brand: brandName(r.brand) })),
+    rows: bestByWeight(skus).map((r) => ({ ...r, brand: brandName(r.brand), url: typeof r.url === 'string' && MYNTRA_URL.test(r.url) ? r.url : null })),
     source,
   }
 }
 
-export function renderOpen(data) {
-  return TEMPLATES.waOpen({ ...data, since: istClock(Date.parse(data.from)) })
+/**
+ * The opening post. With an INRDeals id its Myntra links go through INRDeals,
+ * each row gets its coin's link and the Ad label opens the post; without one
+ * it is the plain post. The links are made here, not kept in the ledger, so
+ * the edit that fills the post in makes them the same way.
+ */
+export function renderOpen(data, { id = INRDEALS_ID } = {}) {
+  const rows = (data.rows ?? []).map((r) => ({ ...r, link: id ? affiliateLink(r.url, { id }) : null }))
+  const source = data.source ? affiliateLink(data.source, { id }) : null
+  const ad = Boolean(id) && Boolean(source || rows.some((r) => r.link))
+  return TEMPLATES.waOpen({ ...data, rows, source, ad, since: istClock(Date.parse(data.from)) })
 }
 
 export function renderOver(data, to) {
