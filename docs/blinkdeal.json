@@ -1,7 +1,7 @@
 {
- "generated": "2026-11-03T08:10:48.846Z",
- "checkedAt": "2026-11-03T08:10:48.846Z",
- "ok": false,
+ "generated": "2026-11-03T08:11:18.247Z",
+ "checkedAt": "2026-11-03T08:11:18.247Z",
+ "ok": true,
  "heartbeatMs": 1200000,
  "live": false,
  "knownIds": [
@@ -16,7 +16,5 @@
   "from": "2026-10-31T12:25:20.216Z",
   "skuCount": 91,
   "to": "2026-10-31T12:26:38.859Z"
- },
- "stale": true,
- "error": "HTTP 429 for https://www.myntra.com/gold-coins"
+ }
 }
